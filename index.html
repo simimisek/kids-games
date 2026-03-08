@@ -140,6 +140,134 @@
     .game-card.add-card .game-card-icon { font-size: 2rem; opacity: 0.4; }
     .game-card.add-card .game-card-name { color: #aaa; font-weight: 500; }
 
+    /* ─── INTRO ─── */
+    .intro-section {
+      max-width: 760px;
+      margin: 0 auto 40px;
+    }
+    .intro-box {
+      background: rgba(255,255,255,0.13);
+      border: 2px solid rgba(255,255,255,0.25);
+      border-radius: 20px;
+      padding: 28px 28px 24px;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .intro-box h2 {
+      font-size: 1.3rem;
+      font-weight: 700;
+    }
+    .intro-box p {
+      font-size: 0.95rem;
+      color: rgba(255,255,255,0.88);
+      line-height: 1.65;
+    }
+    .bmc-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: #FFDD00;
+      color: #000;
+      font-weight: 700;
+      font-size: 0.97rem;
+      padding: 12px 22px;
+      border-radius: 12px;
+      text-decoration: none;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+      transition: transform 0.12s, box-shadow 0.12s;
+      align-self: flex-start;
+    }
+    .bmc-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.2); }
+    .bmc-btn:active { transform: translateY(0); }
+
+    /* ─── SUGGEST FORM ─── */
+    .suggest-section {
+      max-width: 760px;
+      margin: 0 auto 48px;
+    }
+    .suggest-box {
+      background: rgba(255,255,255,0.13);
+      border: 2px solid rgba(255,255,255,0.25);
+      border-radius: 20px;
+      padding: 28px 28px 24px;
+      color: #fff;
+    }
+    .suggest-box h2 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .suggest-box p {
+      font-size: 0.92rem;
+      color: rgba(255,255,255,0.8);
+      margin-bottom: 18px;
+      line-height: 1.5;
+    }
+    .suggest-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    .suggest-row input {
+      flex: 1;
+      min-width: 140px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: none;
+      font-size: 0.95rem;
+      background: rgba(255,255,255,0.92);
+      color: #333;
+      outline: none;
+    }
+    .suggest-row input:focus {
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(255,255,255,0.4);
+    }
+    .suggest-textarea {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: none;
+      font-size: 0.95rem;
+      font-family: inherit;
+      background: rgba(255,255,255,0.92);
+      color: #333;
+      resize: vertical;
+      min-height: 90px;
+      outline: none;
+      margin-bottom: 14px;
+    }
+    .suggest-textarea:focus {
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(255,255,255,0.4);
+    }
+    .suggest-btn {
+      background: #fff;
+      color: #764ba2;
+      border: none;
+      border-radius: 10px;
+      padding: 13px 28px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.12s, box-shadow 0.12s;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+    }
+    .suggest-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.2); }
+    .suggest-btn:active { transform: translateY(0); }
+    .suggest-btn:disabled { opacity: 0.6; cursor: default; transform: none; }
+    .suggest-msg {
+      margin-top: 12px;
+      font-size: 0.92rem;
+      min-height: 20px;
+      color: rgba(255,255,255,0.9);
+    }
+    .suggest-msg.ok { color: #86efac; }
+    .suggest-msg.err { color: #fca5a5; }
+
     /* ─── RESPONZIVITA ─── */
     @media (max-width: 400px) {
       body { padding: 20px 12px 36px; }
@@ -148,6 +276,8 @@
       .game-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
       .game-card { padding: 18px 14px 16px; }
       .game-card-icon { font-size: 2.3rem; }
+      .suggest-box { padding: 20px 16px 18px; }
+      .suggest-row { flex-direction: column; }
     }
   </style>
 </head>
@@ -267,6 +397,87 @@
 
   </div>
 </section>
+
+<!-- ═══════════════ INTRO ═══════════════ -->
+<section class="intro-section">
+  <div class="section-header" style="max-width:760px;margin:0 auto 16px;">
+    <span class="section-icon">👩‍👦</span>
+    <span class="section-title">O stránce</span>
+    <div class="section-line"></div>
+  </div>
+  <div class="intro-box">
+    <h2>Ahoj! Jsem máma dvou dětí 👋</h2>
+    <p>
+      Vše začalo jednoduše. Syn potřeboval procvičovat učivo a já nenašla nic, co by mu skutečně vyhovovalo. Tak jsem se do toho pustila sama.
+    </p>
+    <p>
+      Nejsem profesionální vývojářka ani pedagog, jsem jen máma, která to dělá o volném čase s láskou. Ne vše je dokonalé, ale snažím se, aby hry byly zábavné, přehledné a skutečně užitečné.
+    </p>
+    <p>
+      Pokud hry pomohou i vašemu dítěti, budu moc ráda. A pokud byste chtěli hru na míru pro konkrétní učivo, napište mi níže, ráda ji připravím!
+    </p>
+    <p>
+      Pokud se vám stránka líbí a chcete podpořit její provoz, budu moc vděčná za libovolný příspěvek. Není to podmínka, vše je a zůstane zdarma. ☕
+    </p>
+    <a href="https://www.buymeacoffee.com/sliskovad" target="_blank" rel="noopener">
+      <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height:60px;width:217px;border-radius:12px;" />
+    </a>
+  </div>
+</section>
+
+<!-- ═══════════════ NAVRHNĚTE HRU ═══════════════ -->
+<section class="suggest-section">
+  <div class="section-header" style="max-width:760px;margin:0 auto 16px;">
+    <span class="section-icon">💡</span>
+    <span class="section-title">Navrhněte hru</span>
+    <div class="section-line"></div>
+  </div>
+  <div class="suggest-box">
+    <h2>Chcete novou hru na míru?</h2>
+    <p>Napište, co chcete aby vaše dítě procvičovalo a já ji připravím pro vás!</p>
+
+    <form id="sg-form" action="https://formspree.io/f/xwvrpzpr" method="POST">
+      <div class="suggest-row">
+        <input type="text" name="jmeno" placeholder="Vaše jméno (nepovinné)" maxlength="60" />
+        <input type="text" name="vek_ditete" placeholder="Věk dítěte (nepovinné)" maxlength="20" />
+      </div>
+      <textarea class="suggest-textarea" name="navrh" placeholder="Popište hru nebo látku, kterou chcete procvičovat…" maxlength="600" required></textarea>
+      <button class="suggest-btn" type="submit" id="sg-btn">Odeslat nápad ✉️</button>
+      <div class="suggest-msg" id="sg-msg"></div>
+    </form>
+  </div>
+</section>
+
+<script>
+  const form = document.getElementById('sg-form');
+  form.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const btn = document.getElementById('sg-btn');
+    const msg = document.getElementById('sg-msg');
+    btn.disabled = true;
+    msg.textContent = 'Odesílám…';
+    msg.className = 'suggest-msg';
+
+    try {
+      const res = await fetch(form.action, {
+        method: 'POST',
+        body: new FormData(form),
+        headers: { 'Accept': 'application/json' }
+      });
+      if (res.ok) {
+        msg.textContent = 'Díky! Váš nápad byl odeslán. Budu se těšit na vytvoření nové hry! 🎉';
+        msg.className = 'suggest-msg ok';
+        form.reset();
+      } else {
+        throw new Error();
+      }
+    } catch {
+      msg.textContent = 'Nepodařilo se odeslat — zkuste to prosím znovu.';
+      msg.className = 'suggest-msg err';
+      btn.disabled = false;
+    }
+  });
+</script>
 
 </body>
 </html>
