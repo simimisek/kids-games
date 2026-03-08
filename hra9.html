@@ -448,12 +448,7 @@
     document.getElementById('q-op').textContent    = op;
     document.getElementById('q-right').textContent = num;
     document.getElementById('answer-input').value  = '';
-    const inp = document.getElementById('answer-input');
-    setTimeout(() => {
-      inp.focus();
-      // Na mobilu klávesnice zmenší viewport — posuneme pole do středu
-      setTimeout(() => inp.scrollIntoView({ behavior: 'smooth', block: 'center' }), 350);
-    }, 60);
+    setTimeout(() => document.getElementById('answer-input').focus(), 60);
   }
 
   // ─── ZPRACOVÁNÍ ODPOVĚDI ─────────────────────────────────────────────────────
@@ -495,6 +490,27 @@
   document.getElementById('answer-input').addEventListener('keydown', e => {
     if (e.key === 'Enter') handleSubmit();
   });
+
+  // ─── SKRYTÍ CANVASU PŘI OTEVŘENÉ KLÁVESNICI (Android) ───────────────────────
+  // Když klávesnice zabere >30 % výšky obrazovky, canvas se schová
+  // aby bylo pole pro odpověď vždy viditelné
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', () => {
+      const ratio = window.visualViewport.height / window.screen.height;
+      const wrap  = document.querySelector('.canvas-wrap');
+      if (!wrap) return;
+      if (ratio < 0.70) {
+        // Klávesnice otevřena — schovej canvas
+        wrap.style.display = 'none';
+        document.getElementById('question-card')
+          .scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } else {
+        // Klávesnice zavřena — zobraz canvas a překresli hada
+        wrap.style.display = '';
+        if (steps.length > 0) requestAnimationFrame(() => { initCanvas(); drawSnake(); });
+      }
+    });
+  }
 
   // ─── OBRAZOVKY ───────────────────────────────────────────────────────────────
   function startGame() {
