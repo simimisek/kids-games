@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-KEF2T80GE0"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-KEF2T80GE0');
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spoj tečky</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #4a148c 0%, #880e4f 100%);
+      min-height: 100vh;
+      padding: 20px 16px 48px;
+      overflow-x: hidden;
+    }
+
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    /* ─── CARD BOX (start/end) ─── */
+    .card-box {
+      background: #fff;
+      border-radius: 20px;
+      padding: 28px 24px;
+      max-width: 520px;
+      margin: 0 auto;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .hero-icon { font-size: 3.5rem; line-height: 1; }
+
+    h1 { font-size: 2rem; color: #4a148c; text-align: center; }
+    h2 { font-size: 1.6rem; color: #4a148c; text-align: center; }
+
+    .subtitle {
+      color: #666;
+      text-align: center;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    .btn {
+      width: 100%; padding: 15px;
+      font-size: 1.05rem; font-weight: 700;
+      border: none; border-radius: 14px; cursor: pointer;
+      transition: transform 0.1s, box-shadow 0.1s;
+      font-family: inherit;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary {
+      background: #7c3aed; color: #fff;
+      box-shadow: 0 4px 16px rgba(124,58,237,0.35);
+    }
+    .btn-primary:hover { background: #6d28d9; }
+    .btn-secondary {
+      background: rgba(124,58,237,0.1); color: #7c3aed;
+      border: 2px solid rgba(124,58,237,0.25); box-shadow: none;
+    }
+    .btn-secondary:hover { background: rgba(124,58,237,0.18); }
+
+    .link-back { color: #aaa; text-decoration: none; font-size: 0.9rem; }
+    .link-back:hover { color: #4a148c; }
+
+    .btn-home-fixed {
+      position: fixed; top: 12px; right: 12px; z-index: 200;
+      background: rgba(0,0,0,0.25); border: none; border-radius: 10px;
+      padding: 7px 14px; color: #fff; font-family: inherit;
+      font-size: 0.85rem; font-weight: 700; text-decoration: none; cursor: pointer;
+    }
+    .btn-home-fixed:hover { background: rgba(0,0,0,0.4); }
+
+    /* ─── LEADERBOARD ─── */
+    .lb-title {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #bbb;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      align-self: flex-start;
+    }
+    .lb-list { list-style: none; width: 100%; }
+    .lb-list li {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 0;
+      border-bottom: 1px solid #f5f0ff;
+      font-size: 0.9rem;
+    }
+    .lb-rank { color: #4a148c; font-weight: 700; min-width: 22px; }
+    .lb-name { flex: 1; color: #333; }
+    .lb-time { font-weight: 700; color: #4a148c; }
+    .lb-date { color: #ccc; font-size: 0.78rem; }
+    .lb-empty { color: #bbb; font-style: italic; font-size: 0.88rem; }
+
+    /* ─── HUD ─── */
+    .hud {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 600px;
+      margin: 0 auto 10px;
+      color: #fff;
+      font-weight: 700;
+      font-size: 1rem;
+    }
+    #timer { font-size: 1.4rem; font-variant-numeric: tabular-nums; }
+
+    .hint {
+      text-align: center;
+      color: rgba(255,255,255,0.7);
+      font-size: 0.85rem;
+      margin-bottom: 14px;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    /* ─── COLUMNS ─── */
+    .columns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .col { display: flex; flex-direction: column; gap: 10px; }
+
+    /* ─── GAME CARD ─── */
+    .card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 14px 10px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      border: 3px solid transparent;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+      transition: transform 0.1s, border-color 0.15s, background 0.15s;
+      min-height: 78px;
+      position: relative;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .card:active { transform: scale(0.95); }
+
+    .card.selected {
+      border-color: #2563eb;
+      background: #eff6ff;
+      transform: scale(1.05);
+      box-shadow: 0 6px 20px rgba(37,99,235,0.3);
+    }
+    .card.matched {
+      pointer-events: none;
+      opacity: 0;
+      transform: scale(0.8);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    .card.error {
+      border-color: #ef4444;
+      background: #fef2f2;
+      animation: shake 0.4s ease;
+    }
+
+    @keyframes pop {
+      0%   { transform: scale(1); }
+      50%  { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25%       { transform: translateX(-7px); }
+      75%       { transform: translateX(7px); }
+    }
+
+    /* ─── DOTS ─── */
+    .dot-frame { display: flex; flex-direction: column; gap: 6px; align-items: center; }
+    .dot-row   { display: flex; gap: 6px; justify-content: center; }
+    .dot-cell  {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      background: #7c3aed;
+    }
+
+    /* ─── END SCREEN ─── */
+    .result-time { font-size: 2.8rem; font-weight: 900; color: #4a148c; }
+
+    .name-input {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 2px solid #e9d5ff;
+      font-size: 1rem;
+      outline: none;
+      font-family: inherit;
+    }
+    .name-input:focus { border-color: #7c3aed; }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 400px) {
+      body { padding: 12px 10px 32px; }
+      h1 { font-size: 1.7rem; }
+      .hud { font-size: 0.88rem; }
+      #timer { font-size: 1.2rem; }
+      .card { padding: 10px 8px; min-height: 66px; }
+      .dot-cell { width: 17px; height: 17px; }
+      .dot-row { gap: 3px; }
+      .dot-frame { gap: 3px; }
+      .columns { gap: 8px; }
+      .col { gap: 8px; }
+    }
+  </style>
+</head>
+<body>
+
+<a href="index.html" class="btn-home-fixed">🏠 Domů</a>
+
+<!-- ═══ START ═══ -->
+<div id="screen-start" class="screen active">
+  <div class="card-box">
+    <div class="hero-icon">🔵</div>
+    <h1>Spoj tečky</h1>
+    <p class="subtitle">Najdi kartičky se stejným počtem teček a spoj je dohromady!</p>
+    <button class="btn btn-primary" onclick="startGame()">▶ Hrát</button>
+    <a href="index.html" style="width:100%;text-decoration:none;">
+      <button class="btn btn-secondary">🏠 Zpět na výběr</button>
+    </a>
+    <p class="lb-title">Nejlepší časy</p>
+    <ol class="lb-list" id="lb-start"></ol>
+  </div>
+</div>
+
+<!-- ═══ GAME ═══ -->
+<div id="screen-game" class="screen">
+  <div class="hud">
+    <span id="timer">0:00</span>
+    <span id="progress-info">0 / 5</span>
+  </div>
+  <p class="hint">Vyber kartičku vlevo, pak najdi stejnou vpravo</p>
+  <div class="columns">
+    <div class="col" id="left-col"></div>
+    <div class="col" id="right-col"></div>
+  </div>
+</div>
+
+<!-- ═══ END ═══ -->
+<div id="screen-end" class="screen">
+  <div class="card-box">
+    <div class="hero-icon">🎉</div>
+    <h2>Výborně!</h2>
+    <p class="subtitle">Spojil/a jsi všechny kartičky!</p>
+    <div class="result-time" id="final-time"></div>
+    <input class="name-input" id="player-name" type="text" placeholder="Tvoje jméno" maxlength="30" />
+    <button class="btn btn-primary" onclick="saveScore()">Uložit výsledek ✓</button>
+    <p class="lb-title">Nejlepší časy</p>
+    <ol class="lb-list" id="lb-end"></ol>
+    <button class="btn btn-primary" onclick="location.reload()">🔄 Hrát znovu</button>
+    <a href="index.html" style="width:100%;text-decoration:none;">
+      <button class="btn btn-secondary">🏠 Zpět na výběr</button>
+    </a>
+  </div>
+</div>
+
+<script>
+  const QUIZ_TYPE = 'preschool-dots';
+  const DB_URL = 'https://kids-games-3a167-default-rtdb.europe-west1.firebasedatabase.app';
+
+  // ─── Leaderboard ───
+  async function getScores() {
+    try {
+      const r = await fetch(DB_URL + '/scores/' + QUIZ_TYPE + '.json');
+      const data = await r.json();
+      if (!data) return [];
+      return Object.values(data).sort((a, b) => a.ms - b.ms).slice(0, 10);
+    } catch { return []; }
+  }
+
+  async function saveScore() {
+    const name = document.getElementById('player-name').value.trim() || 'Anonym';
+    try {
+      await fetch(DB_URL + '/scores/' + QUIZ_TYPE + '.json', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, ms: finalMs, date: new Date().toLocaleDateString('cs-CZ') })
+      });
+    } catch {}
+    renderLeaderboard(document.getElementById('lb-end'));
+    document.getElementById('player-name').value = '';
+  }
+
+  async function renderLeaderboard(el) {
+    const scores = await getScores();
+    if (!scores.length) { el.innerHTML = '<li class="lb-empty">Zatím žádné výsledky.</li>'; return; }
+    el.innerHTML = scores.map((s, i) => `
+      <li>
+        <span class="lb-rank">${i + 1}.</span>
+        <span class="lb-name">${esc(s.name)}</span>
+        <span class="lb-time">${fmtTime(s.ms)}</span>
+        <span class="lb-date">${esc(s.date)}</span>
+      </li>`).join('');
+  }
+
+  function fmtTime(ms) {
+    const s = Math.floor(ms / 1000);
+    return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+  }
+
+  function esc(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ─── Game state ───
+  const PAIRS = 5;
+  let leftCards = [], rightCards = [];
+  let matchedLeft = new Set(), matchedRight = new Set();
+  let selectedLeft = null;
+  let isAnimating = false;
+  let startTime, timerInterval, finalMs = 0;
+
+  function shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-' + id).classList.add('active');
+  }
+
+  function startGame() {
+    selectedLeft = null;
+    isAnimating = false;
+    matchedLeft = new Set();
+    matchedRight = new Set();
+    const nums = [1,2,3,4,5];
+    leftCards = shuffle(nums);
+    rightCards = shuffle(nums);
+    startTime = Date.now();
+    timerInterval = setInterval(() => {
+      document.getElementById('timer').textContent = fmtTime(Date.now() - startTime);
+    }, 200);
+    updateProgress();
+    renderColumns();
+    showScreen('game');
+  }
+
+  function updateProgress() {
+    document.getElementById('progress-info').textContent = `${matchedLeft.size} / ${PAIRS}`;
+  }
+
+  function renderDots(n) {
+    const row1 = Math.min(n, 4);
+    const row2 = Math.min(Math.max(0, n - 4), 4);
+    const row3 = Math.max(0, n - 8);
+    let html = '<div class="dot-frame">';
+    html += '<div class="dot-row">';
+    for (let i = 0; i < row1; i++) html += '<div class="dot-cell"></div>';
+    html += '</div>';
+    if (row2 > 0) {
+      html += '<div class="dot-row">';
+      for (let i = 0; i < row2; i++) html += '<div class="dot-cell"></div>';
+      html += '</div>';
+    }
+    if (row3 > 0) {
+      html += '<div class="dot-row">';
+      for (let i = 0; i < row3; i++) html += '<div class="dot-cell"></div>';
+      html += '</div>';
+    }
+    html += '</div>';
+    return html;
+  }
+
+  function renderColumns() {
+    document.getElementById('left-col').innerHTML = leftCards.map((n, i) => `
+      <div class="card" id="lc-${i}" onclick="selectLeft(${i})">${renderDots(n)}</div>
+    `).join('');
+    document.getElementById('right-col').innerHTML = rightCards.map((n, i) => `
+      <div class="card" id="rc-${i}" onclick="selectRight(${i})">${renderDots(n)}</div>
+    `).join('');
+  }
+
+  function selectLeft(i) {
+    if (matchedLeft.has(i) || isAnimating) return;
+    if (selectedLeft === i) {
+      document.getElementById(`lc-${i}`).classList.remove('selected');
+      selectedLeft = null;
+      return;
+    }
+    if (selectedLeft !== null) {
+      document.getElementById(`lc-${selectedLeft}`).classList.remove('selected');
+    }
+    selectedLeft = i;
+    document.getElementById(`lc-${i}`).classList.add('selected');
+  }
+
+  function selectRight(j) {
+    if (selectedLeft === null || matchedRight.has(j) || isAnimating) return;
+
+    const li = selectedLeft;
+    if (leftCards[li] === rightCards[j]) {
+      // Správně!
+      document.getElementById(`lc-${li}`).classList.remove('selected');
+      document.getElementById(`lc-${li}`).classList.add('matched');
+      document.getElementById(`rc-${j}`).classList.add('matched');
+      matchedLeft.add(li);
+      matchedRight.add(j);
+      selectedLeft = null;
+      updateProgress();
+
+      if (matchedLeft.size === PAIRS) {
+        isAnimating = true;
+        setTimeout(() => endGame(), 700);
+      }
+    } else {
+      // Špatně
+      isAnimating = true;
+      selectedLeft = null;
+      document.getElementById(`lc-${li}`).classList.add('error');
+      document.getElementById(`rc-${j}`).classList.add('error');
+      setTimeout(() => {
+        document.getElementById(`lc-${li}`).classList.remove('error', 'selected');
+        document.getElementById(`rc-${j}`).classList.remove('error');
+        isAnimating = false;
+      }, 500);
+    }
+  }
+
+  function endGame() {
+    clearInterval(timerInterval);
+    finalMs = Date.now() - startTime;
+    document.getElementById('final-time').textContent = fmtTime(finalMs);
+    showScreen('end');
+    renderLeaderboard(document.getElementById('lb-end'));
+  }
+
+  // Init
+  renderLeaderboard(document.getElementById('lb-start'));
+</script>
+
+</body>
+</html>
