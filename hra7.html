@@ -20,9 +20,10 @@
       background: linear-gradient(135deg, #e96c1d 0%, #f7b731 100%);
       min-height: 100vh;
       display: flex;
+      flex-direction: column;
       align-items: center;
-      justify-content: center;
-      padding: 16px;
+      justify-content: flex-start;
+      padding: 16px 16px 40px;
       overflow-x: hidden;
     }
 
@@ -60,23 +61,21 @@
 
     /* ─── SCREEN ─── */
     .screen { display: none; width: 100%; max-width: 500px; position: relative; z-index: 1; }
-    .screen.active { display: flex; flex-direction: column; align-items: center; }
+    .screen.active { display: flex; flex-direction: column; align-items: center; gap: 16px; padding-top: 16px; }
 
-    /* ─── START ─── */
-    #screen-start { gap: 18px; text-align: center; }
+    /* ─── TITULNÍ ─── */
     .title {
-      font-size: 2.1rem;
+      font-size: 2.2rem;
       color: #fff;
+      text-align: center;
       text-shadow: 0 3px 12px rgba(0,0,0,0.3);
       line-height: 1.25;
     }
     .subtitle {
       color: rgba(255,255,255,0.93);
       font-size: 1rem;
-      line-height: 1.6;
-      background: rgba(0,0,0,0.18);
-      border-radius: 16px;
-      padding: 13px 18px;
+      line-height: 1.65;
+      text-align: center;
     }
     .mascot { font-size: 5rem; line-height: 1; animation: mascotBounce 1.8s ease-in-out infinite; }
     @keyframes mascotBounce {
@@ -85,29 +84,23 @@
     }
 
     /* ─── TLAČÍTKA ─── */
+    .btn {
+      width: 100%; padding: 15px;
+      font-size: 1.05rem; font-weight: 700;
+      border: none; border-radius: 14px; cursor: pointer;
+      transition: transform 0.1s; font-family: inherit;
+    }
+    .btn:active { transform: scale(0.97); }
     .btn-primary {
-      width: 100%;
-      padding: 18px;
-      font-size: 1.15rem;
-      font-weight: 700;
-      border: none;
-      border-radius: 16px;
-      cursor: pointer;
-      background: #fff;
-      color: #e96c1d;
-      box-shadow: 0 5px 18px rgba(0,0,0,0.22);
-      transition: transform 0.12s, box-shadow 0.12s;
-      text-decoration: none;
-      display: block;
-      text-align: center;
+      background: #e96c1d; color: #fff;
+      box-shadow: 0 4px 16px rgba(233,108,29,0.35);
     }
-    .btn-primary:hover  { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.28); }
-    .btn-primary:active { transform: translateY(0); }
-    .btn-primary.secondary {
-      background: rgba(255,255,255,0.22);
-      color: #fff;
-      box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+    .btn-primary:hover { background: #d05c10; }
+    .btn-secondary {
+      background: rgba(233,108,29,0.1); color: #e96c1d;
+      border: 2px solid rgba(233,108,29,0.25); box-shadow: none;
     }
+    .btn-secondary:hover { background: rgba(233,108,29,0.18); }
 
     /* ─── HUD ─── */
     .hud {
@@ -295,9 +288,9 @@
     /* ─── ŽEBŘÍČEK ─── */
     .leaderboard-card {
       background: #fff; border-radius: 20px; padding: 22px;
-      width: 100%; box-shadow: 0 8px 28px rgba(0,0,0,0.18);
+      width: 100%; box-shadow: 0 4px 20px rgba(0,0,0,0.08);
     }
-    .leaderboard-card h3 { font-size: 1.1rem; color: #333; margin-bottom: 14px; text-align: center; }
+    .leaderboard-card h3 { text-align: center; color: #333; font-size: 1.1rem; margin-bottom: 14px; }
     .leaderboard-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
     .leaderboard-list li {
       display: grid; grid-template-columns: 28px 1fr auto;
@@ -322,7 +315,7 @@
 
     /* ─── RESPONZIVITA ─── */
     @media (max-width: 400px) {
-      body { padding: 12px; }
+      body { padding: 10px 10px 32px; }
       .title { font-size: 1.8rem; }
       .subtitle { font-size: 0.9rem; }
       .q-animal { font-size: 1.8rem; }
@@ -333,8 +326,7 @@
       .ans-emoji { font-size: 1.55rem; }
       .question-label { font-size: 1.05rem; }
       .hud { font-size: 0.92rem; padding: 8px 14px; }
-      .btn-primary { padding: 15px; font-size: 1rem; }
-      #screen-start, #screen-end { gap: 14px; }
+      .btn { padding: 14px; font-size: 1rem; }
       .leaderboard-card { padding: 16px; }
     }
   </style>
@@ -350,15 +342,16 @@
 
 <!-- ══════════ START ══════════ -->
 <div id="screen-start" class="screen active">
-  <div class="mascot">🐾</div>
-  <div class="title">Počítej se<br>zvířátky!</div>
+  <div class="title">🐾 Počítej se zvířátky!</div>
   <div class="subtitle">
     Podívej se na skupinky zvířátek a vyber,<br>
-    kolik jich je dohromady (nebo zbyde).<br><br>
+    kolik jich je dohromady (nebo zbyde).<br>
     7 správných odpovědí co nejrychleji 🎉
   </div>
-  <button class="btn-primary" onclick="startGame()">Hrát</button>
-  <a href="index.html" class="btn-primary secondary">← Rozcestník</a>
+  <button class="btn btn-primary" onclick="startGame()">▶ Hrát</button>
+  <a href="index.html" style="width:100%;text-decoration:none;">
+    <button class="btn btn-primary">🏠 Zpět na výběr</button>
+  </a>
   <div class="leaderboard-card">
     <h3>🏆 Nejlepší časy</h3>
     <ul class="leaderboard-list" id="lb-start"></ul>
@@ -401,10 +394,12 @@
   </div>
   <div class="name-row">
     <input type="text" id="player-name" placeholder="Tvoje jméno…" maxlength="20" />
-    <button class="btn-primary" style="width:auto;padding:14px 20px;font-size:1rem;" onclick="saveScore()">Uložit</button>
+    <button class="btn btn-primary" style="width:auto;padding:14px 20px;font-size:1rem;" onclick="saveScore()">Uložit</button>
   </div>
-  <button class="btn-primary secondary" onclick="startGame()">Hrát znovu</button>
-  <a href="index.html" class="btn-primary secondary">← Rozcestník</a>
+  <button class="btn btn-primary" onclick="startGame()">🔄 Hrát znovu</button>
+  <a href="index.html" style="width:100%;text-decoration:none;">
+    <button class="btn btn-primary">🏠 Zpět na výběr</button>
+  </a>
   <div class="leaderboard-card">
     <h3>🏆 Nejlepší časy</h3>
     <ul class="leaderboard-list" id="lb-end"></ul>

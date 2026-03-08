@@ -22,12 +22,12 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      padding: 16px;
+      justify-content: flex-start;
+      padding: 16px 16px 40px;
     }
 
     .screen { display: none; width: 100%; max-width: 480px; }
-    .screen.active { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+    .screen.active { display: flex; flex-direction: column; align-items: center; gap: 16px; padding-top: 16px; }
 
     /* ─── TITULNÍ ─── */
     .title {
@@ -298,7 +298,7 @@
   </p>
   <button class="btn btn-primary" onclick="startGame()">▶ Hrát</button>
   <a href="index.html" style="width:100%;text-decoration:none;">
-    <button class="btn btn-secondary">🏠 Zpět na výběr</button>
+    <button class="btn btn-primary">🏠 Zpět na výběr</button>
   </a>
   <div class="leaderboard-card">
     <h3>🏆 Nejlepší časy</h3>
@@ -343,7 +343,7 @@
   </div>
   <button class="btn btn-primary" onclick="startGame()">🔄 Hrát znovu</button>
   <a href="index.html" style="width:100%;text-decoration:none;">
-    <button class="btn btn-secondary">🏠 Zpět na výběr</button>
+    <button class="btn btn-primary">🏠 Zpět na výběr</button>
   </a>
   <div class="leaderboard-card">
     <h3>🏆 Nejlepší časy</h3>

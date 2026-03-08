@@ -23,8 +23,8 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      padding: 16px;
+      justify-content: flex-start;
+      padding: 16px 16px 40px;
     }
 
     /* ── floating bg numbers ── */
@@ -49,50 +49,67 @@
     .screen {
       position: relative; z-index: 1;
       width: 100%; max-width: 520px;
-      padding: 24px 18px 32px;
-      display: flex; flex-direction: column; align-items: center; gap: 18px;
+      display: flex; flex-direction: column; align-items: center; gap: 16px;
+      padding-top: 16px; padding-bottom: 0;
       text-align: center;
     }
     .screen.hidden { display: none; }
 
     .screen-icon  { font-size: 3.8rem; line-height: 1; }
-    .screen-title { font-size: 1.9rem; font-weight: 800; color: #fff;
+    .screen-title { font-size: 2.2rem; font-weight: 800; color: #fff;
                     text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
     .screen-sub   { font-size: 1rem; color: rgba(255,255,255,0.82);
-                    line-height: 1.5; }
+                    line-height: 1.65; }
 
     /* ── name input ── */
-    .name-row { display: flex; gap: 8px; width: 100%; }
+    .name-row { display: flex; gap: 10px; width: 100%; }
     .name-row input {
-      flex: 1; padding: 10px 14px; border-radius: 12px; border: none;
-      font-size: 1rem; outline: none;
+      flex: 1; padding: 14px 18px; border-radius: 12px; border: none;
+      font-size: 1rem; outline: 2px solid transparent;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08); transition: outline 0.2s;
     }
+    .name-row input:focus { outline: 2px solid #ffca28; }
 
-    /* ── big button ── */
-    .btn-start {
-      background: #ffca28; color: #1a237e;
-      border: none; border-radius: 16px;
-      padding: 14px 48px; font-size: 1.15rem; font-weight: 800;
-      cursor: pointer; box-shadow: 0 4px 16px rgba(0,0,0,0.25);
-      transition: transform 0.12s, box-shadow 0.12s;
+    /* ── tlačítka ── */
+    .btn {
+      width: 100%; padding: 15px;
+      font-size: 1.05rem; font-weight: 700;
+      border: none; border-radius: 14px; cursor: pointer;
+      transition: transform 0.1s; font-family: inherit;
     }
-    .btn-start:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
-    .btn-start:active { transform: translateY(-1px); }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary {
+      background: #ffca28; color: #1a237e;
+      box-shadow: 0 4px 16px rgba(255,202,40,0.45);
+    }
+    .btn-primary:hover { background: #f0bb00; }
+    .btn-secondary {
+      background: rgba(255,202,40,0.12); color: #ffca28;
+      border: 2px solid rgba(255,202,40,0.35); box-shadow: none;
+    }
+    .btn-secondary:hover { background: rgba(255,202,40,0.22); }
 
     /* ── leaderboard ── */
-    .lb-box {
-      background: rgba(255,255,255,0.12);
-      border-radius: 16px; padding: 14px 18px;
-      width: 100%;
+    .leaderboard-card {
+      background: #fff; border-radius: 20px; padding: 22px;
+      width: 100%; box-shadow: 0 4px 20px rgba(0,0,0,0.08);
     }
-    .lb-box h3 { color: #ffca28; font-size: 0.95rem; margin-bottom: 10px; letter-spacing: .04em; }
-    .lb-row { display: flex; justify-content: space-between; align-items: center;
-               color: #fff; font-size: 0.88rem; padding: 3px 0; }
-    .lb-row .lb-rank { color: #ffca28; font-weight: 700; width: 22px; text-align: left; }
-    .lb-row .lb-name { flex: 1; text-align: left; padding: 0 6px;
-                        overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-    .lb-row .lb-time { font-weight: 700; color: #b3e5fc; white-space: nowrap; }
-    .lb-empty { color: rgba(255,255,255,0.45); font-size: 0.85rem; }
+    .leaderboard-card h3 { text-align: center; color: #333; font-size: 1.1rem; margin-bottom: 14px; }
+    .leaderboard-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .leaderboard-list li {
+      display: grid; grid-template-columns: 28px 1fr auto;
+      gap: 8px; align-items: center; font-size: 0.93rem; color: #444;
+      padding: 6px 0; border-bottom: 1px solid #f0f0f0;
+    }
+    .leaderboard-list li:last-child { border-bottom: none; }
+    .lb-rank { font-weight: 700; color: #1a237e; text-align: center; }
+    .lb-name { font-weight: 600; }
+    .lb-time { color: #1a237e; font-weight: 700; }
+    .lb-date { font-size: 0.76rem; color: #aaa; grid-column: 2/4; margin-top: -4px; }
+    .lb-empty, .lb-loading {
+      text-align: center; color: #aaa; font-style: italic;
+      padding: 8px 0; font-size: 0.88rem; grid-column: 1/-1;
+    }
 
     /* ══════════════════════════════
        GAME SCREEN
@@ -259,8 +276,10 @@
 
     /* ── responsive ── */
     @media (max-width: 400px) {
-      .screen-title { font-size: 1.55rem; }
+      body { padding: 10px 10px 32px; }
+      .screen-title { font-size: 1.8rem; }
       .ans-btn { min-width: 60px; height: 60px; font-size: 1.35rem; }
+      .btn { padding: 13px; font-size: 1rem; }
     }
   </style>
 </head>
@@ -274,11 +293,14 @@
   <div class="screen-title">Pyramida čísel</div>
   <div class="screen-sub">Sečti dvě sousední čísla a doplň číslo nad ně. Každá pyramida je těžší!</div>
 
-  <button class="btn-start" id="btnStart">Hrát ▶</button>
+  <button class="btn btn-primary" id="btnStart">▶ Hrát</button>
+  <a href="index.html" style="width:100%;text-decoration:none;">
+    <button class="btn btn-primary">🏠 Zpět na výběr</button>
+  </a>
 
-  <div class="lb-box">
+  <div class="leaderboard-card">
     <h3>🏆 Nejlepší časy</h3>
-    <div id="lbStartList"></div>
+    <ul class="leaderboard-list" id="lbStartList"></ul>
   </div>
 </div>
 
@@ -314,16 +336,18 @@
 
   <div class="name-row">
     <input id="playerName" type="text" maxlength="20" placeholder="Tvoje jméno…" />
-    <button class="btn-start" style="padding:10px 20px;font-size:1rem;" onclick="saveAndShow()">Uložit</button>
+    <button class="btn btn-primary" style="width:auto;padding:14px 20px;font-size:1rem;" onclick="saveAndShow()">Uložit</button>
   </div>
 
-  <div class="lb-box">
+  <div class="leaderboard-card">
     <h3>🏆 Nejlepší časy</h3>
-    <div id="lbEndList"></div>
+    <ul class="leaderboard-list" id="lbEndList"></ul>
   </div>
 
-  <button class="btn-start" id="btnRestart">Hrát znovu ▶</button>
-  <a href="index.html" style="color:rgba(255,255,255,0.7);font-size:0.95rem;text-decoration:none;">← Rozcestník</a>
+  <button class="btn btn-primary" id="btnRestart">🔄 Hrát znovu</button>
+  <a href="index.html" style="width:100%;text-decoration:none;">
+    <button class="btn btn-primary">🏠 Zpět na výběr</button>
+  </a>
 </div>
 
 <script>
@@ -384,21 +408,18 @@ function fmtTime(ms) {
   return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
 }
 async function renderLeaderboard(listEl) {
-  listEl.innerHTML = '<div class="lb-empty">Načítám…</div>';
+  listEl.innerHTML = '<li class="lb-loading">Načítám…</li>';
   const arr = await getScores();
-  listEl.innerHTML = '';
   if (!arr.length) {
-    listEl.innerHTML = '<div class="lb-empty">Zatím žádné skóre.</div>';
+    listEl.innerHTML = '<li class="lb-empty">Zatím žádné skóre.</li>';
     return;
   }
-  arr.forEach((s, i) => {
-    const d = document.createElement('div');
-    d.className = 'lb-row';
-    d.innerHTML = `<span class="lb-rank">${i+1}.</span>
-                   <span class="lb-name">${esc(s.name)}</span>
-                   <span class="lb-time">${fmtTime(s.ms)}</span>`;
-    listEl.appendChild(d);
-  });
+  listEl.innerHTML = arr.map((s, i) => `
+    <li>
+      <span class="lb-rank">${i+1}.</span>
+      <span class="lb-name">${esc(s.name)}</span>
+      <span class="lb-time">${fmtTime(s.ms)}</span>
+    </li>`).join('');
 }
 function esc(s) {
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -768,8 +789,8 @@ function show(id) {
 renderLeaderboard(document.getElementById('lbStartList'));
 document.getElementById('btnStart').addEventListener('click', startGame);
 document.getElementById('btnRestart').addEventListener('click', () => {
-  renderLeaderboard(document.getElementById('lbStartList'));
   show('startScreen');
+  renderLeaderboard(document.getElementById('lbStartList'));
 });
 </script>
 </body>

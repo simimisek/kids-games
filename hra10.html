@@ -19,37 +19,25 @@
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: linear-gradient(135deg, #4a148c 0%, #880e4f 100%);
       min-height: 100vh;
-      padding: 20px 16px 48px;
-      overflow-x: hidden;
-    }
-
-    .screen { display: none; }
-    .screen.active { display: block; }
-
-    /* ─── CARD BOX (start/end) ─── */
-    .card-box {
-      background: #fff;
-      border-radius: 20px;
-      padding: 28px 24px;
-      max-width: 520px;
-      margin: 0 auto;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.25);
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 16px;
+      justify-content: flex-start;
+      padding: 16px 16px 40px;
+      overflow-x: hidden;
     }
 
-    .hero-icon { font-size: 3.5rem; line-height: 1; }
+    .screen { display: none; width: 100%; max-width: 520px; }
+    .screen.active { display: flex; flex-direction: column; align-items: center; gap: 16px; padding-top: 16px; }
 
-    h1 { font-size: 2rem; color: #4a148c; text-align: center; }
+    .title { font-size: 2.2rem; color: #fff; text-align: center; text-shadow: 0 2px 10px rgba(0,0,0,0.2); }
     h2 { font-size: 1.6rem; color: #4a148c; text-align: center; }
 
     .subtitle {
-      color: #666;
+      color: rgba(255,255,255,0.9);
       text-align: center;
-      font-size: 0.95rem;
-      line-height: 1.5;
+      font-size: 1rem;
+      line-height: 1.65;
     }
 
     .btn {
@@ -83,28 +71,24 @@
     .btn-home-fixed:hover { background: rgba(0,0,0,0.4); }
 
     /* ─── LEADERBOARD ─── */
-    .lb-title {
-      font-size: 0.82rem;
-      font-weight: 700;
-      color: #bbb;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      align-self: flex-start;
+    .leaderboard-card {
+      background: #fff; border-radius: 20px; padding: 22px;
+      width: 100%; box-shadow: 0 4px 20px rgba(0,0,0,0.08);
     }
-    .lb-list { list-style: none; width: 100%; }
-    .lb-list li {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 0;
-      border-bottom: 1px solid #f5f0ff;
-      font-size: 0.9rem;
+    .leaderboard-card h3 { text-align: center; color: #333; font-size: 1.1rem; margin-bottom: 14px; }
+    .leaderboard-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .leaderboard-list li {
+      display: grid; grid-template-columns: 28px 1fr auto;
+      gap: 8px; align-items: center; font-size: 0.93rem; color: #444;
+      padding: 6px 0; border-bottom: 1px solid #f0f0f0;
     }
-    .lb-rank { color: #4a148c; font-weight: 700; min-width: 22px; }
-    .lb-name { flex: 1; color: #333; }
-    .lb-time { font-weight: 700; color: #4a148c; }
-    .lb-date { color: #ccc; font-size: 0.78rem; }
-    .lb-empty { color: #bbb; font-style: italic; font-size: 0.88rem; }
+    .leaderboard-list li:last-child { border-bottom: none; }
+    .lb-rank { font-weight: 700; color: #7c3aed; text-align: center; }
+    .lb-name { font-weight: 600; }
+    .lb-time { font-weight: 700; color: #7c3aed; }
+    .lb-date { font-size: 0.76rem; color: #aaa; grid-column: 2/4; margin-top: -4px; }
+    .lb-empty { text-align: center; color: #aaa; font-style: italic;
+                 padding: 8px 0; font-size: 0.88rem; grid-column: 1/-1; }
 
     /* ─── HUD ─── */
     .hud {
@@ -198,23 +182,26 @@
     }
 
     /* ─── END SCREEN ─── */
-    .result-time { font-size: 2.8rem; font-weight: 900; color: #4a148c; }
-
-    .name-input {
-      width: 100%;
-      padding: 12px 14px;
-      border-radius: 10px;
-      border: 2px solid #e9d5ff;
-      font-size: 1rem;
-      outline: none;
-      font-family: inherit;
+    .result-card {
+      background: rgba(255,255,255,0.12); border-radius: 20px; padding: 24px;
+      width: 100%; text-align: center;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
     }
-    .name-input:focus { border-color: #7c3aed; }
+    .result-time { font-size: 2.8rem; font-weight: 900; color: #fff;
+                   text-shadow: 0 2px 10px rgba(0,0,0,0.2); margin-top: 10px; }
+
+    .name-row { width: 100%; display: flex; gap: 10px; }
+    .name-row input {
+      flex: 1; padding: 14px 18px; border-radius: 12px; border: none;
+      font-size: 1rem; outline: 2px solid transparent;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08); transition: outline 0.2s;
+    }
+    .name-row input:focus { outline: 2px solid #7c3aed; }
 
     /* ─── RESPONSIVE ─── */
     @media (max-width: 400px) {
-      body { padding: 12px 10px 32px; }
-      h1 { font-size: 1.7rem; }
+      body { padding: 10px 10px 32px; }
+      .title { font-size: 1.9rem; }
       .hud { font-size: 0.88rem; }
       #timer { font-size: 1.2rem; }
       .card { padding: 10px 8px; min-height: 66px; }
@@ -223,30 +210,29 @@
       .dot-frame { gap: 3px; }
       .columns { gap: 8px; }
       .col { gap: 8px; }
+      .btn { padding: 13px; font-size: 1rem; }
     }
   </style>
 </head>
 <body>
 
-<a href="index.html" class="btn-home-fixed">🏠 Domů</a>
-
 <!-- ═══ START ═══ -->
 <div id="screen-start" class="screen active">
-  <div class="card-box">
-    <div class="hero-icon">🔵</div>
-    <h1>Spoj tečky</h1>
-    <p class="subtitle">Najdi kartičky se stejným počtem teček a spoj je dohromady!</p>
-    <button class="btn btn-primary" onclick="startGame()">▶ Hrát</button>
-    <a href="index.html" style="width:100%;text-decoration:none;">
-      <button class="btn btn-secondary">🏠 Zpět na výběr</button>
-    </a>
-    <p class="lb-title">Nejlepší časy</p>
-    <ol class="lb-list" id="lb-start"></ol>
+  <div class="title">🔵 Spoj tečky</div>
+  <p class="subtitle">Najdi kartičky se stejným počtem teček a spoj je dohromady!</p>
+  <button class="btn btn-primary" onclick="startGame()">▶ Hrát</button>
+  <a href="index.html" style="width:100%;text-decoration:none;">
+    <button class="btn btn-primary">🏠 Zpět na výběr</button>
+  </a>
+  <div class="leaderboard-card">
+    <h3>🏆 Nejlepší časy</h3>
+    <ol class="leaderboard-list" id="lb-start"></ol>
   </div>
 </div>
 
 <!-- ═══ GAME ═══ -->
 <div id="screen-game" class="screen">
+  <a href="index.html" class="btn-home-fixed">🏠 Domů</a>
   <div class="hud">
     <span id="timer">0:00</span>
     <span id="progress-info">0 / 5</span>
@@ -260,20 +246,24 @@
 
 <!-- ═══ END ═══ -->
 <div id="screen-end" class="screen">
-  <div class="card-box">
-    <div class="hero-icon">🎉</div>
-    <h2>Výborně!</h2>
-    <p class="subtitle">Spojil/a jsi všechny kartičky!</p>
+  <div class="result-card">
+    <div style="font-size:3.5rem;margin-bottom:8px;">🎉</div>
+    <div style="font-size:1.9rem;font-weight:800;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,0.2);">Výborně!</div>
+    <div class="result-sub" style="color:rgba(255,255,255,0.8);font-size:0.95rem;margin-top:4px;">Spojil/a jsi všechny kartičky!</div>
     <div class="result-time" id="final-time"></div>
-    <input class="name-input" id="player-name" type="text" placeholder="Tvoje jméno" maxlength="30" />
-    <button class="btn btn-primary" onclick="saveScore()">Uložit výsledek ✓</button>
-    <p class="lb-title">Nejlepší časy</p>
-    <ol class="lb-list" id="lb-end"></ol>
-    <button class="btn btn-primary" onclick="location.reload()">🔄 Hrát znovu</button>
-    <a href="index.html" style="width:100%;text-decoration:none;">
-      <button class="btn btn-secondary">🏠 Zpět na výběr</button>
-    </a>
   </div>
+  <div class="name-row">
+    <input id="player-name" type="text" placeholder="Tvoje jméno" maxlength="30" />
+    <button class="btn btn-primary" style="width:auto;padding:14px 20px;font-size:1rem;" onclick="saveScore()">Uložit</button>
+  </div>
+  <div class="leaderboard-card">
+    <h3>🏆 Nejlepší časy</h3>
+    <ol class="leaderboard-list" id="lb-end"></ol>
+  </div>
+  <button class="btn btn-primary" onclick="startGame()">🔄 Hrát znovu</button>
+  <a href="index.html" style="width:100%;text-decoration:none;">
+    <button class="btn btn-primary">🏠 Zpět na výběr</button>
+  </a>
 </div>
 
 <script>
