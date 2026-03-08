@@ -14,12 +14,12 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      padding: 16px;
+      justify-content: flex-start;
+      padding: 16px 16px 40px;
     }
 
     .screen { display: none; width: 100%; max-width: 480px; }
-    .screen.active { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+    .screen.active { display: flex; flex-direction: column; align-items: center; gap: 16px; padding-top: 16px; }
 
     /* ─── TITULNÍ ─── */
     .title { font-size: 2.2rem; color: #14532d; text-align: center; }
@@ -448,7 +448,12 @@
     document.getElementById('q-op').textContent    = op;
     document.getElementById('q-right').textContent = num;
     document.getElementById('answer-input').value  = '';
-    setTimeout(() => document.getElementById('answer-input').focus(), 60);
+    const inp = document.getElementById('answer-input');
+    setTimeout(() => {
+      inp.focus();
+      // Na mobilu klávesnice zmenší viewport — posuneme pole do středu
+      setTimeout(() => inp.scrollIntoView({ behavior: 'smooth', block: 'center' }), 350);
+    }, 60);
   }
 
   // ─── ZPRACOVÁNÍ ODPOVĚDI ─────────────────────────────────────────────────────
