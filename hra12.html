@@ -405,28 +405,41 @@
 
   const CONFETTI_COLORS = ['#f87171','#60a5fa','#4ade80','#facc15','#c084fc','#fb923c','#f472b6'];
 
-  // ─── LEADERBOARD ───────────────────────────────────────────
-  function getScores() {
-    try { return JSON.parse(localStorage.getItem('scores_' + QUIZ_TYPE) || '[]'); }
-    catch { return []; }
+  // ─── LEADERBOARD (Firebase) ────────────────────────────────
+  const DB_URL = 'https://kids-games-3a167-default-rtdb.europe-west1.firebasedatabase.app';
+
+  async function getScores() {
+    try {
+      const r = await fetch(DB_URL + '/scores/' + QUIZ_TYPE + '.json');
+      const d = await r.json();
+      return Array.isArray(d) ? d : [];
+    } catch { return []; }
   }
 
-  function saveScore() {
+  async function saveScore() {
     const inp = document.getElementById('player-name');
     const name = inp.value.trim();
     if (!name) { inp.style.outline = '3px solid #ef4444'; inp.focus(); return; }
     inp.style.outline = '';
-    const scores = getScores();
+    const scores = await getScores();
     scores.push({ name, ms: finalMs, date: new Date().toLocaleDateString('cs-CZ') });
     scores.sort((a, b) => a.ms - b.ms);
-    localStorage.setItem('scores_' + QUIZ_TYPE, JSON.stringify(scores.slice(0, 10)));
+    const top10 = scores.slice(0, 10);
+    try {
+      await fetch(DB_URL + '/scores/' + QUIZ_TYPE + '.json', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(top10)
+      });
+    } catch {}
     renderLeaderboard('lb-end');
     inp.value = '';
   }
 
-  function renderLeaderboard(elId) {
+  async function renderLeaderboard(elId) {
     const el = document.getElementById(elId);
-    const scores = getScores();
+    el.innerHTML = '<li><span class="lb-empty">Načítám…</span></li>';
+    const scores = await getScores();
     if (!scores.length) {
       el.innerHTML = '<li><span class="lb-empty">Zatím žádné výsledky.</span></li>';
       return;
