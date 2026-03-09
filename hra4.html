@@ -115,7 +115,7 @@
 
     #grid {
       display: grid;
-      grid-template-columns: repeat(9, 1fr);
+      grid-template-columns: repeat(7, 1fr);
       gap: 3px;
       width: 100%;
     }
@@ -125,7 +125,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: clamp(0.62rem, 2.6vw, 0.9rem);
+      font-size: clamp(0.75rem, 3.2vw, 1.05rem);
       font-weight: 800;
       border-radius: 6px;
       background: #f3f3f3;
@@ -296,10 +296,10 @@ const ALL_WORDS = [
   'RYTÍŘ',  'BAGR',   'HASIČ',  'PIRÁTI', 'KOMETA',
   'JEŽEK',  'ŽIRAFA', 'ŠÁLEK',  'ČÁP',    'VÍLA',
   'LIŠÁK',  'ŘÍČKA',  'ČOČKA',  'VÁNOCE', 'ŠKOLÁK',
-  'SNĚHULÁK', 'ČOKOLÁDA', 'POHÁDKA', 'TŘEŠNĚ', 'ŽELVIČKA',
+  'POHÁDKA', 'TŘEŠNĚ', 'SNĚŽNÍK', 'ČEPICE', 'KLOBOUK',
 ];
 const WORDS_PER_GAME = 5;
-const GRID_SIZE = 9;
+const GRID_SIZE = 7;
 
 let currentWords = [];
 const DIRS = [
@@ -319,9 +319,8 @@ let seconds = 0;
 
 // ─── GENEROVÁNÍ MŘÍŽKY ──────────────────────────────────────────────────────
 function buildGrid() {
-  // Vybereme náhodná slova pro tuto hru (jen slova kratší nebo rovna GRID_SIZE)
-  const eligible = ALL_WORDS.filter(w => w.length <= GRID_SIZE);
-  currentWords = eligible.sort(() => Math.random() - 0.5).slice(0, WORDS_PER_GAME);
+  // Vybereme náhodná slova pro tuto hru
+  currentWords = [...ALL_WORDS].sort(() => Math.random() - 0.5).slice(0, WORDS_PER_GAME);
 
   grid = Array.from({length: GRID_SIZE}, () => Array(GRID_SIZE).fill(''));
   placements = [];
