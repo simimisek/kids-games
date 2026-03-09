@@ -1,3 +1,5 @@
+
+
 # Pravidla pro vzdělávací hry — Simonka/Danik
 
 ## Obecná pravidla (platí pro VŠECHNY hry)
@@ -43,47 +45,85 @@ background: linear-gradient(135deg, #4a148c 0%, #880e4f 100%); /* fialová */
 - Zobrazení formátu: `M:SS` (např. `1:34`)
 
 ### 6. Žebříček
-- Zobrazuje se na **úvodní obrazovce** (top 10 nejlepších časů) a na **konci hry**
-- Ukládá se do **Firebase Realtime Database** — sdílený žebříček pro všechny hráče
+- Zobrazuje se na **úvodní obrazovce** (top 5 nejlepších časů) a na **konci hry**
+- Ukládá se do **Firebase Realtime Database** (ne localStorage — funguje na všech zařízeních)
 - `DB_URL = 'https://kids-games-3a167-default-rtdb.europe-west1.firebasedatabase.app'`
 - Cesta: `/scores/<QUIZ_TYPE>.json`
 - Max 10 záznamů, seřazeno od nejlepšího (nejkratší) času
 - Formát záznamu: `{ name, ms, date }`
-- Funkce `getScores()`, `saveScore()`, `renderLeaderboard()` jsou vždy **async**
-- Při výpadku internetu `getScores()` vrátí prázdné pole (tichý fallback)
+- Jméno je **povinné** — bez jména se skóre neuloží (červený outline + focus na input)
 
 ### 7. Struktura každé hry
 ```
 Úvodní obrazovka → Herní obrazovka → Konečná obrazovka
 ```
-- **Úvod**: ikona, název, popis, žebříček (top 5), tlačítko **Hrát ▶**
-  - ⚠️ Žádné pole pro jméno na úvodní obrazovce
+- **Úvod**: ikona, název, popis, [žebříček], tlačítko Hrát
 - **Hra**: progress indikátor, časomíra, herní obsah
-- **Konec** (vše viditelné najednou, žádné skryté prvky):
-  1. Výsledný čas
-  2. Pole pro jméno + tlačítko **Uložit** (po kliknutí uloží a obnoví žebříček)
-  3. Žebříček (zobrazí se hned, aktualizuje se po uložení)
-  4. Tlačítko **Hrát znovu**
-  5. Odkaz **← Rozcestník**
+- **Konec**: výsledek, pole pro jméno + uložení, žebříček, tlačítko Hrát znovu
 
 ### 8. Technické detaily
 - Každá hra = jeden soubor `.html` (CSS + JS inline)
 - QUIZ_TYPE: unikátní string, např. `'math-pyramid'`, `'czech-letters'`
-- `localStorage` klíč: `'scores_' + QUIZ_TYPE`
-- Funkce vždy přítomné: `getScores()`, `saveScore(name, ms)`, `renderLeaderboard(el)`, `fmtTime(ms)`, `esc(s)`
+- Funkce vždy přítomné: `getScores()`, `saveScore()`, `renderLeaderboard(elId)`, `fmtTime(ms)`, `esc(s)`
+- `getScores()` a `renderLeaderboard()` jsou **async** (Firebase fetch)
 
-### 9. Google Analytics
-- Každý nový `.html` soubor musí obsahovat Google Analytics tag hned za `<head>`
-- Measurement ID: `G-KEF2T80GE0`
-```html
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-KEF2T80GE0"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-KEF2T80GE0');
-  </script>
+#### Povinný vzor pro žebříček (Firebase):
+```js
+const QUIZ_TYPE = 'moje-hra';  // unikátní pro každou hru
+const DB_URL = 'https://kids-games-3a167-default-rtdb.europe-west1.firebasedatabase.app';
+let finalMs = 0;
+
+async function getScores() {
+  try {
+    const r = await fetch(DB_URL + '/scores/' + QUIZ_TYPE + '.json');
+    const d = await r.json();
+    return Array.isArray(d) ? d : [];
+  } catch { return []; }
+}
+
+async function saveScore() {
+  const nameInput = document.getElementById('player-name');
+  const name = nameInput.value.trim();
+  if (!name) { nameInput.style.outline = '3px solid #ef4444'; nameInput.focus(); return; }
+  nameInput.style.outline = '';
+  const scores = await getScores();
+  scores.push({ name, ms: finalMs, date: new Date().toLocaleDateString('cs-CZ') });
+  scores.sort((a, b) => a.ms - b.ms);
+  const top10 = scores.slice(0, 10);
+  try {
+    await fetch(DB_URL + '/scores/' + QUIZ_TYPE + '.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(top10)
+    });
+  } catch {}
+  renderLeaderboard('lb-end');
+  nameInput.value = '';
+}
+
+async function renderLeaderboard(elId) {
+  const el = document.getElementById(elId);
+  el.innerHTML = '<li class="lb-empty">Načítám…</li>';
+  const scores = await getScores();
+  if (!scores.length) { el.innerHTML = '<li class="lb-empty">Zatím žádné výsledky.</li>'; return; }
+  el.innerHTML = scores.map((s, i) => `
+    <li>
+      <span class="lb-rank">${i + 1}.</span>
+      <span class="lb-name">${esc(s.name)}</span>
+      <span class="lb-time">${fmtTime(s.ms)}</span>
+    </li>`).join('');
+}
+
+function esc(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function fmtTime(ms) {
+  const s = Math.floor(ms / 1000);
+  return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+}
+
+// Na konci scriptu — inicializace žebříčku na start screenu:
+renderLeaderboard('lb-start');
 ```
 
 ## Přehled existujících her
@@ -98,10 +138,11 @@ background: linear-gradient(135deg, #4a148c 0%, #880e4f 100%); /* fialová */
 | hra6.html | Kde je víc bonbonků? | Hrátky pro nejmenší | `preschool-candies` |
 | hra7.html | Počítej se zvířátky | Hrátky pro nejmenší | `preschool-animals` |
 | hra8.html | Pyramida čísel | Matematika | `math-pyramid` |
-| hra9.html | Had čísel | Matematika | `math-snake` |
 | hra10.html | Spoj tečky | Hrátky pro nejmenší | `preschool-dots` |
+| hra11.html | Spoj kostičky s čísly | Hrátky pro nejmenší | `preschool-blocks` |
+| hra12.html | Barevná příšerka | Hrátky pro nejmenší | `preschool-monster` |
 
 ## Sekce v index.html
-- 🔢 **Matematika** — hra.html, hra2.html, hra8.html, hra9.html
+- 🔢 **Matematika** — hra.html, hra2.html, hra8.html
 - 📖 **Čeština** — hra3.html, hra4.html, hra5.html
-- 🌈 **Hrátky pro nejmenší** — hra6.html, hra7.html, hra10.html
+- 🌈 **Hrátky pro nejmenší** — hra6.html, hra7.html, hra10.html, hra11.html, hra12.html
