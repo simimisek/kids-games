@@ -11,7 +11,14 @@
   </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Pyramida čísel</title>
+  <title>Pyramida čísel | Vzdělávací hry</title>
+  <meta property="og:title" content="Pyramida čísel" />
+  <meta property="og:description" content="Doplňuj čísla do pyramidy. Logická matematická hra pro děti." />
+  <meta property="og:image" content="https://simimisek.github.io/kids-games/og-preview.svg" />
+  <meta property="og:url" content="https://simimisek.github.io/kids-games/hra8.html" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://simimisek.github.io/kids-games/og-preview.svg" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -769,7 +776,10 @@ function endGame() {
 }
 
 async function saveAndShow() {
-  const name = document.getElementById('playerName').value.trim() || 'Anonym';
+  const nameInput = document.getElementById('playerName');
+  const name = nameInput.value.trim();
+  if (!name) { nameInput.style.outline = '3px solid #ef4444'; nameInput.focus(); return; }
+  nameInput.style.outline = '';
   await saveScore(name, finalMs);
   renderLeaderboard(document.getElementById('lbEndList'));
   document.getElementById('playerName').value = '';

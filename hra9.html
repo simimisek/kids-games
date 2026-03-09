@@ -11,7 +11,14 @@
   </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Had čísel</title>
+  <title>Had čísel | Vzdělávací hry</title>
+  <meta property="og:title" content="Had čísel" />
+  <meta property="og:description" content="Seřaď čísla ve správném pořadí. Zábavná hra pro děti." />
+  <meta property="og:image" content="https://simimisek.github.io/kids-games/og-preview.svg" />
+  <meta property="og:url" content="https://simimisek.github.io/kids-games/hra9.html" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://simimisek.github.io/kids-games/og-preview.svg" />
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -562,7 +569,10 @@
   }
 
   async function saveScore() {
-    const name   = document.getElementById('player-name').value.trim() || 'Anonym';
+    const nameInput = document.getElementById('player-name');
+    const name = nameInput.value.trim();
+    if (!name) { nameInput.style.outline = '3px solid #ef4444'; nameInput.focus(); return; }
+    nameInput.style.outline = '';
     const scores = await getScores();
     scores.push({ name, score: finalScore, date: new Date().toLocaleDateString('cs-CZ') });
     scores.sort((a, b) => b.score - a.score);   // více příkladů = lepší

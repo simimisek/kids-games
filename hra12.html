@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-KEF2T80GE0"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-KEF2T80GE0');
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Barevná příšerka | Vzdělávací hry</title>
+  <meta property="og:title" content="Barevná příšerka" />
+  <meta property="og:description" content="Nakrm příšerku správnými barevnými objekty! Hra pro nejmenší." />
+  <meta property="og:image" content="https://simimisek.github.io/kids-games/og-preview.svg" />
+  <meta property="og:url" content="https://simimisek.github.io/kids-games/hra12.html" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://simimisek.github.io/kids-games/og-preview.svg" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #4a148c 0%, #880e4f 100%);
+      min-height: 100vh;
+      overflow-x: hidden;
+      padding: 16px 12px 44px;
+      color: white;
+    }
+
+    /* ─── FLOATING BG ─── */
+    .bg-emoji {
+      position: fixed; font-size: 2rem; opacity: 0.07;
+      pointer-events: none; user-select: none;
+      animation: floatUp 13s linear infinite;
+    }
+    @keyframes floatUp {
+      0%   { transform: translateY(110vh) rotate(0deg);   opacity: 0.07; }
+      100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
+    }
+
+    /* ─── SCREENS ─── */
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    /* ─── BUTTONS ─── */
+    .btn-primary {
+      display: block; width: 100%; padding: 18px;
+      background: linear-gradient(135deg, #f59e0b, #f97316);
+      color: white; border: none; border-radius: 16px;
+      font-size: 1.2rem; font-weight: 700; cursor: pointer;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+    .btn-primary:hover  { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(0,0,0,0.3); }
+    .btn-primary:active { transform: translateY(0); }
+    .back-link {
+      display: block; text-align: center;
+      color: rgba(255,255,255,0.7); font-size: 0.9rem;
+      margin-top: 16px; text-decoration: none;
+    }
+    .back-link:hover { color: white; }
+
+    /* ─── MAIN CARD (start/end) ─── */
+    .main-card { max-width: 500px; margin: 0 auto; text-align: center; }
+    .game-icon  { font-size: 5rem; margin-bottom: 10px; }
+    .game-title { font-size: 2.4rem; font-weight: 700; text-shadow: 0 2px 10px rgba(0,0,0,0.3); margin-bottom: 8px; }
+    .game-sub   { font-size: 1.05rem; opacity: 0.85; margin-bottom: 24px; line-height: 1.5; }
+
+    /* ─── LEADERBOARD ─── */
+    .lb-card  { background: rgba(255,255,255,0.12); border-radius: 16px; padding: 16px 20px; margin: 18px 0; text-align: left; }
+    .lb-title { font-size: 1rem; font-weight: 700; opacity: 0.9; margin-bottom: 10px; text-align: center; }
+    .lb-list  { list-style: none; }
+    .lb-list li { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 0.95rem; }
+    .lb-list li:last-child { border-bottom: none; }
+    .lb-rank  { font-weight: 700; opacity: 0.7; min-width: 22px; }
+    .lb-name  { flex: 1; }
+    .lb-time  { font-weight: 700; color: #fbbf24; }
+    .lb-empty { opacity: 0.6; font-style: italic; display: block; text-align: center; padding: 6px 0; }
+
+    /* ─── SAVE ROW ─── */
+    .save-row { display: flex; gap: 10px; margin-bottom: 4px; }
+    .save-row input {
+      flex: 1; padding: 14px 16px; border-radius: 12px;
+      border: 2px solid rgba(255,255,255,0.3);
+      background: rgba(255,255,255,0.15); color: white;
+      font-size: 1rem; outline: none;
+    }
+    .save-row input::placeholder { color: rgba(255,255,255,0.5); }
+    .save-row input:focus { border-color: #fbbf24; }
+    .save-row button {
+      padding: 14px 20px; background: linear-gradient(135deg, #22c55e, #16a34a);
+      color: white; border: none; border-radius: 12px;
+      font-size: 1rem; font-weight: 700; cursor: pointer; white-space: nowrap;
+    }
+
+    /* ─── GAME HEADER ─── */
+    .game-header {
+      display: flex; justify-content: space-between; align-items: center;
+      max-width: 480px; margin: 0 auto 14px;
+      background: rgba(255,255,255,0.12); border-radius: 12px; padding: 10px 18px;
+    }
+    .timer       { font-size: 1.3rem; font-weight: 700; color: #fbbf24; }
+    .round-badge { font-size: 0.95rem; font-weight: 600; }
+    .round-stars { letter-spacing: 2px; }
+
+    /* ─── TOP AREA ─── */
+    .top-area {
+      max-width: 480px; margin: 0 auto 16px;
+      display: flex; align-items: center; gap: 16px;
+      background: rgba(255,255,255,0.1); border-radius: 20px; padding: 14px 18px;
+    }
+
+    /* ─── MONSTER ─── */
+    .monster-wrap { flex-shrink: 0; width: 88px; }
+    .monster-wrap.happy { animation: mHappy 0.75s ease; }
+    @keyframes mHappy {
+      0%   { transform: scale(1)    rotate(0deg)   translateY(0); }
+      25%  { transform: scale(1.14) rotate(-7deg)  translateY(-8px); }
+      55%  { transform: scale(1.09) rotate(5deg)   translateY(-5px); }
+      80%  { transform: scale(1.04) rotate(-2deg)  translateY(-2px); }
+      100% { transform: scale(1)    rotate(0deg)   translateY(0); }
+    }
+
+    /* Hair spikes */
+    .m-hair { display: flex; justify-content: center; gap: 5px; margin-bottom: -5px; padding: 0 10px; }
+    .m-spike {
+      width: 16px; height: 26px;
+      background: linear-gradient(to top, #6d28d9, #a78bfa);
+      border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+    }
+    .m-spike:nth-child(2) { height: 34px; width: 18px; }
+
+    /* Body */
+    .m-body {
+      width: 88px; height: 98px;
+      background: linear-gradient(155deg, #c4b5fd 0%, #7c3aed 100%);
+      border-radius: 44px 44px 34px 34px;
+      position: relative;
+      box-shadow: 0 6px 22px rgba(0,0,0,0.35);
+    }
+    /* Eyes */
+    .m-eyes { display: flex; justify-content: space-around; padding: 18px 10px 0; }
+    .m-eye {
+      width: 26px; height: 26px; background: white; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .m-pupil { width: 12px; height: 12px; background: #1e1b4b; border-radius: 50%; position: relative; }
+    .m-pupil::after {
+      content: ''; position: absolute;
+      width: 4px; height: 4px; background: white; border-radius: 50%;
+      top: 1px; left: 1px;
+    }
+    /* Cheeks */
+    .m-cheeks { display: flex; justify-content: space-between; padding: 5px 9px 0; }
+    .m-cheek  { width: 18px; height: 10px; background: rgba(255,120,160,0.38); border-radius: 50%; }
+    /* Mouth */
+    .m-mouth-wrap { display: flex; justify-content: center; padding-top: 6px; }
+    .m-mouth {
+      width: 42px; height: 16px;
+      background: #1e1b4b; border-radius: 0 0 21px 21px;
+      overflow: hidden; display: flex; justify-content: space-evenly;
+      transition: height 0.25s;
+    }
+    .m-mouth.eating { height: 30px; }
+    .m-tooth { width: 8px; height: 11px; background: white; border-radius: 0 0 4px 4px; }
+    /* Feet */
+    .m-feet { display: flex; justify-content: center; gap: 7px; margin-top: -3px; }
+    .m-foot { width: 25px; height: 15px; background: linear-gradient(to bottom, #a78bfa, #7c3aed); border-radius: 50%; }
+
+    /* ─── TASK CARD ─── */
+    .task-card { flex: 1; text-align: center; }
+    .task-label { font-size: 0.78rem; opacity: 0.7; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 6px; }
+    .task-main  { display: flex; align-items: center; justify-content: center; margin-bottom: 8px; }
+    .task-bignum { font-size: 4rem; font-weight: 900; line-height: 1; }
+    .task-color-word { font-size: 1rem; font-weight: 700; margin-bottom: 8px; }
+    .task-dots { display: flex; gap: 7px; justify-content: center; margin-bottom: 6px; }
+    .task-dot { width: 18px; height: 18px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.35); transition: background 0.2s, transform 0.2s; }
+    .task-dot.filled { transform: scale(1.15); border-color: white; }
+    .task-progress { font-size: 0.9rem; font-weight: 700; opacity: 0.9; }
+
+    /* ─── OBJECTS AREA ─── */
+    .objects-area {
+      max-width: 480px; margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      padding: 0 2px;
+    }
+
+    /* ─── GAME OBJECT ─── */
+    .game-obj {
+      aspect-ratio: 1;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.12s;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      border-radius: 50%;
+    }
+    .game-obj:hover  { transform: scale(1.07); }
+    .game-obj:active { transform: scale(0.94); }
+
+    .game-obj.selected {
+      transform: scale(1.13) !important;
+      filter: brightness(1.2) drop-shadow(0 0 8px white) drop-shadow(0 0 14px rgba(255,255,255,0.5)) !important;
+    }
+    .game-obj.wrong-flash {
+      animation: wrongShake 0.45s ease;
+      filter: brightness(0.7) sepia(1) saturate(3) hue-rotate(-10deg);
+    }
+    .game-obj.gone { visibility: hidden; pointer-events: none; }
+
+    /* Object shapes */
+    .s-circle  { border-radius: 50%; }
+    .s-star    { clip-path: polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%); border-radius: 0; }
+    .s-square  { border-radius: 14%; }
+    .s-blob    { border-radius: 60% 40% 55% 45% / 50% 60% 40% 50%; }
+
+    /* Shine overlay */
+    .obj-shine {
+      position: absolute;
+      width: 36%; height: 36%;
+      background: rgba(255,255,255,0.38);
+      border-radius: 50%;
+      top: 9%; left: 12%;
+      pointer-events: none;
+    }
+
+    /* ─── ANIMATIONS ─── */
+    @keyframes wrongShake {
+      0%,100% { transform: translateX(0); }
+      20%     { transform: translateX(-10px); }
+      40%     { transform: translateX(10px); }
+      60%     { transform: translateX(-7px); }
+      80%     { transform: translateX(7px); }
+    }
+    @keyframes rainFall {
+      0%   { top: -40px; opacity: 1;   transform: rotate(0deg); }
+      100% { top: 110vh;  opacity: 0.8; transform: rotate(540deg); }
+    }
+
+    /* ─── END RESULT ─── */
+    .result-icon  { font-size: 4rem; margin-bottom: 10px; }
+    .result-title { font-size: 2rem; font-weight: 700; margin-bottom: 8px; }
+    .result-time  { font-size: 3.2rem; font-weight: 800; color: #fbbf24; margin: 10px 0 24px; }
+
+    /* ─── HOME BUTTON ─── */
+    .btn-home-fixed {
+      position: fixed; top: 12px; right: 12px; z-index: 200;
+      background: rgba(0,0,0,0.25); border: none; border-radius: 10px;
+      padding: 7px 14px; color: #fff; font-family: inherit;
+      font-size: 0.85rem; font-weight: 700; text-decoration: none; cursor: pointer;
+    }
+    .btn-home-fixed:hover { background: rgba(0,0,0,0.4); }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 380px) {
+      body          { padding: 10px 8px 32px; }
+      .game-title   { font-size: 1.9rem; }
+      .top-area     { gap: 10px; padding: 10px 12px; }
+      .monster-wrap { width: 74px; }
+      .m-body       { width: 74px; height: 84px; }
+      .m-eyes       { padding: 14px 8px 0; }
+      .m-eye        { width: 22px; height: 22px; }
+      .task-bignum  { font-size: 3.2rem; }
+      .objects-area { gap: 7px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Floating bg emojis -->
+<div class="bg-emoji" style="left:5%;animation-delay:0s;animation-duration:14s">🌈</div>
+<div class="bg-emoji" style="left:18%;animation-delay:5s;animation-duration:11s">⭐</div>
+<div class="bg-emoji" style="left:37%;animation-delay:9s;animation-duration:15s">🔵</div>
+<div class="bg-emoji" style="left:56%;animation-delay:2s;animation-duration:12s">🔴</div>
+<div class="bg-emoji" style="left:74%;animation-delay:7s;animation-duration:10s">🟢</div>
+<div class="bg-emoji" style="left:89%;animation-delay:11s;animation-duration:13s">🟡</div>
+
+<!-- ═══════════════════ START SCREEN ═══════════════════ -->
+<div id="startScreen" class="screen active">
+  <div class="main-card">
+    <div class="game-icon">👾</div>
+    <div class="game-title">Barevná příšerka</div>
+    <div class="game-sub">
+      Nakrm příšerku správnou barvou!<br>
+      Najdi správný počet objektů stejné barvy.
+    </div>
+
+    <div class="lb-card">
+      <div class="lb-title">🏆 Nejlepší časy</div>
+      <ul class="lb-list" id="lb-start"></ul>
+    </div>
+
+    <button class="btn-primary" onclick="startGame()">▶ Hrát</button>
+    <a href="index.html" class="back-link">← Zpět na výběr her</a>
+  </div>
+</div>
+
+<!-- ═══════════════════ GAME SCREEN ═══════════════════ -->
+<div id="gameScreen" class="screen">
+  <a href="index.html" class="btn-home-fixed">🏠 Domů</a>
+  <div class="game-header">
+    <div>
+      <div style="font-size:0.7rem;opacity:0.6;margin-bottom:1px">ČAS</div>
+      <div class="timer" id="timer">0:00</div>
+    </div>
+    <div>
+      <div class="round-badge" id="roundBadge">Kolo 1 / 5</div>
+      <div class="round-stars" id="roundStars"></div>
+    </div>
+  </div>
+
+  <div class="top-area">
+    <!-- Monster -->
+    <div class="monster-wrap" id="monsterWrap">
+      <div class="m-hair">
+        <div class="m-spike"></div>
+        <div class="m-spike"></div>
+        <div class="m-spike"></div>
+      </div>
+      <div class="m-body">
+        <div class="m-eyes">
+          <div class="m-eye"><div class="m-pupil"></div></div>
+          <div class="m-eye"><div class="m-pupil"></div></div>
+        </div>
+        <div class="m-cheeks">
+          <div class="m-cheek"></div>
+          <div class="m-cheek"></div>
+        </div>
+        <div class="m-mouth-wrap">
+          <div class="m-mouth" id="monsterMouth">
+            <div class="m-tooth"></div>
+            <div class="m-tooth"></div>
+            <div class="m-tooth"></div>
+          </div>
+        </div>
+      </div>
+      <div class="m-feet">
+        <div class="m-foot"></div>
+        <div class="m-foot"></div>
+        <div class="m-foot"></div>
+      </div>
+    </div>
+
+    <!-- Task info -->
+    <div class="task-card">
+      <div class="task-label">Vyber</div>
+      <div class="task-main">
+        <div class="task-bignum" id="taskNum">3</div>
+      </div>
+      <div class="task-color-word" id="taskColorWord">modrých</div>
+      <div class="task-dots" id="taskDots"></div>
+      <div class="task-progress" id="taskProgress">0 / 3</div>
+    </div>
+  </div>
+
+  <div class="objects-area" id="objectsArea"></div>
+</div>
+
+<!-- ═══════════════════ END SCREEN ═══════════════════ -->
+<div id="endScreen" class="screen">
+  <div class="main-card">
+    <div class="result-icon">🎉</div>
+    <div class="result-title">Výborně!</div>
+    <div style="opacity:0.85;margin-bottom:6px">Tvůj čas:</div>
+    <div class="result-time" id="resultTime">0:00</div>
+
+    <div class="lb-card">
+      <div class="lb-title">Ulož svůj čas</div>
+      <div class="save-row">
+        <input type="text" id="player-name" placeholder="Tvoje jméno…" maxlength="20" />
+        <button onclick="saveScore()">Uložit</button>
+      </div>
+    </div>
+
+    <div class="lb-card">
+      <div class="lb-title">🏆 Nejlepší časy</div>
+      <ul class="lb-list" id="lb-end"></ul>
+    </div>
+
+    <button class="btn-primary" onclick="startGame()">▶ Hrát znovu</button>
+    <a href="index.html" class="back-link">← Zpět na výběr her</a>
+  </div>
+</div>
+
+<script>
+  const QUIZ_TYPE = 'preschool-monster';
+
+  const GAME_COLORS = [
+    { id:'red',    cs:'červených', hex:'#e53935' },
+    { id:'blue',   cs:'modrých',   hex:'#1565c0' },
+    { id:'green',  cs:'zelených',  hex:'#2e7d32' },
+    { id:'yellow', cs:'žlutých',   hex:'#f9a825' },
+    { id:'white',  cs:'bílých',    hex:'#ffffff' },
+  ];
+
+  const SHAPES = ['s-circle', 's-star', 's-square', 's-blob'];
+
+  const CONFETTI_COLORS = ['#f87171','#60a5fa','#4ade80','#facc15','#c084fc','#fb923c','#f472b6'];
+
+  // ─── LEADERBOARD ───────────────────────────────────────────
+  function getScores() {
+    try { return JSON.parse(localStorage.getItem('scores_' + QUIZ_TYPE) || '[]'); }
+    catch { return []; }
+  }
+
+  function saveScore() {
+    const inp = document.getElementById('player-name');
+    const name = inp.value.trim();
+    if (!name) { inp.style.outline = '3px solid #ef4444'; inp.focus(); return; }
+    inp.style.outline = '';
+    const scores = getScores();
+    scores.push({ name, ms: finalMs, date: new Date().toLocaleDateString('cs-CZ') });
+    scores.sort((a, b) => a.ms - b.ms);
+    localStorage.setItem('scores_' + QUIZ_TYPE, JSON.stringify(scores.slice(0, 10)));
+    renderLeaderboard('lb-end');
+    inp.value = '';
+  }
+
+  function renderLeaderboard(elId) {
+    const el = document.getElementById(elId);
+    const scores = getScores();
+    if (!scores.length) {
+      el.innerHTML = '<li><span class="lb-empty">Zatím žádné výsledky.</span></li>';
+      return;
+    }
+    el.innerHTML = scores.map((s, i) => `
+      <li>
+        <span class="lb-rank">${i + 1}.</span>
+        <span class="lb-name">${esc(s.name)}</span>
+        <span class="lb-time">${fmtTime(s.ms)}</span>
+      </li>`).join('');
+  }
+
+  function esc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function fmtTime(ms) {
+    const s = Math.floor(ms / 1000);
+    return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+  }
+
+  // ─── SCREENS ───────────────────────────────────────────────
+  function show(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  // ─── STATE ─────────────────────────────────────────────────
+  let startMs, timerInterval, finalMs = 0;
+  let rounds;           // shuffled [1,2,3,4,5]
+  let roundIdx;
+  let targetN, targetColorId, targetColorHex;
+  let collected;
+  let locked;
+  let recentColorIds;   // avoid repeating same color back-to-back
+
+  // ─── START GAME ────────────────────────────────────────────
+  function startGame() {
+    rounds        = shuffle([1, 2, 3, 4, 5]);
+    roundIdx      = 0;
+    finalMs       = 0;
+    locked        = false;
+    recentColorIds = [];
+    clearInterval(timerInterval);
+
+    const nameEl = document.getElementById('player-name');
+    if (nameEl) nameEl.value = '';
+
+    show('gameScreen');
+    startMs = Date.now();
+    timerInterval = setInterval(() => {
+      document.getElementById('timer').textContent = fmtTime(Date.now() - startMs);
+    }, 500);
+
+    startRound();
+  }
+
+  // ─── START ROUND ───────────────────────────────────────────
+  function startRound() {
+    targetN    = rounds[roundIdx];
+    collected  = 0;
+    locked     = false;
+
+    // Pick color not recently used
+    const available = GAME_COLORS.filter(c => !recentColorIds.includes(c.id));
+    const colorObj  = available[Math.floor(Math.random() * available.length)];
+    targetColorId  = colorObj.id;
+    targetColorHex = colorObj.hex;
+    recentColorIds.push(targetColorId);
+    if (recentColorIds.length > 2) recentColorIds.shift();
+
+    // Header
+    document.getElementById('roundBadge').textContent = `Kolo ${roundIdx + 1} / 5`;
+    document.getElementById('roundStars').textContent =
+      '⭐'.repeat(roundIdx) + '○'.repeat(5 - roundIdx);
+
+    // Task display
+    const numEl = document.getElementById('taskNum');
+    numEl.textContent  = targetN;
+    numEl.style.color  = targetColorHex;
+    numEl.style.textShadow = `0 0 16px ${targetColorHex}90, 0 2px 4px rgba(0,0,0,0.3)`;
+
+    document.getElementById('taskColorWord').textContent = colorObj.cs;
+    document.getElementById('taskColorWord').style.color = targetColorHex;
+
+    updateTaskUI();
+    buildObjects();
+  }
+
+  // ─── TASK UI ───────────────────────────────────────────────
+  function updateTaskUI() {
+    // Progress dots
+    const dotsEl = document.getElementById('taskDots');
+    dotsEl.innerHTML = '';
+    for (let i = 0; i < targetN; i++) {
+      const d = document.createElement('div');
+      d.className = 'task-dot' + (i < collected ? ' filled' : '');
+      d.style.background = i < collected ? targetColorHex : 'transparent';
+      if (i < collected) d.style.borderColor = targetColorHex;
+      dotsEl.appendChild(d);
+    }
+    document.getElementById('taskProgress').textContent = `${collected} / ${targetN}`;
+  }
+
+  // ─── BUILD OBJECTS ─────────────────────────────────────────
+  function buildObjects() {
+    const area   = document.getElementById('objectsArea');
+    area.innerHTML = '';
+
+    const TOTAL  = 12;
+    const others = GAME_COLORS.filter(c => c.id !== targetColorId);
+    const items  = [];
+
+    // Exactly targetN of the correct color
+    for (let i = 0; i < targetN; i++) {
+      items.push({ colorId: targetColorId, hex: targetColorHex });
+    }
+    // Fill rest with other random colors (ensure at least 2 different other colors used)
+    const otherPool = shuffle([...others, ...others, ...others]).slice(0, TOTAL - targetN);
+    otherPool.forEach(c => items.push({ colorId: c.id, hex: c.hex }));
+
+    shuffle(items);
+
+    items.forEach(item => {
+      const el    = document.createElement('div');
+      const shape = SHAPES[Math.floor(Math.random() * SHAPES.length)];
+      el.className      = `game-obj ${shape}`;
+      el.dataset.colorId = item.colorId;
+      el.style.background = item.hex;
+      // Bílé objekty — viditelný okraj aby byly zřetelné jako tvar
+      if (item.colorId === 'white') {
+        el.style.outline = '3px solid rgba(255,255,255,0.6)';
+        el.style.outlineOffset = '-4px';
+      }
+      // Random slight rotation for liveliness
+      const rot = (Math.random() - 0.5) * 18;
+      el.style.transform = `rotate(${rot}deg)`;
+
+      const shine = document.createElement('div');
+      shine.className = 'obj-shine';
+      // Bílé objekty — šedý lesk místo bílého
+      if (item.colorId === 'white') shine.style.background = 'rgba(0,0,0,0.08)';
+      el.appendChild(shine);
+
+      el.addEventListener('click', () => onObjClick(el, item.colorId));
+      area.appendChild(el);
+    });
+  }
+
+  // ─── CLICK HANDLER ─────────────────────────────────────────
+  function onObjClick(el, colorId) {
+    if (locked) return;
+    if (el.classList.contains('gone') || el.classList.contains('selected')) return;
+
+    if (colorId === targetColorId) {
+      // ✅ Correct
+      el.classList.add('selected');
+      collected++;
+      updateTaskUI();
+
+      if (collected === targetN) {
+        locked = true;
+        const selectedEls = Array.from(document.querySelectorAll('.game-obj.selected'));
+        setTimeout(() => flyToMonster(selectedEls, onRoundComplete), 250);
+      }
+    } else {
+      // ❌ Wrong color — shake and reset
+      el.classList.add('wrong-flash');
+      setTimeout(() => el.classList.remove('wrong-flash'), 450);
+    }
+  }
+
+  // ─── FLY TO MONSTER ────────────────────────────────────────
+  function flyToMonster(elems, callback) {
+    const mWrap = document.getElementById('monsterWrap');
+    const mRect = mWrap.getBoundingClientRect();
+    const mx    = mRect.left + mRect.width  / 2;
+    const my    = mRect.top  + mRect.height / 2;
+
+    document.getElementById('monsterMouth').classList.add('eating');
+
+    // Create fixed-position clones so they can fly across the layout
+    const clones = elems.map(el => {
+      const r     = el.getBoundingClientRect();
+      const clone = el.cloneNode(true);
+      Object.assign(clone.style, {
+        position:      'fixed',
+        left:          r.left + 'px',
+        top:           r.top  + 'px',
+        width:         r.width  + 'px',
+        height:        r.height + 'px',
+        margin:        '0',
+        zIndex:        '9999',
+        pointerEvents: 'none',
+        transition:    'none',
+        filter:        'none',
+      });
+      document.body.appendChild(clone);
+      el.style.opacity = '0';
+      return clone;
+    });
+
+    // Trigger flight on next frames
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      clones.forEach((clone, i) => {
+        const r  = clone.getBoundingClientRect();
+        const dx = mx - (r.left + r.width  / 2);
+        const dy = my - (r.top  + r.height / 2);
+        const delay = i * 0.065;
+        clone.style.transition =
+          `transform 0.52s cubic-bezier(0.5,0,1,0.65) ${delay}s,` +
+          `opacity   0.3s ease ${delay + 0.22}s`;
+        clone.style.transform =
+          `translate(${dx}px,${dy}px) scale(0.12) rotate(${(Math.random()-0.5)*400}deg)`;
+        clone.style.opacity = '0';
+      });
+    }));
+
+    const totalMs = 520 + (clones.length - 1) * 65 + 300 + 120;
+    setTimeout(() => {
+      clones.forEach(c => c.remove());
+      document.getElementById('monsterMouth').classList.remove('eating');
+      callback();
+    }, totalMs);
+  }
+
+  // ─── ROUND COMPLETE ────────────────────────────────────────
+  function onRoundComplete() {
+    // Monster happy bounce
+    const mWrap = document.getElementById('monsterWrap');
+    mWrap.classList.add('happy');
+    setTimeout(() => mWrap.classList.remove('happy'), 750);
+
+    // Burst confetti from monster
+    miniConfetti();
+
+    // Hide remaining objects
+    document.querySelectorAll('.game-obj').forEach(el => el.classList.add('gone'));
+
+    roundIdx++;
+    if (roundIdx >= 5) {
+      setTimeout(() => endGame(), 1100);
+    } else {
+      setTimeout(() => startRound(), 950);
+    }
+  }
+
+  // ─── END GAME ──────────────────────────────────────────────
+  function endGame() {
+    clearInterval(timerInterval);
+    finalMs = Date.now() - startMs;
+    document.getElementById('resultTime').textContent = fmtTime(finalMs);
+    renderLeaderboard('lb-end');
+    bigConfetti();
+    setTimeout(() => show('endScreen'), 1600);
+  }
+
+  // ─── MINI CONFETTI (after each round) ──────────────────────
+  function miniConfetti() {
+    const mWrap = document.getElementById('monsterWrap');
+    const r  = mWrap.getBoundingClientRect();
+    const ox = r.left + r.width  / 2;
+    const oy = r.top  + r.height / 2;
+
+    for (let i = 0; i < 24; i++) {
+      const p    = document.createElement('div');
+      const size = 7 + Math.random() * 10;
+      const angle  = (Math.PI * 2 / 24) * i + (Math.random() - 0.5) * 0.5;
+      const dist   = 55 + Math.random() * 90;
+      const tx     = Math.cos(angle) * dist;
+      const ty     = Math.sin(angle) * dist;
+
+      Object.assign(p.style, {
+        position:     'fixed',
+        width:        size + 'px',
+        height:       size + 'px',
+        background:   CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+        borderRadius: Math.random() > 0.5 ? '50%' : '3px',
+        left:         (ox - size / 2) + 'px',
+        top:          (oy - size / 2) + 'px',
+        pointerEvents:'none',
+        zIndex:       '9998',
+        transition:   'transform 0.72s cubic-bezier(0,0.9,0.55,1), opacity 0.7s ease 0.14s',
+      });
+      document.body.appendChild(p);
+
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        p.style.transform = `translate(${tx}px,${ty}px) rotate(${Math.random() * 360}deg) scale(0.5)`;
+        p.style.opacity   = '0';
+      }));
+
+      setTimeout(() => p.remove(), 900);
+    }
+  }
+
+  // ─── BIG CONFETTI (end of game) ────────────────────────────
+  function bigConfetti() {
+    for (let i = 0; i < 55; i++) {
+      setTimeout(() => {
+        const p    = document.createElement('div');
+        const size = 8 + Math.random() * 14;
+        Object.assign(p.style, {
+          position:     'fixed',
+          width:        size + 'px',
+          height:       size + 'px',
+          background:   CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)],
+          borderRadius: Math.random() > 0.5 ? '50%' : '3px',
+          left:         (Math.random() * 100) + 'vw',
+          top:          '-20px',
+          pointerEvents:'none',
+          zIndex:       '9997',
+          animation:    `rainFall ${1.2 + Math.random() * 1.5}s linear forwards`,
+        });
+        document.body.appendChild(p);
+        setTimeout(() => p.remove(), 3200);
+      }, i * 38);
+    }
+  }
+
+  // ─── UTILS ─────────────────────────────────────────────────
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  // ─── INIT ──────────────────────────────────────────────────
+  renderLeaderboard('lb-start');
+</script>
+</body>
+</html>

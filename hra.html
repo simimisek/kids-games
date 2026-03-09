@@ -11,7 +11,14 @@
   </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Matematická hra</title>
+  <title>Sčítání a odčítání do 20 | Vzdělávací hry</title>
+  <meta property="og:title" content="Sčítání a odčítání do 20" />
+  <meta property="og:description" content="Procvič si sčítání a odčítání do 20. Zábavná matematická hra pro děti." />
+  <meta property="og:image" content="https://simimisek.github.io/kids-games/og-preview.svg" />
+  <meta property="og:url" content="https://simimisek.github.io/kids-games/hra.html" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://simimisek.github.io/kids-games/og-preview.svg" />
   <style>
     * {
       box-sizing: border-box;
@@ -616,7 +623,10 @@
   }
 
   async function saveScore() {
-    const name = document.getElementById('player-name').value.trim() || 'Anonym';
+    const nameInput = document.getElementById('player-name');
+    const name = nameInput.value.trim();
+    if (!name) { nameInput.style.outline = '3px solid #ef4444'; nameInput.focus(); return; }
+    nameInput.style.outline = '';
     const scores = await getScores();
     scores.push({ name, ms: finalMs, date: new Date().toLocaleDateString('cs-CZ') });
     scores.sort((a, b) => a.ms - b.ms);

@@ -11,7 +11,14 @@
   </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kde je víc bonbonků?</title>
+  <title>Kde je víc bonbonků? | Vzdělávací hry</title>
+  <meta property="og:title" content="Kde je víc bonbonků?" />
+  <meta property="og:description" content="Porovnávej množství a rozvíjej matematické myšlení. Hra pro nejmenší." />
+  <meta property="og:image" content="https://simimisek.github.io/kids-games/og-preview.svg" />
+  <meta property="og:url" content="https://simimisek.github.io/kids-games/hra6.html" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://simimisek.github.io/kids-games/og-preview.svg" />
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -517,7 +524,10 @@
   }
 
   async function saveScore() {
-    const name = document.getElementById('player-name').value.trim() || 'Anonym';
+    const nameInput = document.getElementById('player-name');
+    const name = nameInput.value.trim();
+    if (!name) { nameInput.style.outline = '3px solid #ef4444'; nameInput.focus(); return; }
+    nameInput.style.outline = '';
     const scores = await getScores();
     scores.push({ name, ms: finalMs, date: new Date().toLocaleDateString('cs-CZ') });
     scores.sort((a, b) => a.ms - b.ms);
