@@ -271,8 +271,9 @@
       body { padding: 10px 10px 32px; }
       .title { font-size: 1.85rem; }
       .subtitle { font-size: 0.92rem; }
-      .candy-box { min-height: 150px; padding: 10px 6px; }
-      .candy-emoji { font-size: 1.5rem !important; }
+      .candy-box { min-height: 150px; padding: 10px 12px; }
+      .candy-row { gap: 4px; }
+      .candy-inner { gap: 4px; }
       .question-label { font-size: 1.1rem; }
       .hud { font-size: 0.95rem; padding: 8px 14px; }
       .btn { padding: 14px; font-size: 1rem; }
@@ -429,7 +430,10 @@
     const emoji = CANDY_EMOJIS[Math.floor(Math.random() * CANDY_EMOJIS.length)];
 
     // Velikost dle počtu sloupců (více sloupců = menší emoji)
-    const emojiSize = cols <= 3 ? '2rem' : cols === 4 ? '1.75rem' : '1.5rem';
+    const isMobile = window.innerWidth <= 400;
+    const emojiSize = isMobile
+      ? (cols <= 2 ? '1.8rem' : cols === 3 ? '1.4rem' : cols === 4 ? '1.15rem' : '0.95rem')
+      : (cols <= 3 ? '2rem' : cols === 4 ? '1.75rem' : '1.5rem');
 
     const inner = document.createElement('div');
     inner.className = 'candy-inner';
