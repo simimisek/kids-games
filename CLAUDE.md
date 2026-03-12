@@ -138,6 +138,7 @@ renderLeaderboard('lb-start');
 | hra6.html | Kde je víc bonbonků? | Hrátky pro nejmenší | `preschool-candies` |
 | hra7.html | Počítej se zvířátky | Hrátky pro nejmenší | `preschool-animals` |
 | hra8.html | Pyramida čísel | Matematika | `math-pyramid` |
+| hra16.html | Vymysli příklad | Matematika | `math-invent` |
 | hra10.html | Spoj tečky | Hrátky pro nejmenší | `preschool-dots` |
 | hra11.html | Spoj kostičky s čísly | Hrátky pro nejmenší | `preschool-blocks` |
 | hra12.html | Barevná příšerka | Hrátky pro nejmenší | `preschool-monster` |
@@ -146,6 +147,6 @@ renderLeaderboard('lb-start');
 | hra15.html | Psací páry | Čeština | `czech-cursive-pairs` |
 
 ## Sekce v index.html
-- 🔢 **Matematika** — hra.html, hra2.html, hra8.html
+- 🔢 **Matematika** — hra.html, hra2.html, hra8.html, hra16.html
 - 📖 **Čeština** — hra3.html, hra4.html, hra5.html, hra13.html, hra14.html, hra15.html
 - 🌈 **Hrátky pro nejmenší** — hra6.html, hra7.html, hra10.html, hra11.html, hra12.html
