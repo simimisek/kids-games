@@ -142,6 +142,7 @@ renderLeaderboard('lb-start');
 | hra10.html | Spoj tečky | Hrátky pro nejmenší | `preschool-dots` |
 | hra11.html | Spoj kostičky s čísly | Hrátky pro nejmenší | `preschool-blocks` |
 | hra12.html | Barevná příšerka | Hrátky pro nejmenší | `preschool-monster` |
+| hra17.html | Hledej číslo | Hrátky pro nejmenší | `preschool-balloons` |
 | hra13.html | Skládej slova | Čeština | `czech-build` |
 | hra14.html | Páry písmen | Čeština | `czech-letter-pairs` |
 | hra15.html | Psací páry | Čeština | `czech-cursive-pairs` |
@@ -149,4 +150,4 @@ renderLeaderboard('lb-start');
 ## Sekce v index.html
 - 🔢 **Matematika** — hra.html, hra2.html, hra8.html, hra16.html
 - 📖 **Čeština** — hra3.html, hra4.html, hra5.html, hra13.html, hra14.html, hra15.html
-- 🌈 **Hrátky pro nejmenší** — hra6.html, hra7.html, hra10.html, hra11.html, hra12.html
+- 🌈 **Hrátky pro nejmenší** — hra6.html, hra7.html, hra10.html, hra11.html, hra12.html, hra17.html
