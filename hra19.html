@@ -275,6 +275,9 @@
       #math-expr { font-size: 1.9rem; letter-spacing: 1px; }
       .speech-bubble { padding: 8px 18px; }
       .mice-grid { gap: 10px; }
+      .name-row { flex-direction: column; }
+      .name-row input { width: 100%; }
+      .name-row button { width: 100% !important; }
     }
   </style>
 </head>
@@ -645,7 +648,7 @@
       bar.classList.add('running');
 
       questionTimer = setTimeout(() => {
-        if (answering) { answering = false; onTimeout(); }
+        if (answering) onTimeout();
       }, sec * 1000);
     }
 
