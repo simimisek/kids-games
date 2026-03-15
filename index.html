@@ -144,6 +144,17 @@
       color: #aaa;
     }
 
+    /* Odznak "Nové" */
+    .game-card-badge.badge-new {
+      background: #fff8e1;
+      color: #e65100;
+      animation: badgePulse 2.2s ease-in-out infinite;
+    }
+    @keyframes badgePulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(230,81,0,0); }
+      50%       { box-shadow: 0 0 0 4px rgba(230,81,0,0.18); }
+    }
+
     /* Přidávací karta */
     .game-card.add-card {
       border: 3px dashed rgba(118,75,162,0.25);
@@ -303,6 +314,32 @@
   <p>Vyber si hru a procvičuj!</p>
 </header>
 
+<!-- ═══════════════ NOVĚ PŘIDÁNO ═══════════════ -->
+<section class="section">
+  <div class="section-header">
+    <span class="section-icon">✨</span>
+    <span class="section-title">Nově přidáno</span>
+    <div class="section-line"></div>
+  </div>
+  <div class="game-grid">
+
+    <a class="game-card" href="hra18.html">
+      <div class="game-card-icon">🚗</div>
+      <div class="game-card-name">Závodní auto</div>
+      <div class="game-card-desc">Vyber větší číslo a posuň auto ke cíli — 3 kola, 5 sekund na odpověď</div>
+      <div class="game-card-badge badge-new">✨ Nové</div>
+    </a>
+
+    <a class="game-card" href="hra19.html">
+      <div class="game-card-icon">🐱</div>
+      <div class="game-card-name">Kočka a myši</div>
+      <div class="game-card-desc">Najdi správný výsledek na myšce — příklady se ztěžují, špatná myška nestačí!</div>
+      <div class="game-card-badge badge-new">✨ Nové</div>
+    </a>
+
+  </div>
+</section>
+
 <!-- ═══════════════ MATEMATIKA ═══════════════ -->
 <section class="section">
   <div class="section-header">
@@ -344,6 +381,20 @@
       <div class="game-card-icon">🐍</div>
       <div class="game-card-name">Had čísel</div>
       <div class="game-card-desc">Řetěz příkladů — výsledek jednoho je začátkem dalšího</div>
+      <div class="game-card-badge">K&nbsp;dispozici</div>
+    </a>
+
+    <a class="game-card" href="hra18.html">
+      <div class="game-card-icon">🚗</div>
+      <div class="game-card-name">Závodní auto</div>
+      <div class="game-card-desc">Vyber větší číslo a posuň auto ke startu — 3 kola, 5 sekund na odpověď</div>
+      <div class="game-card-badge">K&nbsp;dispozici</div>
+    </a>
+
+    <a class="game-card" href="hra19.html">
+      <div class="game-card-icon">🐱</div>
+      <div class="game-card-name">Kočka a myši</div>
+      <div class="game-card-desc">Najdi správný výsledek na myšce — příklady se ztěžují, špatná myška uteče!</div>
       <div class="game-card-badge">K&nbsp;dispozici</div>
     </a>
 

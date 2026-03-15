@@ -143,11 +143,13 @@ renderLeaderboard('lb-start');
 | hra11.html | Spoj kostičky s čísly | Hrátky pro nejmenší | `preschool-blocks` |
 | hra12.html | Barevná příšerka | Hrátky pro nejmenší | `preschool-monster` |
 | hra17.html | Hledej číslo | Hrátky pro nejmenší | `preschool-balloons` |
+| hra18.html | Závodní auto | Matematika | `math-bigger` |
+| hra19.html | Kočka a myši | Matematika | `math-cat-mice` |
 | hra13.html | Skládej slova | Čeština | `czech-build` |
 | hra14.html | Páry písmen | Čeština | `czech-letter-pairs` |
 | hra15.html | Psací páry | Čeština | `czech-cursive-pairs` |
 
 ## Sekce v index.html
-- 🔢 **Matematika** — hra.html, hra2.html, hra8.html, hra16.html
+- 🔢 **Matematika** — hra.html, hra2.html, hra8.html, hra16.html, hra18.html, hra19.html
 - 📖 **Čeština** — hra3.html, hra4.html, hra5.html, hra13.html, hra14.html, hra15.html
 - 🌈 **Hrátky pro nejmenší** — hra6.html, hra7.html, hra10.html, hra11.html, hra12.html, hra17.html
