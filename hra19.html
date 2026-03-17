@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-KEF2T80GE0"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-KEF2T80GE0');
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kočka a myši | Vzdělávací hry</title>
+  <meta property="og:title" content="Kočka a myši" />
+  <meta property="og:image" content="https://simimisek.github.io/kids-games/ogimage.png" />
+  <meta property="og:description" content="Kočka má příklad — najdi správný výsledek na myšce!" />
+  <meta property="og:url" content="https://simimisek.github.io/kids-games/hra19.html" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://simimisek.github.io/kids-games/ogimage.png" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #1a237e 0%, #0277bd 100%);
+      min-height: 100vh;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px 16px 48px;
+    }
+
+    /* ── floating bg ── */
+    .bg-floaters { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+    .bg-floaters span {
+      position: absolute; font-size: 2rem;
+      color: rgba(255,255,255,0.06);
+      animation: numFloat 14s infinite linear; user-select: none;
+    }
+    @keyframes numFloat {
+      0%   { transform: translateY(110vh) rotate(0deg); opacity: 0; }
+      10%  { opacity: 1; }
+      90%  { opacity: 1; }
+      100% { transform: translateY(-15vh) rotate(360deg); opacity: 0; }
+    }
+
+    /* ── screens ── */
+    .screen {
+      position: relative; z-index: 1;
+      width: 100%; max-width: 520px;
+      display: flex; flex-direction: column; align-items: center; gap: 16px;
+      padding-top: 16px;
+    }
+    .screen.hidden { display: none; }
+
+    .screen-icon  { font-size: 4rem; line-height: 1; }
+    .screen-title { font-size: 2.2rem; font-weight: 800; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+    .screen-sub   { font-size: 1rem; color: rgba(255,255,255,0.82); line-height: 1.72; text-align: center; }
+
+    /* ── buttons ── */
+    .btn {
+      width: 100%; padding: 15px;
+      font-size: 1.05rem; font-weight: 700;
+      border: none; border-radius: 14px; cursor: pointer;
+      transition: transform 0.1s; font-family: inherit;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary  { background: #ffca28; color: #1a237e; box-shadow: 0 4px 16px rgba(255,202,40,0.45); }
+    .btn-primary:hover  { background: #f0bb00; }
+    .btn-secondary { background: rgba(255,202,40,0.12); color: #ffca28; border: 2px solid rgba(255,202,40,0.35); }
+    .btn-secondary:hover { background: rgba(255,202,40,0.22); }
+
+    /* ── leaderboard ── */
+    .leaderboard-card {
+      background: #fff; border-radius: 20px; padding: 22px;
+      width: 100%; box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+    .leaderboard-card h3 { text-align: center; color: #333; font-size: 1.1rem; margin-bottom: 14px; }
+    .leaderboard-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .leaderboard-list li {
+      display: grid; grid-template-columns: 28px 1fr auto;
+      gap: 8px; align-items: center; font-size: 0.93rem; color: #444;
+      padding: 6px 0; border-bottom: 1px solid #f0f0f0;
+    }
+    .leaderboard-list li:last-child { border-bottom: none; }
+    .lb-rank  { font-weight: 700; color: #1a237e; }
+    .lb-name  { font-weight: 600; }
+    .lb-score { color: #1a237e; font-weight: 700; white-space: nowrap; }
+    .lb-empty, .lb-loading {
+      text-align: center; color: #aaa; font-style: italic;
+      padding: 8px 0; font-size: 0.88rem; grid-column: 1/-1;
+    }
+
+    /* ── name row ── */
+    .name-row { display: flex; gap: 10px; width: 100%; }
+    .name-row input {
+      flex: 1; padding: 14px 18px; border-radius: 12px; border: none;
+      font-size: 1rem; outline: 2px solid transparent;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08); transition: outline 0.2s;
+    }
+    .name-row input:focus { outline: 2px solid #ffca28; }
+
+    /* ── result ── */
+    .result-score { font-size: 3.2rem; font-weight: 900; color: #ffca28; text-shadow: 0 2px 16px rgba(255,202,40,0.5); }
+    .result-label { font-size: 1rem; color: rgba(255,255,255,0.72); margin-top: -8px; }
+
+    /* ══════════════════════
+       GAME SCREEN
+    ══════════════════════ */
+    #gameScreen { gap: 14px; }
+
+    /* header */
+    .game-hdr {
+      width: 100%;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .game-hdr-left { display: flex; flex-direction: column; gap: 2px; }
+    .game-hdr-right { display: flex; align-items: center; }
+    .level-label { font-size: 0.82rem; color: rgba(255,255,255,0.68); font-weight: 600; }
+    .score-disp  { font-size: 1.15rem; font-weight: 900; color: #fff; }
+    .score-disp .chk { color: #86efac; }
+    .timer-disp  { font-size: 1rem; font-weight: 800; color: rgba(255,255,255,0.65); min-width: 36px; text-align: right; }
+    .btn-home-fixed {
+      position: fixed; top: 12px; right: 12px; z-index: 200;
+      background: rgba(0,0,0,0.25); border: none; border-radius: 10px;
+      padding: 7px 14px; color: #fff; font-family: inherit;
+      font-size: 0.85rem; font-weight: 700; text-decoration: none; cursor: pointer;
+    }
+    .btn-home-fixed:hover { background: rgba(0,0,0,0.4); }
+
+    /* countdown */
+    .countdown-wrap {
+      width: 100%; height: 10px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 5px; overflow: hidden;
+    }
+    .countdown-bar { height: 100%; width: 100%; border-radius: 5px; background: #22c55e; }
+    .countdown-bar.running { animation: cdBar 10s linear forwards; }
+    @keyframes cdBar {
+      0%   { width: 100%; background: #22c55e; }
+      55%  { background: #f59e0b; }
+      100% { width: 0%;   background: #ef4444; }
+    }
+
+    /* cat card */
+    .cat-card {
+      width: 100%;
+      background: rgba(255,255,255,0.1);
+      border: 2px solid rgba(255,255,255,0.18);
+      border-radius: 24px;
+      padding: 18px 16px 14px;
+      display: flex; flex-direction: column; align-items: center; gap: 0;
+    }
+
+    .speech-bubble {
+      background: #fff; border-radius: 16px;
+      padding: 10px 28px; position: relative;
+      display: inline-block;
+      box-shadow: 0 3px 14px rgba(0,0,0,0.12);
+    }
+    .speech-bubble::after {
+      content: ''; position: absolute;
+      bottom: -14px; left: 50%; transform: translateX(-50%);
+      border: 14px solid transparent;
+      border-top-color: #fff; border-bottom: 0;
+    }
+    #math-expr {
+      font-size: 2.2rem; font-weight: 900;
+      color: #1a237e; letter-spacing: 2px;
+    }
+
+    .cat-emoji {
+      font-size: 4.5rem; line-height: 1;
+      display: block; margin-top: 12px;
+      animation: catBob 2.6s ease-in-out infinite;
+      filter: drop-shadow(0 4px 10px rgba(0,0,0,0.25));
+      user-select: none;
+    }
+    @keyframes catBob {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      30%  { transform: translateY(-7px) rotate(-3deg); }
+      70%  { transform: translateY(-3px) rotate(3deg); }
+    }
+    .cat-emoji.anim-correct {
+      animation: catCorrect 0.6s ease;
+    }
+    @keyframes catCorrect {
+      0%   { transform: scale(1); }
+      30%  { transform: scale(1.3) rotate(-8deg); }
+      65%  { transform: scale(1.15) rotate(5deg); }
+      100% { transform: scale(1); }
+    }
+    .cat-emoji.anim-wrong {
+      animation: catWrong 0.4s ease;
+    }
+    @keyframes catWrong {
+      0%, 100% { transform: translateX(0); }
+      25%  { transform: translateX(-6px); }
+      75%  { transform: translateX(6px); }
+    }
+    .cat-emoji.anim-sad { animation: catBob 2.6s ease-in-out infinite; }
+    .cat-emoji.no-bob   { animation: none !important; }
+
+    /* mice */
+    .mice-hint { font-size: 0.85rem; color: rgba(255,255,255,0.6); font-weight: 600; }
+    .mice-grid {
+      display: flex; flex-wrap: wrap;
+      justify-content: center; gap: 12px;
+      width: 100%;
+    }
+    .mouse-btn {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      width: 88px; height: 88px; flex-shrink: 0;
+      background: #fff; border: none; border-radius: 20px;
+      cursor: pointer; font-family: inherit;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+      transition: transform 0.12s, box-shadow 0.12s;
+      gap: 2px;
+    }
+    .mouse-btn:hover:not(:disabled) {
+      transform: translateY(-5px) scale(1.06);
+      box-shadow: 0 10px 24px rgba(0,0,0,0.22);
+    }
+    .mouse-btn:active:not(:disabled) { transform: scale(0.93); }
+    .mouse-btn:disabled { cursor: default; }
+    .mouse-icon { font-size: 1.9rem; line-height: 1; }
+    .mouse-num  { font-size: 1.5rem; font-weight: 900; color: #1a237e; line-height: 1; }
+
+    /* correct mouse flash */
+    .mouse-btn.flash-correct {
+      animation: mCorrect 0.45s ease;
+    }
+    @keyframes mCorrect {
+      0%, 100% { background: #fff; transform: scale(1); }
+      40% { background: #dcfce7; box-shadow: 0 0 0 5px #22c55e; transform: scale(1.12); }
+    }
+    /* wrong mouse — runs off screen */
+    .mouse-btn.flash-wrong {
+      animation: mWrong 0.65s ease forwards;
+    }
+    @keyframes mWrong {
+      0%   { background: #fff; transform: scale(1); opacity: 1; }
+      25%  { background: #fee2e2; box-shadow: 0 0 0 5px #ef4444; transform: scale(1.06); }
+      55%  { background: #fff; }
+      100% { transform: scale(0) rotate(25deg); opacity: 0; }
+    }
+
+    /* timeout: reveal correct */
+    .mouse-btn.reveal-correct {
+      outline: 3px solid #22c55e;
+      animation: mReveal 0.4s ease;
+    }
+    @keyframes mReveal {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+
+    /* feedback */
+    .feedback {
+      font-size: 1rem; font-weight: 700;
+      min-height: 1.5em; color: #fff; text-align: center;
+    }
+
+    /* responsive */
+    @media (max-width: 400px) {
+      body { padding: 10px 10px 36px; }
+      .screen-title { font-size: 1.85rem; }
+      .mouse-btn { width: 78px; height: 78px; }
+      .mouse-num { font-size: 1.3rem; }
+      .mouse-icon { font-size: 1.6rem; }
+      .cat-emoji { font-size: 3.8rem; }
+      #math-expr { font-size: 1.9rem; letter-spacing: 1px; }
+      .speech-bubble { padding: 8px 18px; }
+      .mice-grid { gap: 10px; }
+      .name-row { flex-direction: column; }
+      .name-row input { width: 100%; }
+      .name-row button { width: 100% !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-floaters" id="floaters"></div>
+
+  <!-- ═══ START SCREEN ═══ -->
+  <div class="screen" id="startScreen">
+    <div class="screen-icon">🐱</div>
+    <div class="screen-title">Kočka a myši</div>
+    <div class="screen-sub">
+      Kočka má příklad — najdi správný výsledek na myšce!<br>
+      Příklady se postupně <strong style="color:#ffca28">ztěžují</strong>.<br>
+      Špatná myška uteče 🐭💨 — ale pozor na čas!<br>
+      Čas vypršel = hra končí.<br><br>
+      🏆 Cíl: vyřeš co nejvíc příkladů
+    </div>
+    <div class="leaderboard-card">
+      <h3>🏆 Rekordmani</h3>
+      <ul class="leaderboard-list" id="lb-start"></ul>
+    </div>
+    <button class="btn btn-primary" onclick="startGame()">😸 Hrát!</button>
+    <a href="index.html" style="width:100%;text-decoration:none;">
+      <button class="btn btn-secondary">🏠 Zpět na výběr</button>
+    </a>
+  </div>
+
+  <!-- ═══ GAME SCREEN ═══ -->
+  <div class="screen hidden" id="gameScreen">
+    <a href="index.html" class="btn-home-fixed">🏠 Domů</a>
+
+    <div class="game-hdr">
+      <div class="game-hdr-left">
+        <span class="level-label" id="levelLabel">⭐ Čísla do 10</span>
+        <span class="score-disp"><span class="chk">✓</span> <span id="scoreNum">0</span></span>
+      </div>
+      <div class="game-hdr-right">
+        <span class="timer-disp" id="totalTimer">0:00</span>
+      </div>
+    </div>
+
+    <div class="countdown-wrap">
+      <div class="countdown-bar" id="countdown-bar"></div>
+    </div>
+
+    <div class="cat-card">
+      <div class="speech-bubble">
+        <span id="math-expr">? + ? = ?</span>
+      </div>
+      <span class="cat-emoji" id="cat-emoji">😸</span>
+    </div>
+
+    <div class="mice-hint">Klikni na správnou myšku!</div>
+    <div class="mice-grid" id="mice-grid"></div>
+    <div class="feedback" id="feedback"></div>
+  </div>
+
+  <!-- ═══ END SCREEN ═══ -->
+  <div class="screen hidden" id="endScreen">
+    <div class="screen-icon">😿</div>
+    <div class="screen-title">Čas vypršel!</div>
+    <div class="result-score" id="resultScore">0</div>
+    <div class="result-label">správných příkladů</div>
+    <div class="leaderboard-card">
+      <h3>Uložit výsledek</h3>
+      <div class="name-row">
+        <input type="text" id="player-name" placeholder="Tvoje jméno" maxlength="20" />
+        <button class="btn btn-primary" style="width:auto;padding:14px 22px;" onclick="saveScore()">Uložit</button>
+      </div>
+    </div>
+    <div class="leaderboard-card">
+      <h3>🏆 Rekordmani</h3>
+      <ul class="leaderboard-list" id="lb-end"></ul>
+    </div>
+    <button class="btn btn-secondary" onclick="resetGame()">🔄 Hrát znovu</button>
+    <a href="index.html" class="btn btn-secondary" style="text-decoration:none;text-align:center;display:block;">🏠 Domů</a>
+  </div>
+
+  <script>
+    // ════════════════════════════════
+    //  CONFIG
+    // ════════════════════════════════
+    const QUIZ_TYPE = 'math-cat-mice';
+    const DB_URL    = 'https://kids-games-3a167-default-rtdb.europe-west1.firebasedatabase.app';
+
+    // Difficulty levels — minQ = minimum question index to enter this level
+    const LEVELS = [
+      { minQ: 0,  label: '⭐ Čísla do 10',        max: 10, crossing: false, mice: 3, sec: 10 },
+      { minQ: 5,  label: '⭐⭐ Čísla do 20',       max: 20, crossing: false, mice: 4, sec: 10 },
+      { minQ: 10, label: '⭐⭐⭐ Přes desítku',     max: 20, crossing: true,  mice: 4, sec: 10 },
+      { minQ: 15, label: '⭐⭐⭐⭐ Čísla do 30',   max: 30, crossing: true,  mice: 5, sec: 10 },
+      { minQ: 20, label: '🔥 Čísla do 40',          max: 40, crossing: true,  mice: 5, sec: 8  },
+      { minQ: 25, label: '🔥🔥 Čísla do 50',        max: 50, crossing: true,  mice: 6, sec: 7  },
+      { minQ: 30, label: '🔥🔥🔥 Expert',           max: 50, crossing: true,  mice: 6, sec: 5  },
+    ];
+
+    // ════════════════════════════════
+    //  STATE
+    // ════════════════════════════════
+    let score         = 0;
+    let questionNum   = 0;
+    let totalStartMs  = 0;
+    let timerInterval = null;
+    let questionTimer = null;
+    let finalMs       = 0;
+    let answering     = false;
+    let correctAnswer = 0;
+
+    // ════════════════════════════════
+    //  FIREBASE
+    // ════════════════════════════════
+    async function getScores() {
+      try {
+        const r = await fetch(DB_URL + '/scores/' + QUIZ_TYPE + '.json');
+        const d = await r.json();
+        return Array.isArray(d) ? d : [];
+      } catch { return []; }
+    }
+
+    async function saveScore() {
+      const nameInput = document.getElementById('player-name');
+      const name = nameInput.value.trim();
+      if (!name) { nameInput.style.outline = '3px solid #ef4444'; nameInput.focus(); return; }
+      nameInput.style.outline = '';
+      const scores = await getScores();
+      scores.push({ name, score, ms: finalMs, date: new Date().toLocaleDateString('cs-CZ') });
+      scores.sort((a, b) => b.score - a.score || a.ms - b.ms);
+      const top10 = scores.slice(0, 10);
+      try {
+        await fetch(DB_URL + '/scores/' + QUIZ_TYPE + '.json', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(top10)
+        });
+      } catch {}
+      renderLeaderboard('lb-end');
+      nameInput.value = '';
+    }
+
+    async function renderLeaderboard(elId) {
+      const el = document.getElementById(elId);
+      el.innerHTML = '<li class="lb-loading">Načítám…</li>';
+      const scores = await getScores();
+      if (!scores.length) { el.innerHTML = '<li class="lb-empty">Zatím žádné výsledky.</li>'; return; }
+      el.innerHTML = scores.map((s, i) => `
+        <li>
+          <span class="lb-rank">${i + 1}.</span>
+          <span class="lb-name">${esc(s.name)}</span>
+          <span class="lb-score">${s.score} příkladů</span>
+        </li>`).join('');
+    }
+
+    function fmtTime(ms) {
+      const s = Math.floor(ms / 1000);
+      return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+    }
+    function esc(str) {
+      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    // ════════════════════════════════
+    //  FLOATING BG
+    // ════════════════════════════════
+    (function () {
+      const chars = '0123456789+-';
+      const wrap  = document.getElementById('floaters');
+      for (let i = 0; i < 18; i++) {
+        const s = document.createElement('span');
+        s.textContent = chars[Math.floor(Math.random() * chars.length)];
+        s.style.left              = Math.random() * 100 + 'vw';
+        s.style.animationDuration = (10 + Math.random() * 12) + 's';
+        s.style.animationDelay    = (Math.random() * 14) + 's';
+        wrap.appendChild(s);
+      }
+    })();
+
+    // ════════════════════════════════
+    //  HELPERS
+    // ════════════════════════════════
+    function randInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function getLevel(n) {
+      let lv = LEVELS[0];
+      for (const l of LEVELS) { if (n >= l.minQ) lv = l; else break; }
+      return lv;
+    }
+
+    function generateQuestion(lv) {
+      const { max, crossing } = lv;
+      let attempts = 0;
+
+      while (attempts++ < 120) {
+        const isAdd = Math.random() < 0.55;
+
+        if (isAdd) {
+          const a = randInt(1, max - 1);
+          const bMax = max - a;
+          if (bMax < 1) continue;
+          const b = randInt(1, bMax);
+          const result = a + b;
+          if (result > max) continue;
+          const isCrossing = (a % 10 + b % 10) >= 10;
+          if (crossing && !isCrossing) continue;
+          if (!crossing && isCrossing) continue;
+          return { text: `${a} + ${b}`, result };
+        } else {
+          // subtraction: pick result and b, derive a = result + b
+          const result = randInt(1, max - 2);
+          const bMax = Math.min(max - result, 15);
+          if (bMax < 1) continue;
+          const b = randInt(1, bMax);
+          const a = result + b;
+          if (a > max) continue;
+          const isCrossing = (a % 10) < (b % 10);
+          if (crossing && !isCrossing) continue;
+          if (!crossing && isCrossing) continue;
+          return { text: `${a} \u2212 ${b}`, result };
+        }
+      }
+
+      // fallback
+      const a = randInt(1, Math.min(9, max - 1));
+      const b = randInt(1, Math.min(9, max - a));
+      return { text: `${a} + ${b}`, result: a + b };
+    }
+
+    function makeAnswers(correct, count, max) {
+      const pool = new Set([correct]);
+      let attempts = 0;
+      while (pool.size < count && attempts++ < 400) {
+        const delta = randInt(1, Math.min(12, max));
+        const c = correct + (Math.random() < 0.5 ? delta : -delta);
+        if (c >= 1 && c <= max + 8) pool.add(c);
+      }
+      // fallback fill
+      for (let f = 1; pool.size < count; f++) { if (!pool.has(f)) pool.add(f); }
+
+      const arr = Array.from(pool);
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    // ════════════════════════════════
+    //  GAME FLOW
+    // ════════════════════════════════
+    function startGame() {
+      score       = 0;
+      questionNum = 0;
+      finalMs     = 0;
+      document.getElementById('startScreen').classList.add('hidden');
+      document.getElementById('gameScreen').classList.remove('hidden');
+
+      totalStartMs  = Date.now();
+      timerInterval = setInterval(() => {
+        document.getElementById('totalTimer').textContent = fmtTime(Date.now() - totalStartMs);
+      }, 500);
+
+      nextQuestion();
+    }
+
+    function nextQuestion() {
+      const lv = getLevel(questionNum);
+      document.getElementById('levelLabel').textContent = lv.label;
+      document.getElementById('scoreNum').textContent   = score;
+      document.getElementById('feedback').textContent   = '';
+      setCat('😸');
+
+      const q = generateQuestion(lv);
+      correctAnswer = q.result;
+      document.getElementById('math-expr').textContent = q.text + ' = ?';
+
+      const answers = makeAnswers(q.result, lv.mice, lv.max);
+      renderMice(answers);
+
+      answering = true;
+      startCountdown(lv.sec);
+    }
+
+    function checkAnswer(num) {
+      if (!answering) return;
+
+      if (num === correctAnswer) {
+        answering = false;
+        stopCountdown();
+        score++;
+        questionNum++;
+
+        document.getElementById('scoreNum').textContent = score;
+        document.getElementById('feedback').textContent = '✓ Výborně!';
+        document.getElementById('feedback').style.color = '#86efac';
+
+        setCat('😻', 'anim-correct');
+
+        // disable all, flash correct
+        document.querySelectorAll('.mouse-btn').forEach(btn => {
+          btn.disabled = true;
+          if (parseInt(btn.dataset.num) === correctAnswer) flashBtn(btn, 'flash-correct');
+        });
+
+        setTimeout(nextQuestion, 850);
+
+      } else {
+        // wrong click — game over
+        answering = false;
+        stopCountdown();
+        const btn = document.querySelector(`.mouse-btn[data-num="${num}"]`);
+        if (btn) { btn.classList.add('flash-wrong'); }
+        gameOver('wrong');
+      }
+    }
+
+    function onTimeout() {
+      if (!answering) return;
+      answering = false;
+      gameOver('timeout');
+    }
+
+    function gameOver(reason) {
+      clearInterval(timerInterval);
+      finalMs = Date.now() - totalStartMs;
+
+      setCat('😿', 'no-bob');
+
+      if (reason === 'timeout') {
+        document.getElementById('feedback').textContent = '⏰ Čas vypršel!';
+      } else {
+        document.getElementById('feedback').textContent = '✗ Špatná odpověď — hra končí!';
+      }
+      document.getElementById('feedback').style.color = '#fca5a5';
+
+      // reveal correct answer, disable all
+      document.querySelectorAll('.mouse-btn').forEach(btn => {
+        btn.disabled = true;
+        if (parseInt(btn.dataset.num) === correctAnswer) btn.classList.add('reveal-correct');
+      });
+
+      setTimeout(() => {
+        document.getElementById('gameScreen').classList.add('hidden');
+        document.getElementById('endScreen').classList.remove('hidden');
+        document.getElementById('resultScore').textContent = score;
+        renderLeaderboard('lb-end');
+      }, 1600);
+    }
+
+    function resetGame() {
+      clearInterval(timerInterval);
+      clearTimeout(questionTimer);
+      document.getElementById('endScreen').classList.add('hidden');
+      document.getElementById('startScreen').classList.remove('hidden');
+      renderLeaderboard('lb-start');
+    }
+
+    // ════════════════════════════════
+    //  COUNTDOWN
+    // ════════════════════════════════
+    function startCountdown(sec) {
+      clearTimeout(questionTimer);
+      const bar = document.getElementById('countdown-bar');
+      bar.classList.remove('running');
+      bar.style.cssText = '';
+      void bar.offsetWidth;
+      bar.style.animationDuration = sec + 's';
+      bar.classList.add('running');
+
+      questionTimer = setTimeout(() => {
+        if (answering) onTimeout();
+      }, sec * 1000);
+    }
+
+    function stopCountdown() {
+      clearTimeout(questionTimer);
+      const bar = document.getElementById('countdown-bar');
+      const barW   = parseFloat(getComputedStyle(bar).width) || 0;
+      const parentW = parseFloat(getComputedStyle(bar.parentElement).width) || 1;
+      bar.classList.remove('running');
+      bar.style.animationDuration = '';
+      bar.style.width = ((barW / parentW) * 100).toFixed(1) + '%';
+    }
+
+    // ════════════════════════════════
+    //  UI HELPERS
+    // ════════════════════════════════
+    function renderMice(answers) {
+      const grid = document.getElementById('mice-grid');
+      grid.innerHTML = answers.map(num => `
+        <button class="mouse-btn" data-num="${num}" onclick="checkAnswer(${num})">
+          <span class="mouse-icon">🐭</span>
+          <span class="mouse-num">${num}</span>
+        </button>`).join('');
+    }
+
+    function setCat(emoji, animClass) {
+      const cat = document.getElementById('cat-emoji');
+      cat.textContent = emoji;
+      cat.className   = 'cat-emoji';
+      if (animClass) {
+        void cat.offsetWidth;
+        cat.classList.add(animClass);
+        if (animClass !== 'no-bob') {
+          cat.addEventListener('animationend', () => {
+            cat.className = 'cat-emoji';
+          }, { once: true });
+        }
+      }
+    }
+
+    function flashBtn(btn, cls) {
+      btn.classList.remove('flash-correct', 'flash-wrong');
+      void btn.offsetWidth;
+      btn.classList.add(cls);
+      btn.addEventListener('animationend', () => btn.classList.remove(cls), { once: true });
+    }
+
+    // ════════════════════════════════
+    //  INIT
+    // ════════════════════════════════
+    renderLeaderboard('lb-start');
+  </script>
+</body>
+</html>

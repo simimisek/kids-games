@@ -1,29 +1,24 @@
-# Dependencies
-node_modules/
-
-# Test output
-test-results/
-playwright-report/
-blob-report/
-
-# Playwright cache
-playwright/.cache/
 
 # Build output
-dist/
-
+# Dependencies
 # Environment variables (never commit secrets)
-.env
-
-# MCP configuration (may contain secrets)
-.mcp.json
-
-# OS files
-.DS_Store
-Thumbs.db
-
 # IDE
-.vscode/
-.idea/
-*.swp
+# MCP configuration (may contain secrets)
+# OS files
+# Playwright cache
+# Test output
 *.swo
+*.swp
+.DS_Store
+.env
+.idea/
+.mcp.json
+.vscode/
+blob-report/
+dist/
+node_modules/
+package-lock.json
+playwright/.cache/
+playwright-report/
+test-results/
+Thumbs.db

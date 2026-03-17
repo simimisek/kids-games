@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-KEF2T80GE0"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-KEF2T80GE0');
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Had čísel | Vzdělávací hry</title>
+  <meta property="og:title" content="Had čísel" />
+  <meta property="og:image" content="https://simimisek.github.io/kids-games/ogimage.png" />
+  <meta property="og:description" content="Seřaď čísla ve správném pořadí. Zábavná hra pro děti." />
+  <meta property="og:url" content="https://simimisek.github.io/kids-games/hra9.html" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://simimisek.github.io/kids-games/og-preview.png" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(160deg, #f0fdf4 0%, #fafff7 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 16px 16px 40px;
+    }
+
+    .screen { display: none; width: 100%; max-width: 480px; }
+    .screen.active { display: flex; flex-direction: column; align-items: center; gap: 16px; padding-top: 16px; }
+
+    /* ─── TITULNÍ ─── */
+    .title { font-size: 2.2rem; color: #14532d; text-align: center; }
+    .subtitle { color: #555; text-align: center; font-size: 1rem; line-height: 1.65; }
+    .subtitle strong { color: #16a34a; }
+
+    /* ─── TLAČÍTKA ─── */
+    .btn {
+      width: 100%; padding: 15px;
+      font-size: 1.05rem; font-weight: 700;
+      border: none; border-radius: 14px; cursor: pointer;
+      transition: transform 0.1s; font-family: inherit;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary {
+      background: #16a34a; color: #fff;
+      box-shadow: 0 4px 16px rgba(22,163,74,0.35);
+    }
+    .btn-primary:hover { background: #15803d; }
+    .btn-secondary {
+      background: rgba(22,163,74,0.1); color: #16a34a;
+      border: 2px solid rgba(22,163,74,0.25); box-shadow: none;
+    }
+    .btn-secondary:hover { background: rgba(22,163,74,0.18); }
+
+    /* ─── HUD ─── */
+    .hud {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,0.8);
+      backdrop-filter: blur(4px);
+      border-radius: 14px;
+      padding: 10px 16px;
+    }
+    .hud-score { font-size: 1.2rem; font-weight: 800; color: #16a34a; }
+    .hud-level { font-size: 0.82rem; font-weight: 700; color: #888; }
+
+    /* ─── CANVAS ─── */
+    .canvas-wrap {
+      width: 100%;
+      background: rgba(255,255,255,0.7);
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+    }
+    #snake-canvas { display: block; width: 100%; }
+
+    /* ─── ROVNICE ─── */
+    .question-card {
+      width: 100%;
+      background: #fff;
+      border-radius: 18px;
+      padding: 18px 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.09);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .q-num {
+      font-size: clamp(1.8rem, 6vw, 2.4rem);
+      font-weight: 800;
+      color: #14532d;
+      min-width: 40px;
+      text-align: center;
+    }
+    .q-op {
+      font-size: clamp(1.8rem, 6vw, 2.4rem);
+      font-weight: 800;
+      color: #16a34a;
+      min-width: 32px;
+      text-align: center;
+    }
+    .q-eq {
+      font-size: clamp(1.8rem, 6vw, 2.4rem);
+      font-weight: 800;
+      color: #aaa;
+    }
+    #answer-input {
+      width: clamp(72px, 18vw, 88px);
+      height: clamp(56px, 14vw, 68px);
+      font-size: clamp(1.6rem, 5vw, 2.2rem);
+      font-weight: 800;
+      text-align: center;
+      border: 3px solid #d1fae5;
+      border-radius: 14px;
+      color: #14532d;
+      outline: none;
+      transition: border-color 0.2s, background 0.2s;
+      -moz-appearance: textfield;
+      font-family: inherit;
+    }
+    #answer-input::-webkit-outer-spin-button,
+    #answer-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+    #answer-input:focus { border-color: #16a34a; background: #f0fdf4; }
+    #answer-input.correct { background: #dcfce7; border-color: #4ade80; }
+    #answer-input.wrong   { background: #fee2e2; border-color: #f87171; }
+
+    .btn-submit {
+      width: clamp(56px, 14vw, 68px);
+      height: clamp(56px, 14vw, 68px);
+      font-size: 1.5rem;
+      border: none; border-radius: 14px;
+      background: #16a34a; color: #fff;
+      cursor: pointer; font-family: inherit;
+      box-shadow: 0 4px 14px rgba(22,163,74,0.35);
+      transition: transform 0.1s;
+    }
+    .btn-submit:active { transform: scale(0.91); }
+    .btn-submit:hover  { background: #15803d; }
+
+    .hint {
+      font-size: 0.8rem; color: #aaa; text-align: center;
+      margin-top: -4px;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%       { transform: translateX(-9px); }
+      40%       { transform: translateX(9px); }
+      60%       { transform: translateX(-5px); }
+      80%       { transform: translateX(5px); }
+    }
+    .question-card.shake { animation: shake 0.38s ease; }
+
+    /* ─── VÝSLEDKY ─── */
+    .result-card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 28px 24px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.09);
+    }
+    .result-icon  { font-size: 3.5rem; margin-bottom: 8px; }
+    .result-title { font-size: 1.9rem; font-weight: 800; color: #14532d; }
+    .result-score { font-size: 3.5rem; font-weight: 800; color: #16a34a; margin: 10px 0 4px; }
+    .result-sub   { color: #888; font-size: 0.95rem; }
+
+    /* ─── JMÉNO + ŽEBŘÍČEK ─── */
+    .name-row { width: 100%; display: flex; gap: 10px; }
+    .name-row input {
+      flex: 1; padding: 14px 18px; border-radius: 12px; border: none;
+      font-size: 1rem; outline: 2px solid transparent;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08); transition: outline 0.2s;
+    }
+    .name-row input:focus { outline: 2px solid #16a34a; }
+
+    .leaderboard-card {
+      background: #fff; border-radius: 20px; padding: 22px;
+      width: 100%; box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+    .leaderboard-card h3 { text-align: center; color: #333; font-size: 1.1rem; margin-bottom: 14px; }
+    .leaderboard-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .leaderboard-list li {
+      display: grid; grid-template-columns: 28px 1fr auto;
+      gap: 8px; align-items: center; font-size: 0.93rem; color: #444;
+      padding: 6px 0; border-bottom: 1px solid #f0f0f0;
+    }
+    .leaderboard-list li:last-child { border-bottom: none; }
+    .lb-rank  { font-weight: 700; color: #16a34a; text-align: center; }
+    .lb-name  { font-weight: 600; }
+    .lb-score { color: #16a34a; font-weight: 700; }
+    .lb-date  { font-size: 0.76rem; color: #aaa; grid-column: 2/4; margin-top: -4px; }
+    .lb-empty, .lb-loading {
+      text-align: center; color: #aaa; font-style: italic;
+      padding: 8px 0; font-size: 0.88rem; grid-column: 1/-1;
+    }
+
+    /* ─── DOMŮ ─── */
+    .btn-home-fixed {
+      position: fixed; top: 12px; right: 12px; z-index: 200;
+      background: rgba(20,83,45,0.18); border: none; border-radius: 10px;
+      padding: 7px 14px; color: #14532d; font-family: inherit;
+      font-size: 0.85rem; font-weight: 700; text-decoration: none; cursor: pointer;
+    }
+    .btn-home-fixed:hover { background: rgba(20,83,45,0.30); }
+
+    @media (max-width: 360px) {
+      body { padding: 10px; }
+      .title { font-size: 1.9rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ════ START ════ -->
+<div id="screen-start" class="screen active">
+  <div class="title">🐍 Had čísel</div>
+  <p class="subtitle">
+    Každý příklad navazuje na výsledek předchozího.<br>
+    Správná odpověď = had roste o jeden díl!<br>
+    <strong>Jedna chyba a hra končí</strong> — jak daleko dojdeš?
+  </p>
+  <button class="btn btn-primary" onclick="startGame()">▶ Hrát</button>
+  <a href="index.html" style="width:100%;text-decoration:none;">
+    <button class="btn btn-primary">🏠 Zpět na výběr</button>
+  </a>
+  <div class="leaderboard-card">
+    <h3>🏆 Nejlepší hráči</h3>
+    <ul class="leaderboard-list" id="lb-start"></ul>
+  </div>
+</div>
+
+<!-- ════ HRA ════ -->
+<div id="screen-game" class="screen">
+  <div class="hud">
+    <div class="hud-score" id="hud-score">✓ 0</div>
+    <div class="hud-level"  id="hud-level">výsledky 0–10</div>
+  </div>
+
+  <div class="canvas-wrap">
+    <canvas id="snake-canvas"></canvas>
+  </div>
+
+  <div class="question-card" id="question-card">
+    <span class="q-num" id="q-left">?</span>
+    <span class="q-op"  id="q-op">+</span>
+    <span class="q-num" id="q-right">?</span>
+    <span class="q-eq">=</span>
+    <input type="number" id="answer-input"
+           placeholder="?" autocomplete="off" inputmode="numeric" min="0" max="999" />
+    <button class="btn-submit" onclick="handleSubmit()">✓</button>
+  </div>
+
+  <p class="hint">Napiš výsledek a stiskni Enter nebo ✓</p>
+
+  <a href="index.html" class="btn-home-fixed">🏠 Domů</a>
+</div>
+
+<!-- ════ KONEC ════ -->
+<div id="screen-end" class="screen">
+  <div class="result-card">
+    <div class="result-icon" id="final-icon">🎉</div>
+    <div class="result-title">Skvěle!</div>
+    <div class="result-score" id="final-score">0</div>
+    <div class="result-sub">správně spočítaných příkladů</div>
+  </div>
+  <div class="name-row">
+    <input type="text" id="player-name" placeholder="Tvoje jméno…" maxlength="20" />
+    <button class="btn btn-primary" style="width:auto;padding:14px 20px;font-size:1rem"
+            onclick="saveScore()">Uložit</button>
+  </div>
+  <button class="btn btn-primary" onclick="startGame()">🔄 Hrát znovu</button>
+  <a href="index.html" style="width:100%;text-decoration:none;">
+    <button class="btn btn-primary">🏠 Zpět na výběr</button>
+  </a>
+  <div class="leaderboard-card">
+    <h3>🏆 Nejlepší hráči</h3>
+    <ul class="leaderboard-list" id="lb-end"></ul>
+  </div>
+</div>
+
+<script>
+  const QUIZ_TYPE = 'snake-math';
+  const NODE_R    = 22;  // px, polomer uzlu na canvasu
+  const NODES_ROW = 5;   // uzlů v jednom řádku hada
+  const ROW_H     = 72;  // px, výška jednoho řádku
+  const SHOW_ROWS = 3;   // viditelné řádky v canvasu
+
+  // Každých 5 správných odpovědí se posune rozsah výsledků o 10:
+  // 0–4 správně → výsledky v pásmu 0–10
+  // 5–9 správně → výsledky v pásmu 10–20
+  // 10–14 správně → výsledky v pásmu 20–30  atd.
+  function getBand(s) {
+    const level = Math.floor(s / 5);
+    return { min: level * 10, max: (level + 1) * 10 };
+  }
+
+  // ─── STAV ────────────────────────────────────────────────────────────────────
+  let steps       = [];   // [{value, opStr}]  opStr = null pro první uzel
+  let currentVal  = 0;
+  let score       = 0;
+  let currentStep = null; // {opStr, result}  opStr např. "+5", "−3"
+  let locked      = false;
+  let finalScore  = 0;
+
+  // ─── POMOCNÉ ────────────────────────────────────────────────────────────────
+  function randInt(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a; }
+
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+
+  // ─── GENERÁTOR KROKU ────────────────────────────────────────────────────────
+  function generateStep(val, s) {
+    const { min, max } = getBand(s);
+
+    // Rozsahy operandů pro + a −, aby výsledek padl do [min, max] a byl ≥ 1
+    const addLo = Math.max(1, min - val);   // musíme přidat aspoň tolik, abychom dosáhli min
+    const addHi = max - val;                // nesmíme přesáhnout max
+    const subLo = Math.max(1, val - max);   // odečteme aspoň tolik, abychom klesli ≤ max
+    const subHi = val - Math.max(1, min);   // výsledek musí být ≥ 1 a ≥ min
+
+    const canAdd = addHi >= addLo;
+    const canSub = subHi >= subLo && subHi >= 1;
+
+    let op;
+    if (canAdd && canSub) op = Math.random() < 0.5 ? '+' : '-';
+    else if (canAdd)      op = '+';
+    else if (canSub)      op = '-';
+    else                  return { opStr: '+1', result: Math.min(val + 1, max) }; // krajní případ
+
+    if (op === '+') {
+      const n = randInt(addLo, addHi);
+      return { opStr: `+${n}`, result: val + n };
+    } else {
+      const n = randInt(subLo, subHi);
+      return { opStr: `−${n}`, result: val - n };
+    }
+  }
+
+  // ─── CANVAS ─────────────────────────────────────────────────────────────────
+  function initCanvas() {
+    const canvas = document.getElementById('snake-canvas');
+    canvas.width  = canvas.parentElement.offsetWidth;
+    canvas.height = SHOW_ROWS * ROW_H + 30;
+  }
+
+  function nodePos(i, W) {
+    const pad   = NODE_R + 10;
+    const xStep = (W - 2 * pad) / (NODES_ROW - 1);
+    const row   = Math.floor(i / NODES_ROW);
+    const col   = i % NODES_ROW;
+    const even  = row % 2 === 0;
+
+    // Vertikální posuv — udrž vždy nejaktuálnější řádky viditelné
+    const totalRows = Math.ceil(steps.length / NODES_ROW);
+    const scrollRow = Math.max(0, totalRows - SHOW_ROWS);
+
+    return {
+      x: pad + (even ? col : NODES_ROW - 1 - col) * xStep,
+      y: (row - scrollRow) * ROW_H + NODE_R + 12,
+    };
+  }
+
+  function drawSnake() {
+    const canvas = document.getElementById('snake-canvas');
+    if (!canvas.width) return;
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+
+    const N = steps.length;
+    if (N === 0) return;
+
+    // Tělo hada (čáry)
+    ctx.lineCap = 'round';
+    for (let i = 1; i < N; i++) {
+      const p1 = nodePos(i - 1, W);
+      const p2 = nodePos(i, W);
+      if (p1.y < -NODE_R && p2.y < -NODE_R) continue;
+      ctx.strokeStyle = '#4ade80';
+      ctx.lineWidth   = 18;
+      ctx.beginPath();
+      ctx.moveTo(p1.x, p1.y);
+      ctx.lineTo(p2.x, p2.y);
+      ctx.stroke();
+    }
+
+    // Operátor badge na středu každého spojení
+    for (let i = 1; i < N; i++) {
+      const p1 = nodePos(i - 1, W);
+      const p2 = nodePos(i, W);
+      if (!steps[i].opStr) continue;
+      if (p1.y < -NODE_R && p2.y < -NODE_R) continue;
+
+      const mx = (p1.x + p2.x) / 2;
+      const my = (p1.y + p2.y) / 2;
+
+      ctx.fillStyle = 'rgba(255,255,255,0.95)';
+      ctx.beginPath();
+      ctx.arc(mx, my, 13, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle    = '#16a34a';
+      ctx.font         = 'bold 10px Segoe UI, sans-serif';
+      ctx.textAlign    = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(steps[i].opStr, mx, my);
+    }
+
+    // Uzly (čísla)
+    for (let i = 0; i < N; i++) {
+      const p    = nodePos(i, W);
+      const isHd = i === N - 1;
+      const r    = isHd ? NODE_R + 4 : NODE_R;
+      if (p.y < -r || p.y > H + r) continue;
+
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+      ctx.fillStyle   = isHd ? '#16a34a' : '#86efac';
+      ctx.fill();
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth   = isHd ? 3 : 2;
+      ctx.stroke();
+
+      ctx.fillStyle    = isHd ? '#fff' : '#14532d';
+      ctx.font         = `bold ${isHd ? 15 : 13}px Segoe UI, sans-serif`;
+      ctx.textAlign    = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(steps[i].value, p.x, p.y);
+    }
+  }
+
+  // ─── HUD ─────────────────────────────────────────────────────────────────────
+  function updateHUD() {
+    document.getElementById('hud-score').textContent = `✓ ${score}`;
+    const { min, max } = getBand(score);
+    document.getElementById('hud-level').textContent = `výsledky ${min}–${max}`;
+  }
+
+  // ─── ZOBRAZENÍ OTÁZKY ────────────────────────────────────────────────────────
+  function setupQuestion() {
+    currentStep = generateStep(currentVal, score);
+    // opStr = "+5" | "−3" | "×4" | "÷2"
+    const op  = currentStep.opStr[0];
+    const num = currentStep.opStr.slice(1);
+    document.getElementById('q-left').textContent  = currentVal;
+    document.getElementById('q-op').textContent    = op;
+    document.getElementById('q-right').textContent = num;
+    document.getElementById('answer-input').value  = '';
+    setTimeout(() => document.getElementById('answer-input').focus(), 60);
+  }
+
+  // ─── ZPRACOVÁNÍ ODPOVĚDI ─────────────────────────────────────────────────────
+  function handleSubmit() {
+    if (locked) return;
+    const inp = document.getElementById('answer-input');
+    const val = parseInt(inp.value, 10);
+    if (isNaN(val)) { inp.focus(); return; }
+    locked = true;
+
+    if (val === currentStep.result) {
+      // ✓ Správně
+      score++;
+      currentVal = currentStep.result;
+      steps.push({ value: currentVal, opStr: currentStep.opStr });
+      inp.classList.add('correct');
+      drawSnake();
+      updateHUD();
+      setTimeout(() => {
+        inp.classList.remove('correct');
+        setupQuestion();
+        locked = false;
+      }, 360);
+
+    } else {
+      // ✗ Špatně → ukáž správnou odpověď a konec hry
+      inp.classList.add('wrong');
+      inp.value = currentStep.result;
+      document.getElementById('question-card').classList.add('shake');
+      setTimeout(() =>
+        document.getElementById('question-card').classList.remove('shake'), 400);
+
+      finalScore = score;
+      setTimeout(endGame, 950);
+    }
+  }
+
+  // ─── ENTER KLÁVESA ───────────────────────────────────────────────────────────
+  document.getElementById('answer-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') handleSubmit();
+  });
+
+  // ─── SKRYTÍ CANVASU PŘI OTEVŘENÉ KLÁVESNICI (Android) ───────────────────────
+  // Když klávesnice zabere >30 % výšky obrazovky, canvas se schová
+  // aby bylo pole pro odpověď vždy viditelné
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', () => {
+      const ratio = window.visualViewport.height / window.screen.height;
+      const wrap  = document.querySelector('.canvas-wrap');
+      if (!wrap) return;
+      if (ratio < 0.70) {
+        // Klávesnice otevřena — schovej canvas
+        wrap.style.display = 'none';
+        document.getElementById('question-card')
+          .scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } else {
+        // Klávesnice zavřena — zobraz canvas a překresli hada
+        wrap.style.display = '';
+        if (steps.length > 0) requestAnimationFrame(() => { initCanvas(); drawSnake(); });
+      }
+    });
+  }
+
+  // ─── OBRAZOVKY ───────────────────────────────────────────────────────────────
+  function startGame() {
+    steps      = [];
+    score      = 0;
+    locked     = false;
+    finalScore = 0;
+    currentVal = randInt(2, 9);
+    steps.push({ value: currentVal, opStr: null });
+
+    showScreen('screen-game');
+
+    // Canvas potřebuje viditelný kontejner pro správné rozměry
+    requestAnimationFrame(() => {
+      initCanvas();
+      drawSnake();
+      updateHUD();
+      setupQuestion();
+    });
+  }
+
+  function endGame() {
+    finalScore = score;
+    document.getElementById('final-score').textContent = finalScore;
+    document.getElementById('final-icon').textContent  =
+      finalScore >= 20 ? '🏆' : finalScore >= 10 ? '🎉' : '🐍';
+    document.getElementById('player-name').value = '';
+    showScreen('screen-end');
+    renderLeaderboard('lb-end');
+  }
+
+  // ─── ŽEBŘÍČEK (Firebase) ─────────────────────────────────────────────────────
+  const DB_URL = 'https://kids-games-3a167-default-rtdb.europe-west1.firebasedatabase.app';
+
+  async function getScores() {
+    try {
+      const r = await fetch(`${DB_URL}/scores/${QUIZ_TYPE}.json`);
+      const d = await r.json();
+      return Array.isArray(d) ? d : [];
+    } catch { return []; }
+  }
+
+  async function saveScore() {
+    const nameInput = document.getElementById('player-name');
+    const name = nameInput.value.trim();
+    if (!name) { nameInput.style.outline = '3px solid #ef4444'; nameInput.focus(); return; }
+    nameInput.style.outline = '';
+    const scores = await getScores();
+    scores.push({ name, score: finalScore, date: new Date().toLocaleDateString('cs-CZ') });
+    scores.sort((a, b) => b.score - a.score);   // více příkladů = lepší
+    const top10 = scores.slice(0, 10);
+    try {
+      await fetch(`${DB_URL}/scores/${QUIZ_TYPE}.json`, {
+        method:  'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(top10),
+      });
+    } catch {}
+    renderLeaderboard('lb-end');
+    document.getElementById('player-name').value = '';
+  }
+
+  async function renderLeaderboard(elId) {
+    const el = document.getElementById(elId);
+    el.innerHTML = '<li class="lb-loading">Načítám…</li>';
+    const scores = await getScores();
+    if (!scores.length) {
+      el.innerHTML = '<li class="lb-empty">Zatím žádné výsledky.</li>';
+      return;
+    }
+    el.innerHTML = scores.map((s, i) => `
+      <li>
+        <span class="lb-rank">${i + 1}.</span>
+        <span class="lb-name">${esc(s.name)}</span>
+        <span class="lb-score">${s.score} příkladů</span>
+        <span class="lb-date">${esc(s.date)}</span>
+      </li>`).join('');
+  }
+
+  function esc(str) {
+    return String(str)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  renderLeaderboard('lb-start');
+</script>
+</body>
+</html>

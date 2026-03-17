@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-KEF2T80GE0"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-KEF2T80GE0');
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Závodní auto | Vzdělávací hry</title>
+  <meta property="og:title" content="Závodní auto" />
+  <meta property="og:image" content="https://simimisek.github.io/kids-games/ogimage.png" />
+  <meta property="og:description" content="Vyber větší číslo a pomoz autu dojet do cíle!" />
+  <meta property="og:url" content="https://simimisek.github.io/kids-games/hra18.html" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://simimisek.github.io/kids-games/ogimage.png" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #1a237e 0%, #0277bd 100%);
+      min-height: 100vh;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 16px 16px 48px;
+    }
+
+    /* ── floating bg ── */
+    .bg-floaters { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+    .bg-floaters span {
+      position: absolute;
+      font-size: 2rem;
+      color: rgba(255,255,255,0.06);
+      animation: numFloat 14s infinite linear;
+      user-select: none;
+    }
+    @keyframes numFloat {
+      0%   { transform: translateY(110vh) rotate(0deg); opacity: 0; }
+      10%  { opacity: 1; }
+      90%  { opacity: 1; }
+      100% { transform: translateY(-15vh) rotate(360deg); opacity: 0; }
+    }
+
+    /* ── screens ── */
+    .screen {
+      position: relative; z-index: 1;
+      width: 100%; max-width: 520px;
+      display: flex; flex-direction: column; align-items: center; gap: 16px;
+      padding-top: 16px;
+    }
+    .screen.hidden { display: none; }
+
+    .screen-icon  { font-size: 4rem; line-height: 1; }
+    .screen-title { font-size: 2.2rem; font-weight: 800; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+    .screen-sub   { font-size: 1rem; color: rgba(255,255,255,0.82); line-height: 1.7; text-align: center; }
+
+    /* ── buttons ── */
+    .btn {
+      width: 100%; padding: 15px;
+      font-size: 1.05rem; font-weight: 700;
+      border: none; border-radius: 14px; cursor: pointer;
+      transition: transform 0.1s; font-family: inherit;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary  { background: #ffca28; color: #1a237e; box-shadow: 0 4px 16px rgba(255,202,40,0.45); }
+    .btn-primary:hover  { background: #f0bb00; }
+    .btn-secondary { background: rgba(255,202,40,0.12); color: #ffca28; border: 2px solid rgba(255,202,40,0.35); }
+    .btn-secondary:hover { background: rgba(255,202,40,0.22); }
+
+    /* ── leaderboard ── */
+    .leaderboard-card {
+      background: #fff; border-radius: 20px; padding: 22px;
+      width: 100%; box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+    .leaderboard-card h3 { text-align: center; color: #333; font-size: 1.1rem; margin-bottom: 14px; }
+    .leaderboard-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .leaderboard-list li {
+      display: grid; grid-template-columns: 28px 1fr auto;
+      gap: 8px; align-items: center; font-size: 0.93rem; color: #444;
+      padding: 6px 0; border-bottom: 1px solid #f0f0f0;
+    }
+    .leaderboard-list li:last-child { border-bottom: none; }
+    .lb-rank { font-weight: 700; color: #1a237e; }
+    .lb-name { font-weight: 600; }
+    .lb-time { color: #1a237e; font-weight: 700; }
+    .lb-empty, .lb-loading {
+      text-align: center; color: #aaa; font-style: italic;
+      padding: 8px 0; font-size: 0.88rem; grid-column: 1/-1;
+    }
+
+    /* ── name row ── */
+    .name-row { display: flex; gap: 10px; width: 100%; }
+    .name-row input {
+      flex: 1; padding: 14px 18px; border-radius: 12px; border: none;
+      font-size: 1rem; outline: 2px solid transparent;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08); transition: outline 0.2s;
+    }
+    .name-row input:focus { outline: 2px solid #ffca28; }
+
+    /* ── result time ── */
+    .result-time {
+      font-size: 3rem; font-weight: 900; color: #ffca28;
+      text-shadow: 0 2px 16px rgba(255,202,40,0.5);
+    }
+
+    /* ════════════════════════════════
+       GAME SCREEN
+    ════════════════════════════════ */
+    #gameScreen { gap: 12px; }
+
+    /* header */
+    .game-hdr {
+      width: 100%;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .game-hdr-left { display: flex; flex-direction: column; gap: 2px; }
+    .game-hdr-right { display: flex; align-items: center; }
+    .round-label { font-size: 1rem; font-weight: 700; color: rgba(255,255,255,0.95); }
+    .round-sub   { font-size: 0.78rem; color: rgba(255,255,255,0.65); }
+    .timer-disp  { font-size: 1.1rem; font-weight: 800; color: #ffca28; min-width: 42px; text-align: right; }
+    .btn-home-fixed {
+      position: fixed; top: 12px; right: 12px; z-index: 200;
+      background: rgba(0,0,0,0.25); border: none; border-radius: 10px;
+      padding: 7px 14px; color: #fff; font-family: inherit;
+      font-size: 0.85rem; font-weight: 700; text-decoration: none; cursor: pointer;
+    }
+    .btn-home-fixed:hover { background: rgba(0,0,0,0.4); }
+
+    /* countdown bar */
+    .countdown-wrap {
+      width: 100%; height: 10px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 5px; overflow: hidden;
+    }
+    .countdown-bar {
+      height: 100%; width: 100%;
+      border-radius: 5px;
+      background: #22c55e;
+    }
+    .countdown-bar.running {
+      animation: cdBar 5s linear forwards;
+    }
+    @keyframes cdBar {
+      0%   { width: 100%; background: #22c55e; }
+      55%  { background: #f59e0b; }
+      100% { width: 0%;   background: #ef4444; }
+    }
+
+    /* ── road ── */
+    .road-container {
+      width: 100%; border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.35);
+    }
+    .road-sky {
+      height: 44px;
+      background: linear-gradient(180deg, #5b9bd5 0%, #a8d8f0 100%);
+      position: relative; overflow: hidden;
+    }
+    .road-sky .cloud {
+      position: absolute; font-size: 1.6rem;
+      top: 4px; user-select: none; opacity: 0.9;
+    }
+    .road-sky .tree {
+      position: absolute; bottom: 0;
+      font-size: 1.5rem; user-select: none;
+      line-height: 1;
+    }
+    .road-strip {
+      height: 72px;
+      background: #4a4a4a;
+      position: relative;
+      display: flex; align-items: center;
+    }
+    /* yellow edge lines */
+    .road-strip::before {
+      content: ''; position: absolute;
+      left: 0; right: 0; top: 6px; height: 4px;
+      background: #ffca28; opacity: 0.6;
+    }
+    .road-strip::after {
+      content: ''; position: absolute;
+      left: 0; right: 0; bottom: 6px; height: 4px;
+      background: #ffca28; opacity: 0.6;
+    }
+    .road-dashes {
+      position: absolute; top: 50%; left: 0; right: 0;
+      transform: translateY(-50%);
+      height: 4px;
+      background: repeating-linear-gradient(
+        to right,
+        rgba(255,255,255,0.5) 0px, rgba(255,255,255,0.5) 28px,
+        transparent 28px, transparent 56px
+      );
+    }
+    .milestone {
+      position: absolute; top: 16%;
+      width: 10px; height: 10px; border-radius: 50%;
+      background: rgba(255,255,255,0.2);
+      z-index: 2; transform: translateX(-50%);
+      transition: background 0.3s, transform 0.2s;
+      box-shadow: 0 0 0 2px rgba(255,255,255,0.1);
+    }
+    .milestone.passed {
+      background: #66bb6a;
+      box-shadow: 0 0 6px rgba(102,187,106,0.8);
+      transform: translateX(-50%) scale(1.2);
+    }
+    .road-flag {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      font-size: 1.5rem; z-index: 3; user-select: none;
+      line-height: 1;
+    }
+    .road-flag-start { left: 6px; }
+    .road-flag-end   { right: 6px; }
+    .car {
+      position: absolute; top: 50%;
+      transform: translateY(-50%) scaleX(-1);
+      font-size: 2.2rem; z-index: 5; user-select: none;
+      transition: left 0.48s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      filter: drop-shadow(0 3px 6px rgba(0,0,0,0.5));
+      line-height: 1;
+    }
+    .road-grass {
+      height: 18px;
+      background: linear-gradient(180deg, #3d7a4a 0%, #2e6b3a 100%);
+    }
+
+    /* road flash */
+    .road-strip.flash-ok  { animation: roadOk  0.4s ease; }
+    .road-strip.flash-err { animation: roadErr 0.5s ease; }
+    @keyframes roadOk  {
+      0%, 100% { background: #4a4a4a; }
+      35%      { background: #1b5e20; }
+    }
+    @keyframes roadErr {
+      0%, 100% { background: #4a4a4a; }
+      35%      { background: #7f1d1d; }
+    }
+
+    /* car bounce on correct */
+    .car.bounce { animation: carBounce 0.4s ease; }
+    @keyframes carBounce {
+      0%, 100% { transform: translateY(-50%) scaleX(-1); }
+      40%      { transform: translateY(-62%) scaleX(-1) scale(1.15); }
+    }
+
+    /* car finish celebration */
+    .car.finish { animation: carFinish 0.75s ease; }
+    @keyframes carFinish {
+      0%   { transform: translateY(-50%) scaleX(-1); }
+      20%  { transform: translateY(-70%) scaleX(-1) scale(1.28); }
+      45%  { transform: translateY(-48%) scaleX(-1) scale(1.1); }
+      70%  { transform: translateY(-60%) scaleX(-1) scale(1.15); }
+      100% { transform: translateY(-50%) scaleX(-1); }
+    }
+
+    /* finish line flash */
+    .road-strip.flash-finish { animation: roadFinish 0.75s ease; }
+    @keyframes roadFinish {
+      0%, 100% { background: #4a4a4a; }
+      25%  { background: #1565c0; }
+      60%  { background: #283593; }
+    }
+
+    /* finish flag wave */
+    .road-flag-end.celebrate { animation: flagWave 0.75s ease; }
+    @keyframes flagWave {
+      0%, 100% { transform: translateY(-50%); }
+      25%  { transform: translateY(-72%) rotate(-18deg) scale(1.4); }
+      55%  { transform: translateY(-45%) rotate(12deg) scale(1.2); }
+      80%  { transform: translateY(-58%) rotate(-6deg) scale(1.1); }
+    }
+
+    /* ── step dots ── */
+    .steps-row { display: flex; gap: 12px; }
+    .step-dot {
+      width: 18px; height: 18px; border-radius: 50%;
+      background: rgba(255,255,255,0.18);
+      transition: background 0.3s, transform 0.2s;
+      box-shadow: 0 0 0 2px rgba(255,255,255,0.08);
+    }
+    .step-dot.done   { background: #66bb6a; transform: scale(1.1); box-shadow: 0 0 8px rgba(102,187,106,0.5); }
+    .step-dot.active { background: rgba(255,255,255,0.45); }
+
+    /* ── question ── */
+    .question-label {
+      font-size: 1.1rem; font-weight: 700;
+      color: rgba(255,255,255,0.88);
+    }
+
+    /* ── number buttons ── */
+    .numbers-row { display: flex; gap: 16px; width: 100%; }
+    .num-btn {
+      flex: 1; padding: 18px 10px;
+      font-size: 2.6rem; font-weight: 900;
+      border: none; border-radius: 18px;
+      cursor: pointer; font-family: inherit;
+      background: #fff; color: #1a237e;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.18);
+      transition: transform 0.12s, box-shadow 0.12s;
+      min-height: 96px; line-height: 1;
+    }
+    .num-btn:hover:not(:disabled) { transform: translateY(-4px); box-shadow: 0 10px 28px rgba(0,0,0,0.25); }
+    .num-btn:active:not(:disabled) { transform: scale(0.95); }
+    .num-btn:disabled { cursor: default; }
+    .num-btn.ok-flash   { animation: btnOk  0.4s ease; }
+    .num-btn.err-flash  { animation: btnErr 0.5s ease; }
+    @keyframes btnOk {
+      0%, 100% { background: #fff; }
+      40%      { background: #dcfce7; box-shadow: 0 0 0 5px #22c55e; }
+    }
+    @keyframes btnErr {
+      0%, 100% { background: #fff; }
+      40%      { background: #fee2e2; box-shadow: 0 0 0 5px #ef4444; }
+    }
+
+    /* ── feedback ── */
+    .feedback {
+      font-size: 1.05rem; font-weight: 700;
+      min-height: 1.6em; color: #fff; text-align: center;
+    }
+
+    /* ── responsive ── */
+    @media (max-width: 400px) {
+      body { padding: 10px 10px 36px; }
+      .screen-title { font-size: 1.85rem; }
+      .num-btn { font-size: 2.1rem; padding: 14px 8px; min-height: 80px; }
+      .road-strip { height: 60px; }
+      .car { font-size: 1.8rem; }
+      .road-flag { font-size: 1.2rem; }
+      .road-sky { height: 36px; }
+      .road-sky .tree { font-size: 1.2rem; }
+      .name-row { flex-direction: column; }
+      .name-row input { width: 100%; }
+      .name-row button { width: 100% !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-floaters" id="floaters"></div>
+
+  <!-- ═══════════════════════════════════
+       START SCREEN
+  ═══════════════════════════════════ -->
+  <div class="screen" id="startScreen">
+    <div class="screen-icon">🚗</div>
+    <div class="screen-title">Závodní auto</div>
+    <div class="screen-sub">
+      Vyber číslo, které je <strong style="color:#ffca28">větší</strong>!<br>
+      Správná odpověď posune auto dopředu.<br>
+      Špatná ho vrátí zpět. Máš <strong style="color:#ffca28">5 sekund</strong> na odpověď.<br><br>
+      🏁 3 kola &nbsp;•&nbsp; 5 správných v každém kole
+    </div>
+    <div class="leaderboard-card">
+      <h3>🏆 Nejlepší časy</h3>
+      <ul class="leaderboard-list" id="lb-start"></ul>
+    </div>
+    <button class="btn btn-primary" onclick="startGame()">🚦 Start!</button>
+    <a href="index.html" style="width:100%;text-decoration:none;">
+      <button class="btn btn-secondary">🏠 Zpět na výběr</button>
+    </a>
+  </div>
+
+  <!-- ═══════════════════════════════════
+       GAME SCREEN
+  ═══════════════════════════════════ -->
+  <div class="screen hidden" id="gameScreen">
+    <a href="index.html" class="btn-home-fixed">🏠 Domů</a>
+
+    <!-- header -->
+    <div class="game-hdr">
+      <div class="game-hdr-left">
+        <span class="round-label" id="roundLabel">Kolo 1 / 3</span>
+        <span class="round-sub"   id="roundSub">Čísla do 20</span>
+      </div>
+      <div class="game-hdr-right">
+        <span class="timer-disp" id="totalTimer">0:00</span>
+      </div>
+    </div>
+
+    <!-- countdown bar -->
+    <div class="countdown-wrap">
+      <div class="countdown-bar" id="countdown-bar"></div>
+    </div>
+
+    <!-- road -->
+    <div class="road-container">
+      <div class="road-sky">
+        <span class="cloud" style="left:8%">☁️</span>
+        <span class="cloud" style="left:52%">☁️</span>
+        <span class="tree" style="left:18%">🌲</span>
+        <span class="tree" style="left:38%">🌳</span>
+        <span class="tree" style="left:58%">🌲</span>
+        <span class="tree" style="left:78%">🌳</span>
+      </div>
+      <div class="road-strip" id="roadStrip">
+        <div class="road-dashes"></div>
+        <div class="milestone" id="ms1"></div>
+        <div class="milestone" id="ms2"></div>
+        <div class="milestone" id="ms3"></div>
+        <div class="milestone" id="ms4"></div>
+        <div class="road-flag road-flag-start">🚦</div>
+        <div class="road-flag road-flag-end">🏁</div>
+        <div class="car" id="car">🚗</div>
+      </div>
+      <div class="road-grass"></div>
+    </div>
+
+    <!-- step dots -->
+    <div class="steps-row">
+      <div class="step-dot" id="sd0"></div>
+      <div class="step-dot" id="sd1"></div>
+      <div class="step-dot" id="sd2"></div>
+      <div class="step-dot" id="sd3"></div>
+      <div class="step-dot" id="sd4"></div>
+    </div>
+
+    <!-- question -->
+    <div class="question-label">Které číslo je větší?</div>
+
+    <!-- answer buttons -->
+    <div class="numbers-row">
+      <button class="num-btn" id="btnA" onclick="answer('A')"></button>
+      <button class="num-btn" id="btnB" onclick="answer('B')"></button>
+    </div>
+
+    <!-- feedback -->
+    <div class="feedback" id="feedback"></div>
+  </div>
+
+  <!-- ═══════════════════════════════════
+       END SCREEN
+  ═══════════════════════════════════ -->
+  <div class="screen hidden" id="endScreen">
+    <div class="screen-icon">🏆</div>
+    <div class="screen-title">Skvěle!</div>
+    <div class="screen-sub">Dokončil(a) jsi všechna 3 kola!</div>
+    <div class="result-time" id="resultTime">0:00</div>
+    <div class="leaderboard-card">
+      <h3>Uložit čas</h3>
+      <div class="name-row">
+        <input type="text" id="player-name" placeholder="Tvoje jméno" maxlength="20" />
+        <button class="btn btn-primary" style="width:auto;padding:14px 22px;" onclick="saveScore()">Uložit</button>
+      </div>
+    </div>
+    <div class="leaderboard-card">
+      <h3>🏆 Nejlepší časy</h3>
+      <ul class="leaderboard-list" id="lb-end"></ul>
+    </div>
+    <button class="btn btn-secondary" onclick="resetGame()">🔄 Hrát znovu</button>
+    <a href="index.html" class="btn btn-secondary" style="text-decoration:none;text-align:center;display:block;">🏠 Domů</a>
+  </div>
+
+  <script>
+    // ════════════════════════════════
+    //  CONFIG
+    // ════════════════════════════════
+    const QUIZ_TYPE   = 'math-bigger';
+    const DB_URL      = 'https://kids-games-3a167-default-rtdb.europe-west1.firebasedatabase.app';
+    const ROUNDS      = [
+      { max: 20,  label: 'Čísla do 20'  },
+      { max: 50,  label: 'Čísla do 50'  },
+      { max: 100, label: 'Čísla do 100' },
+    ];
+    const STEPS_NEEDED   = 5;
+    const QUESTION_MS    = 5000;
+
+    // Car left% positions: step 0 → 11%, step 5 → 88% (overlaps finish flag)
+    const CAR_START_PCT  = 11;
+    const CAR_RANGE_PCT  = 77;   // 88 - 11
+
+    // Milestone left% positions: at each car step 1..4
+    const MILESTONE_PCTS = [
+      CAR_START_PCT + (1/5)*CAR_RANGE_PCT,  // ~26.4%
+      CAR_START_PCT + (2/5)*CAR_RANGE_PCT,  // ~41.8%
+      CAR_START_PCT + (3/5)*CAR_RANGE_PCT,  // ~57.2%
+      CAR_START_PCT + (4/5)*CAR_RANGE_PCT,  // ~72.6%
+    ];
+
+    // ════════════════════════════════
+    //  STATE
+    // ════════════════════════════════
+    let currentRound  = 0;
+    let carStep       = 0;
+    let totalStartMs  = 0;
+    let timerInterval = null;
+    let questionTimer = null;
+    let finalMs       = 0;
+    let answering     = false;
+    let numA          = 0;
+    let numB          = 0;
+
+    // ════════════════════════════════
+    //  FIREBASE LEADERBOARD
+    // ════════════════════════════════
+    async function getScores() {
+      try {
+        const r = await fetch(DB_URL + '/scores/' + QUIZ_TYPE + '.json');
+        const d = await r.json();
+        return Array.isArray(d) ? d : [];
+      } catch { return []; }
+    }
+
+    async function saveScore() {
+      const nameInput = document.getElementById('player-name');
+      const name = nameInput.value.trim();
+      if (!name) {
+        nameInput.style.outline = '3px solid #ef4444';
+        nameInput.focus();
+        return;
+      }
+      nameInput.style.outline = '';
+      const scores = await getScores();
+      scores.push({ name, ms: finalMs, date: new Date().toLocaleDateString('cs-CZ') });
+      scores.sort((a, b) => a.ms - b.ms);
+      const top10 = scores.slice(0, 10);
+      try {
+        await fetch(DB_URL + '/scores/' + QUIZ_TYPE + '.json', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(top10)
+        });
+      } catch {}
+      renderLeaderboard('lb-end');
+      nameInput.value = '';
+    }
+
+    async function renderLeaderboard(elId) {
+      const el = document.getElementById(elId);
+      el.innerHTML = '<li class="lb-loading">Načítám…</li>';
+      const scores = await getScores();
+      if (!scores.length) {
+        el.innerHTML = '<li class="lb-empty">Zatím žádné výsledky.</li>';
+        return;
+      }
+      el.innerHTML = scores.map((s, i) => `
+        <li>
+          <span class="lb-rank">${i + 1}.</span>
+          <span class="lb-name">${esc(s.name)}</span>
+          <span class="lb-time">${fmtTime(s.ms)}</span>
+        </li>`).join('');
+    }
+
+    function fmtTime(ms) {
+      const s = Math.floor(ms / 1000);
+      return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+    }
+
+    function esc(str) {
+      return String(str)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    // ════════════════════════════════
+    //  FLOATING BACKGROUND
+    // ════════════════════════════════
+    (function () {
+      const chars = '0123456789><';
+      const wrap  = document.getElementById('floaters');
+      for (let i = 0; i < 18; i++) {
+        const s = document.createElement('span');
+        s.textContent = chars[Math.floor(Math.random() * chars.length)];
+        s.style.left              = Math.random() * 100 + 'vw';
+        s.style.animationDuration = (10 + Math.random() * 12) + 's';
+        s.style.animationDelay    = (Math.random() * 14) + 's';
+        wrap.appendChild(s);
+      }
+    })();
+
+    // position milestones
+    (function () {
+      MILESTONE_PCTS.forEach((pct, i) => {
+        const m = document.getElementById('ms' + (i + 1));
+        if (m) m.style.left = pct.toFixed(1) + '%';
+      });
+    })();
+
+    // ════════════════════════════════
+    //  GAME FLOW
+    // ════════════════════════════════
+    function startGame() {
+      currentRound = 0;
+      carStep      = 0;
+      finalMs      = 0;
+
+      document.getElementById('startScreen').classList.add('hidden');
+      document.getElementById('gameScreen').classList.remove('hidden');
+
+      totalStartMs  = Date.now();
+      timerInterval = setInterval(() => {
+        document.getElementById('totalTimer').textContent =
+          fmtTime(Date.now() - totalStartMs);
+      }, 500);
+
+      startRound();
+    }
+
+    function startRound() {
+      const rd = ROUNDS[currentRound];
+      document.getElementById('roundLabel').textContent = `Kolo ${currentRound + 1} / 3`;
+      document.getElementById('roundSub').textContent   = rd.label;
+      updateStepDots();
+      updateCarPosition(false);
+      updateMilestones();
+      nextQuestion();
+    }
+
+    function nextQuestion() {
+      const max = ROUNDS[currentRound].max;
+      do {
+        numA = Math.floor(Math.random() * max) + 1;
+        numB = Math.floor(Math.random() * max) + 1;
+      } while (numA === numB);
+
+      const btnA = document.getElementById('btnA');
+      const btnB = document.getElementById('btnB');
+      btnA.textContent = numA;
+      btnB.textContent = numB;
+      btnA.disabled = false;
+      btnB.disabled = false;
+      document.getElementById('feedback').textContent = '';
+
+      answering = true;
+      startCountdown();
+    }
+
+    function answer(btn) {
+      if (!answering) return;
+      answering = false;
+      stopCountdown();
+
+      const chosen  = btn === 'A' ? numA : numB;
+      const correct = Math.max(numA, numB);
+      handleAnswer(chosen === correct, btn);
+    }
+
+    function handleAnswer(isCorrect, chosenBtn) {
+      document.getElementById('btnA').disabled = true;
+      document.getElementById('btnB').disabled = true;
+
+      const roadStrip = document.getElementById('roadStrip');
+      const feedback  = document.getElementById('feedback');
+      const car       = document.getElementById('car');
+
+      if (isCorrect) {
+        carStep = Math.min(carStep + 1, STEPS_NEEDED);
+
+        // flash correct button
+        const correctIsA = numA > numB;
+        flashBtn(correctIsA ? 'btnA' : 'btnB', 'ok-flash');
+
+        updateCarPosition(true);
+        updateStepDots();
+        updateMilestones();
+
+        if (carStep >= STEPS_NEEDED) {
+          // ── ROUND COMPLETE: finish-line celebration ──
+          feedback.textContent = '🎉 Kolo dokončeno!';
+          feedback.style.color = '#fde68a';
+
+          flashEl(roadStrip, 'flash-finish');
+
+          // flag waves
+          const flag = document.querySelector('.road-flag-end');
+          if (flag) {
+            flag.classList.remove('celebrate');
+            void flag.offsetWidth;
+            flag.classList.add('celebrate');
+            flag.addEventListener('animationend', () => flag.classList.remove('celebrate'), { once: true });
+          }
+
+          // car finish jump (runs on top of the left-transition)
+          car.classList.remove('bounce', 'finish');
+          void car.offsetWidth;
+          car.classList.add('finish');
+          car.addEventListener('animationend', () => car.classList.remove('finish'), { once: true });
+
+          setTimeout(() => {
+            currentRound++;
+            if (currentRound >= ROUNDS.length) {
+              endGame();
+            } else {
+              carStep = 0;
+              startRound();
+            }
+          }, 1300);
+        } else {
+          // ── normal correct: small bounce ──
+          flashEl(roadStrip, 'flash-ok');
+          car.classList.remove('bounce');
+          void car.offsetWidth;
+          car.classList.add('bounce');
+          car.addEventListener('animationend', () => car.classList.remove('bounce'), { once: true });
+
+          feedback.textContent = '✓ Správně!';
+          feedback.style.color = '#86efac';
+
+          setTimeout(nextQuestion, 850);
+        }
+
+      } else {
+        carStep = Math.max(0, carStep - 1);
+
+        feedback.textContent = '✗ Špatně! Vrátil ses zpět.';
+        feedback.style.color = '#fca5a5';
+
+        // flash the pressed button (or both on timeout)
+        if (chosenBtn === 'A' || chosenBtn === 'B') {
+          flashBtn(chosenBtn === 'A' ? 'btnA' : 'btnB', 'err-flash');
+        } else {
+          flashBtn('btnA', 'err-flash');
+          flashBtn('btnB', 'err-flash');
+        }
+
+        flashEl(roadStrip, 'flash-err');
+
+        updateCarPosition(true);
+        updateStepDots();
+        updateMilestones();
+
+        setTimeout(nextQuestion, 950);
+      }
+    }
+
+    function endGame() {
+      clearInterval(timerInterval);
+      finalMs = Date.now() - totalStartMs;
+
+      document.getElementById('gameScreen').classList.add('hidden');
+      document.getElementById('endScreen').classList.remove('hidden');
+      document.getElementById('resultTime').textContent = fmtTime(finalMs);
+      renderLeaderboard('lb-end');
+    }
+
+    function resetGame() {
+      clearInterval(timerInterval);
+      clearTimeout(questionTimer);
+      document.getElementById('endScreen').classList.add('hidden');
+      document.getElementById('startScreen').classList.remove('hidden');
+      renderLeaderboard('lb-start');
+    }
+
+    // ════════════════════════════════
+    //  COUNTDOWN BAR
+    // ════════════════════════════════
+    function startCountdown() {
+      clearTimeout(questionTimer);
+      const bar = document.getElementById('countdown-bar');
+      bar.classList.remove('running');
+      bar.style.cssText = '';       // clear any frozen width
+      void bar.offsetWidth;         // force reflow
+      bar.classList.add('running');
+
+      questionTimer = setTimeout(() => {
+        if (answering) {
+          answering = false;
+          handleAnswer(false, null);
+        }
+      }, QUESTION_MS);
+    }
+
+    function stopCountdown() {
+      clearTimeout(questionTimer);
+      const bar       = document.getElementById('countdown-bar');
+      const barW      = parseFloat(getComputedStyle(bar).width)       || 0;
+      const parentW   = parseFloat(getComputedStyle(bar.parentElement).width) || 1;
+      const frozenPct = ((barW / parentW) * 100).toFixed(1) + '%';
+      bar.classList.remove('running');
+      bar.style.width = frozenPct;
+    }
+
+    // ════════════════════════════════
+    //  UI HELPERS
+    // ════════════════════════════════
+    function updateCarPosition(animate) {
+      const car = document.getElementById('car');
+      if (!animate) {
+        car.style.transition = 'none';
+        void car.offsetWidth;
+      } else {
+        car.style.transition = '';
+      }
+      const pct = CAR_START_PCT + (carStep / STEPS_NEEDED) * CAR_RANGE_PCT;
+      car.style.left = pct.toFixed(1) + '%';
+    }
+
+    function updateStepDots() {
+      for (let i = 0; i < STEPS_NEEDED; i++) {
+        const dot = document.getElementById('sd' + i);
+        dot.classList.remove('done', 'active');
+        if (i < carStep) dot.classList.add('done');
+        else if (i === carStep) dot.classList.add('active');
+      }
+    }
+
+    function updateMilestones() {
+      for (let i = 1; i <= 4; i++) {
+        const m = document.getElementById('ms' + i);
+        if (!m) continue;
+        if (carStep >= i) m.classList.add('passed');
+        else              m.classList.remove('passed');
+      }
+    }
+
+    function flashEl(el, cls) {
+      el.classList.remove(cls);
+      void el.offsetWidth;
+      el.classList.add(cls);
+      el.addEventListener('animationend', () => el.classList.remove(cls), { once: true });
+    }
+
+    function flashBtn(id, cls) {
+      const btn = document.getElementById(id);
+      btn.classList.remove('ok-flash', 'err-flash');
+      void btn.offsetWidth;
+      btn.classList.add(cls);
+      btn.addEventListener('animationend', () => btn.classList.remove(cls), { once: true });
+    }
+
+    // ════════════════════════════════
+    //  INIT
+    // ════════════════════════════════
+    renderLeaderboard('lb-start');
+  </script>
+</body>
+</html>

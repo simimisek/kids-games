@@ -1,0 +1,165 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4527a0"/>
+      <stop offset="100%" style="stop-color:#6a1b9a"/>
+    </linearGradient>
+    <linearGradient id="cardGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:rgba(255,255,255,0.16)"/>
+      <stop offset="100%" style="stop-color:rgba(255,255,255,0.07)"/>
+    </linearGradient>
+    <linearGradient id="mathGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1565c0"/>
+      <stop offset="100%" style="stop-color:#0288d1"/>
+    </linearGradient>
+    <linearGradient id="czechGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1b5e20"/>
+      <stop offset="100%" style="stop-color:#388e3c"/>
+    </linearGradient>
+    <linearGradient id="kidsGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#e65100"/>
+      <stop offset="100%" style="stop-color:#f57c00"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="12" flood-color="rgba(0,0,0,0.35)"/>
+    </filter>
+    <filter id="glow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="6" flood-color="rgba(255,255,255,0.2)"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- Decorative circles bg -->
+  <circle cx="60"  cy="80"  r="200" fill="rgba(255,255,255,0.04)"/>
+  <circle cx="1140" cy="550" r="250" fill="rgba(255,255,255,0.04)"/>
+  <circle cx="1100" cy="60"  r="140" fill="rgba(255,255,255,0.03)"/>
+  <circle cx="100"  cy="560" r="160" fill="rgba(255,255,255,0.03)"/>
+
+  <!-- Dot grid decoration (top-right) -->
+  <g fill="rgba(255,255,255,0.12)">
+    <circle cx="1030" cy="50"  r="4"/><circle cx="1060" cy="50"  r="4"/><circle cx="1090" cy="50"  r="4"/>
+    <circle cx="1030" cy="80"  r="4"/><circle cx="1060" cy="80"  r="4"/><circle cx="1090" cy="80"  r="4"/>
+    <circle cx="1030" cy="110" r="4"/><circle cx="1060" cy="110" r="4"/><circle cx="1090" cy="110" r="4"/>
+  </g>
+  <!-- Dot grid decoration (bottom-left) -->
+  <g fill="rgba(255,255,255,0.12)">
+    <circle cx="110" cy="520" r="4"/><circle cx="140" cy="520" r="4"/><circle cx="170" cy="520" r="4"/>
+    <circle cx="110" cy="550" r="4"/><circle cx="140" cy="550" r="4"/><circle cx="170" cy="550" r="4"/>
+    <circle cx="110" cy="580" r="4"/><circle cx="140" cy="580" r="4"/><circle cx="170" cy="580" r="4"/>
+  </g>
+
+  <!-- Main white card -->
+  <rect x="70" y="60" width="1060" height="510" rx="28"
+        fill="url(#cardGrad)" stroke="rgba(255,255,255,0.22)" stroke-width="1.5"
+        filter="url(#shadow)"/>
+
+  <!-- Top accent bar -->
+  <rect x="70" y="60" width="1060" height="6" rx="3" fill="rgba(255,255,255,0.35)"/>
+
+  <!-- Title -->
+  <text x="600" y="195"
+        text-anchor="middle"
+        font-family="Segoe UI, Arial, sans-serif"
+        font-size="82" font-weight="800"
+        fill="white"
+        filter="url(#glow)">Vzdělávací hry</text>
+
+  <!-- Star decorations around title -->
+  <!-- left star -->
+  <polygon points="175,148 181,164 198,164 185,174 190,190 175,180 160,190 165,174 152,164 169,164"
+           fill="rgba(255,255,200,0.55)"/>
+  <!-- right star -->
+  <polygon points="1025,148 1031,164 1048,164 1035,174 1040,190 1025,180 1010,190 1015,174 1002,164 1019,164"
+           fill="rgba(255,255,200,0.55)"/>
+  <!-- small stars -->
+  <polygon points="220,120 223,129 232,129 225,134 228,143 220,138 212,143 215,134 208,129 217,129"
+           fill="rgba(255,255,200,0.35)"/>
+  <polygon points="980,120 983,129 992,129 985,134 988,143 980,138 972,143 975,134 968,129 977,129"
+           fill="rgba(255,255,200,0.35)"/>
+
+  <!-- Subtitle -->
+  <text x="600" y="258"
+        text-anchor="middle"
+        font-family="Segoe UI, Arial, sans-serif"
+        font-size="30" font-weight="400"
+        fill="rgba(255,255,255,0.82)">pro deti  ·  zdarma  ·  bez reklam</text>
+
+  <!-- Divider -->
+  <rect x="500" y="286" width="200" height="2.5" rx="1.5" fill="rgba(255,255,255,0.28)"/>
+
+  <!-- ── CATEGORY CARD: Matematika ── -->
+  <rect x="115" y="315" width="290" height="190" rx="22"
+        fill="url(#mathGrad)" filter="url(#shadow)"/>
+  <!-- Icon circle -->
+  <circle cx="260" cy="370" r="38" fill="rgba(255,255,255,0.2)"/>
+  <!-- "+" symbol -->
+  <rect x="247" y="355" width="26" height="8" rx="4" fill="white"/>
+  <rect x="256" y="346" width="8" height="26" rx="4" fill="white"/>
+  <!-- Label -->
+  <text x="260" y="458"
+        text-anchor="middle"
+        font-family="Segoe UI, Arial, sans-serif"
+        font-size="24" font-weight="700" fill="white">Matematika</text>
+  <!-- Count badge -->
+  <rect x="218" y="467" width="84" height="24" rx="12" fill="rgba(255,255,255,0.2)"/>
+  <text x="260" y="484"
+        text-anchor="middle"
+        font-family="Segoe UI, Arial, sans-serif"
+        font-size="14" fill="rgba(255,255,255,0.9)">3 hry</text>
+
+  <!-- ── CATEGORY CARD: Cestina ── -->
+  <rect x="455" y="315" width="290" height="190" rx="22"
+        fill="url(#czechGrad)" filter="url(#shadow)"/>
+  <!-- Icon circle -->
+  <circle cx="600" cy="370" r="38" fill="rgba(255,255,255,0.2)"/>
+  <!-- "A" letter icon -->
+  <text x="600" y="383"
+        text-anchor="middle"
+        font-family="Segoe UI, Arial, sans-serif"
+        font-size="40" font-weight="900" fill="white">A</text>
+  <!-- small "a" -->
+  <text x="618" y="388"
+        text-anchor="middle"
+        font-family="Segoe UI, Arial, sans-serif"
+        font-size="24" font-weight="700" fill="rgba(255,255,255,0.75)">a</text>
+  <!-- Label -->
+  <text x="600" y="458"
+        text-anchor="middle"
+        font-family="Segoe UI, Arial, sans-serif"
+        font-size="24" font-weight="700" fill="white">Cestina</text>
+  <!-- Count badge -->
+  <rect x="558" y="467" width="84" height="24" rx="12" fill="rgba(255,255,255,0.2)"/>
+  <text x="600" y="484"
+        text-anchor="middle"
+        font-family="Segoe UI, Arial, sans-serif"
+        font-size="14" fill="rgba(255,255,255,0.9)">5 her</text>
+
+  <!-- ── CATEGORY CARD: Hratky pro nejmensi ── -->
+  <rect x="795" y="315" width="290" height="190" rx="22"
+        fill="url(#kidsGrad)" filter="url(#shadow)"/>
+  <!-- Icon circle -->
+  <circle cx="940" cy="370" r="38" fill="rgba(255,255,255,0.2)"/>
+  <!-- Star icon in circle -->
+  <polygon points="940,337 947,358 970,358 952,371 959,392 940,379 921,392 928,371 910,358 933,358"
+           fill="white"/>
+  <!-- Label -->
+  <text x="940" y="450"
+        text-anchor="middle"
+        font-family="Segoe UI, Arial, sans-serif"
+        font-size="22" font-weight="700" fill="white">Pro nejmensi</text>
+  <!-- Count badge -->
+  <rect x="898" y="467" width="84" height="24" rx="12" fill="rgba(255,255,255,0.2)"/>
+  <text x="940" y="484"
+        text-anchor="middle"
+        font-family="Segoe UI, Arial, sans-serif"
+        font-size="14" fill="rgba(255,255,255,0.9)">5 her</text>
+
+  <!-- URL bar at bottom -->
+  <rect x="400" y="538" width="400" height="38" rx="19" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+  <text x="600" y="562"
+        text-anchor="middle"
+        font-family="Segoe UI, Arial, sans-serif"
+        font-size="18" fill="rgba(255,255,255,0.65)">simimisek.github.io/kids-games</text>
+</svg>

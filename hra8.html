@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-KEF2T80GE0"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-KEF2T80GE0');
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pyramida čísel | Vzdělávací hry</title>
+  <meta property="og:title" content="Pyramida čísel" />
+  <meta property="og:image" content="https://simimisek.github.io/kids-games/ogimage.png" />
+  <meta property="og:description" content="Doplňuj čísla do pyramidy. Logická matematická hra pro děti." />
+  <meta property="og:url" content="https://simimisek.github.io/kids-games/hra8.html" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://simimisek.github.io/kids-games/og-preview.png" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #1a237e 0%, #0277bd 100%);
+      min-height: 100vh;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 16px 16px 40px;
+    }
+
+    /* ── floating bg numbers ── */
+    .bg-floaters {
+      position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden;
+    }
+    .bg-floaters span {
+      position: absolute;
+      font-size: 2rem;
+      color: rgba(255,255,255,0.07);
+      animation: numFloat 14s infinite linear;
+      user-select: none;
+    }
+    @keyframes numFloat {
+      0%   { transform: translateY(110vh) rotate(0deg); opacity: 0; }
+      10%  { opacity: 1; }
+      90%  { opacity: 1; }
+      100% { transform: translateY(-15vh) rotate(360deg); opacity: 0; }
+    }
+
+    /* ── screens ── */
+    .screen {
+      position: relative; z-index: 1;
+      width: 100%; max-width: 520px;
+      display: flex; flex-direction: column; align-items: center; gap: 16px;
+      padding-top: 16px; padding-bottom: 0;
+      text-align: center;
+    }
+    .screen.hidden { display: none; }
+
+    .screen-icon  { font-size: 3.8rem; line-height: 1; }
+    .screen-title { font-size: 2.2rem; font-weight: 800; color: #fff;
+                    text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+    .screen-sub   { font-size: 1rem; color: rgba(255,255,255,0.82);
+                    line-height: 1.65; }
+
+    /* ── name input ── */
+    .name-row { display: flex; gap: 10px; width: 100%; }
+    .name-row input {
+      flex: 1; padding: 14px 18px; border-radius: 12px; border: none;
+      font-size: 1rem; outline: 2px solid transparent;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08); transition: outline 0.2s;
+    }
+    .name-row input:focus { outline: 2px solid #ffca28; }
+
+    /* ── tlačítka ── */
+    .btn {
+      width: 100%; padding: 15px;
+      font-size: 1.05rem; font-weight: 700;
+      border: none; border-radius: 14px; cursor: pointer;
+      transition: transform 0.1s; font-family: inherit;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary {
+      background: #ffca28; color: #1a237e;
+      box-shadow: 0 4px 16px rgba(255,202,40,0.45);
+    }
+    .btn-primary:hover { background: #f0bb00; }
+    .btn-secondary {
+      background: rgba(255,202,40,0.12); color: #ffca28;
+      border: 2px solid rgba(255,202,40,0.35); box-shadow: none;
+    }
+    .btn-secondary:hover { background: rgba(255,202,40,0.22); }
+
+    /* ── leaderboard ── */
+    .leaderboard-card {
+      background: #fff; border-radius: 20px; padding: 22px;
+      width: 100%; box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+    .leaderboard-card h3 { text-align: center; color: #333; font-size: 1.1rem; margin-bottom: 14px; }
+    .leaderboard-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .leaderboard-list li {
+      display: grid; grid-template-columns: 28px 1fr auto;
+      gap: 8px; align-items: center; font-size: 0.93rem; color: #444;
+      padding: 6px 0; border-bottom: 1px solid #f0f0f0;
+    }
+    .leaderboard-list li:last-child { border-bottom: none; }
+    .lb-rank { font-weight: 700; color: #1a237e; text-align: center; }
+    .lb-name { font-weight: 600; }
+    .lb-time { color: #1a237e; font-weight: 700; }
+    .lb-date { font-size: 0.76rem; color: #aaa; grid-column: 2/4; margin-top: -4px; }
+    .lb-empty, .lb-loading {
+      text-align: center; color: #aaa; font-style: italic;
+      padding: 8px 0; font-size: 0.88rem; grid-column: 1/-1;
+    }
+
+    /* ══════════════════════════════
+       GAME SCREEN
+    ══════════════════════════════ */
+    #gameScreen {
+      width: 100%; max-width: 520px;
+      padding: 16px 14px 28px;
+      display: flex; flex-direction: column; align-items: center; gap: 12px;
+    }
+
+    /* header bar */
+    .hdr {
+      width: 100%; display: flex; justify-content: space-between; align-items: center;
+    }
+    .hdr-info  { color: rgba(255,255,255,0.9); font-size: 0.95rem; font-weight: 600; }
+    .hdr-timer { color: #ffca28; font-size: 1.05rem; font-weight: 800; }
+
+    /* progress dots */
+    .progress-dots { display: flex; gap: 8px; }
+    .dot { width: 14px; height: 14px; border-radius: 50%;
+           background: rgba(255,255,255,0.25); transition: background 0.3s; }
+    .dot.done   { background: #66bb6a; }
+    .dot.active { background: #ffca28; }
+
+    /* ── pyramid container ── */
+    .pyramid-wrap {
+      position: relative;
+      width: 100%;
+      display: flex; flex-direction: column; align-items: center;
+    }
+
+    .pyr-row {
+      display: flex;
+      gap: var(--cgap, 10px);
+      justify-content: center;
+      margin-bottom: 6px;
+      position: relative; z-index: 2;
+    }
+
+    /* connector SVG */
+    #connSvg {
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none; z-index: 1; overflow: visible;
+    }
+    #connSvg line {
+      stroke: rgba(255,255,255,0.30);
+      stroke-width: 2;
+    }
+
+    /* ── cell base ── */
+    .cell {
+      width:  var(--cw, 62px);
+      height: var(--ch, 54px);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: var(--cfont, 1.4rem);
+      font-weight: 800;
+      transition: transform 0.15s, box-shadow 0.15s;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+
+    .cell-given {
+      background: #fff; color: #1a237e;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+    }
+    .cell-empty {
+      background: rgba(255,255,255,0.1);
+      border: 2.5px dashed rgba(255,255,255,0.3);
+      color: rgba(255,255,255,0.35);
+      font-size: calc(var(--cfont, 1.4rem) * 0.85);
+    }
+    .cell-empty.can-click {
+      background: rgba(255,202,40,0.18);
+      border: 2.5px solid #ffca28;
+      color: #ffca28;
+      cursor: pointer;
+      animation: pulse 1.6s infinite;
+    }
+    .cell-empty.can-click:hover { transform: scale(1.08); }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(255,202,40,0.5); }
+      50%       { box-shadow: 0 0 0 8px rgba(255,202,40,0); }
+    }
+
+    .cell-selected {
+      background: rgba(255,202,40,0.28);
+      border: 2.5px solid #ffca28;
+      color: #ffca28;
+      animation: pulseFast 0.7s infinite;
+    }
+    @keyframes pulseFast {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(255,202,40,0.6); }
+      50%       { box-shadow: 0 0 0 10px rgba(255,202,40,0); }
+    }
+
+    .cell-solved {
+      background: #43a047; color: #fff;
+      box-shadow: 0 4px 14px rgba(67,160,71,0.45);
+    }
+    @keyframes solvedPop {
+      0%   { transform: scale(1); }
+      40%  { transform: scale(1.18); }
+      100% { transform: scale(1); }
+    }
+    .cell-solved.pop { animation: solvedPop 0.35s ease; }
+
+    @keyframes wrongFlash {
+      0%, 100% { background: rgba(255,255,255,0.1); }
+      40%       { background: #e53935; border-color: #e53935; }
+    }
+    .cell-wrong-anim { animation: wrongFlash 0.5s ease; }
+
+    /* ── instruction ── */
+    .instruction {
+      color: rgba(255,255,255,0.78);
+      font-size: 0.9rem; min-height: 1.3em;
+    }
+
+    /* ── difficulty badge ── */
+    .diff-badge {
+      background: rgba(255,255,255,0.14);
+      color: rgba(255,255,255,0.8);
+      font-size: 0.78rem; font-weight: 700;
+      padding: 3px 12px; border-radius: 20px;
+    }
+
+    /* ── answer buttons ── */
+    .ans-row {
+      display: flex; gap: 14px;
+      min-height: 72px;
+      align-items: center; justify-content: center;
+    }
+    .ans-btn {
+      min-width: 68px; height: 68px;
+      padding: 0 10px;
+      border-radius: 16px; border: none;
+      background: rgba(255,255,255,0.18);
+      color: #fff;
+      font-size: 1.55rem; font-weight: 800;
+      cursor: pointer;
+      transition: transform 0.12s, background 0.12s;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.2);
+    }
+    .ans-btn:hover   { background: rgba(255,255,255,0.3); transform: scale(1.07); }
+    .ans-btn:active  { transform: scale(0.97); }
+    .ans-btn.correct { background: #43a047 !important; transform: scale(1.12); }
+    .ans-btn.wrong   { background: #e53935 !important; }
+
+    /* ── end screen ── */
+    .result-time { font-size: 2.4rem; font-weight: 900; color: #ffca28;
+                   text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+
+    /* ── domů ── */
+    .btn-home-fixed {
+      position: fixed; top: 12px; right: 12px; z-index: 200;
+      background: rgba(0,0,0,0.25); border: none; border-radius: 10px;
+      padding: 7px 14px; color: #fff; font-family: inherit;
+      font-size: 0.85rem; font-weight: 700; text-decoration: none; cursor: pointer;
+    }
+    .btn-home-fixed:hover { background: rgba(0,0,0,0.4); }
+
+    /* ── responsive ── */
+    @media (max-width: 400px) {
+      body { padding: 10px 10px 32px; }
+      .screen-title { font-size: 1.8rem; }
+      .ans-btn { min-width: 60px; height: 60px; font-size: 1.35rem; }
+      .btn { padding: 13px; font-size: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="bg-floaters" id="floaters"></div>
+
+<!-- ══════════════ START ══════════════ -->
+<div class="screen" id="startScreen">
+  <div class="screen-icon">🔺</div>
+  <div class="screen-title">Pyramida čísel</div>
+  <div class="screen-sub">Sečti dvě sousední čísla a doplň číslo nad ně. Každá pyramida je těžší!</div>
+
+  <button class="btn btn-primary" id="btnStart">▶ Hrát</button>
+  <a href="index.html" style="width:100%;text-decoration:none;">
+    <button class="btn btn-primary">🏠 Zpět na výběr</button>
+  </a>
+
+  <div class="leaderboard-card">
+    <h3>🏆 Nejlepší časy</h3>
+    <ul class="leaderboard-list" id="lbStartList"></ul>
+  </div>
+</div>
+
+<!-- ══════════════ GAME ══════════════ -->
+<div class="screen hidden" id="gameScreen">
+  <a href="index.html" class="btn-home-fixed">🏠 Domů</a>
+  <div class="hdr">
+    <div class="hdr-info">Pyramida <span id="roundNum">1</span>&nbsp;/ 5</div>
+    <div class="hdr-timer">⏱ <span id="timerDisp">0:00</span></div>
+  </div>
+
+  <div style="display:flex;gap:12px;align-items:center;">
+    <div class="progress-dots" id="progressDots"></div>
+    <div class="diff-badge" id="diffBadge"></div>
+  </div>
+
+  <div class="pyramid-wrap" id="pyramidWrap">
+    <svg id="connSvg"></svg>
+  </div>
+
+  <div class="instruction" id="instruction">Klikni na žluté políčko a vyber správné číslo.</div>
+
+  <div class="ans-row" id="ansRow"></div>
+</div>
+
+<!-- ══════════════ END ══════════════ -->
+<div class="screen hidden" id="endScreen">
+  <div class="screen-icon">🏆</div>
+  <div class="screen-title">Výborně!</div>
+  <div class="screen-sub">Postavil/a jsi všechny pyramidy!</div>
+
+  <div class="result-time" id="resultTime"></div>
+
+  <div class="name-row">
+    <input id="playerName" type="text" maxlength="20" placeholder="Tvoje jméno…" />
+    <button class="btn btn-primary" style="width:auto;padding:14px 20px;font-size:1rem;" onclick="saveAndShow()">Uložit</button>
+  </div>
+
+  <div class="leaderboard-card">
+    <h3>🏆 Nejlepší časy</h3>
+    <ul class="leaderboard-list" id="lbEndList"></ul>
+  </div>
+
+  <button class="btn btn-primary" id="btnRestart">🔄 Hrát znovu</button>
+  <a href="index.html" style="width:100%;text-decoration:none;">
+    <button class="btn btn-primary">🏠 Zpět na výběr</button>
+  </a>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+//  CONFIG
+// ═══════════════════════════════════════
+const QUIZ_TYPE = 'math-pyramid';
+const GOAL      = 5;
+
+// Difficulty progression: round 0-4 → levels 3,4,4,5,6
+const ROUND_LEVELS = [3, 4, 4, 5, 6];
+
+// Max bottom-row value per level count (ensures top ≤ ~95)
+const MAX_BOTTOM = { 3: 20, 4: 12, 5: 6, 6: 3 };
+
+// ═══════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════
+let completedPyramids = 0;
+let timerInterval     = null;
+let startMs           = 0;
+let numRows           = 3;
+
+// values[row][col], row 0 = top, row numRows-1 = bottom
+let values  = [];
+let given   = [];
+let solved  = [];
+let selectedRow = -1;
+let selectedCol = -1;
+
+// ═══════════════════════════════════════
+//  LEADERBOARD
+// ═══════════════════════════════════════
+const DB_URL = 'https://kids-games-3a167-default-rtdb.europe-west1.firebasedatabase.app';
+
+async function getScores() {
+  try {
+    const r = await fetch(DB_URL + '/scores/' + QUIZ_TYPE + '.json');
+    const d = await r.json();
+    return Array.isArray(d) ? d : [];
+  } catch { return []; }
+}
+async function saveScore(name, ms) {
+  const arr = await getScores();
+  arr.push({ name: name || 'Anonym', ms });
+  arr.sort((a, b) => a.ms - b.ms);
+  arr.splice(10);
+  try {
+    await fetch(DB_URL + '/scores/' + QUIZ_TYPE + '.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(arr)
+    });
+  } catch {}
+}
+function fmtTime(ms) {
+  const s = Math.floor(ms / 1000);
+  return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+}
+async function renderLeaderboard(listEl) {
+  listEl.innerHTML = '<li class="lb-loading">Načítám…</li>';
+  const arr = await getScores();
+  if (!arr.length) {
+    listEl.innerHTML = '<li class="lb-empty">Zatím žádné skóre.</li>';
+    return;
+  }
+  listEl.innerHTML = arr.map((s, i) => `
+    <li>
+      <span class="lb-rank">${i+1}.</span>
+      <span class="lb-name">${esc(s.name)}</span>
+      <span class="lb-time">${fmtTime(s.ms)}</span>
+    </li>`).join('');
+}
+function esc(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ═══════════════════════════════════════
+//  FLOATING BG
+// ═══════════════════════════════════════
+(function() {
+  const chars = '1234567890+−=△▲';
+  const wrap = document.getElementById('floaters');
+  for (let i = 0; i < 20; i++) {
+    const s = document.createElement('span');
+    s.textContent = chars[Math.floor(Math.random() * chars.length)];
+    s.style.left = Math.random() * 100 + 'vw';
+    s.style.animationDuration = (10 + Math.random() * 12) + 's';
+    s.style.animationDelay    = (Math.random() * 14) + 's';
+    wrap.appendChild(s);
+  }
+})();
+
+// ═══════════════════════════════════════
+//  PYRAMID GENERATION
+// ═══════════════════════════════════════
+function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+function buildRows(bottom) {
+  // Returns rows where rows[last]=bottom, rows[0]=top (single cell)
+  const rows = [bottom.slice()];
+  let curr = bottom;
+  while (curr.length > 1) {
+    const next = [];
+    for (let i = 0; i < curr.length - 1; i++) next.push(curr[i] + curr[i+1]);
+    rows.push(next);
+    curr = next;
+  }
+  return rows.reverse(); // rows[0]=top, rows[numRows-1]=bottom
+}
+
+function generatePyramid() {
+  numRows = ROUND_LEVELS[completedPyramids] || 3;
+  const maxVal = MAX_BOTTOM[numRows] || 3;
+
+  let rows;
+  let attempts = 0;
+  do {
+    const bottom = Array.from({length: numRows}, () => rand(1, maxVal));
+    rows = buildRows(bottom);
+    attempts++;
+  } while (rows[0][0] > 100 && attempts < 200);
+
+  values = rows;
+  given  = rows.map((row, r) => row.map(() => r === numRows - 1));
+  solved = rows.map(row => row.map(() => false));
+}
+
+// ═══════════════════════════════════════
+//  CELL SIZE CSS VARS
+// ═══════════════════════════════════════
+function applyCellVars() {
+  const mobile = window.innerWidth <= 400;
+  // [cw, ch, cgap, cfont] by numRows
+  const sizes = {
+    3: mobile ? [62,54,10,'1.5rem'] : [72,62,12,'1.6rem'],
+    4: mobile ? [56,48, 9,'1.3rem'] : [64,56,11,'1.45rem'],
+    5: mobile ? [48,42, 8,'1.1rem'] : [56,50,10,'1.25rem'],
+    6: mobile ? [42,38, 7,'1.0rem'] : [50,44, 9,'1.1rem'],
+  };
+  const [cw,ch,cgap,cfont] = sizes[numRows] || sizes[6];
+  const wrap = document.getElementById('pyramidWrap');
+  wrap.style.setProperty('--cw',    cw+'px');
+  wrap.style.setProperty('--ch',    ch+'px');
+  wrap.style.setProperty('--cgap',  cgap+'px');
+  wrap.style.setProperty('--cfont', cfont);
+}
+
+// ═══════════════════════════════════════
+//  PYRAMID RENDER
+// ═══════════════════════════════════════
+function cellCount(r) { return r + 1; } // row 0=top(1 cell), row numRows-1=bottom(numRows cells)
+
+function canClick(r, c) {
+  if (given[r][c] || solved[r][c]) return false;
+  const cr = r + 1;
+  if (cr >= numRows) return false;
+  return (given[cr][c] || solved[cr][c]) && (given[cr][c+1] || solved[cr][c+1]);
+}
+
+function renderPyramid() {
+  const wrap = document.getElementById('pyramidWrap');
+  wrap.querySelectorAll('.pyr-row').forEach(el => el.remove());
+  document.getElementById('connSvg').innerHTML = '';
+
+  applyCellVars();
+
+  const cellEls = [];
+  for (let r = 0; r < numRows; r++) {
+    cellEls.push([]);
+    const rowDiv = document.createElement('div');
+    rowDiv.className = 'pyr-row';
+    rowDiv.dataset.row = r;
+
+    const n = cellCount(r);
+    for (let c = 0; c < n; c++) {
+      const cell = document.createElement('div');
+      cell.dataset.row = r;
+      cell.dataset.col = c;
+
+      if (given[r][c]) {
+        cell.className = 'cell cell-given';
+        cell.textContent = values[r][c];
+      } else if (solved[r][c]) {
+        cell.className = 'cell cell-solved';
+        cell.textContent = values[r][c];
+      } else if (r === selectedRow && c === selectedCol) {
+        cell.className = 'cell cell-empty cell-selected';
+        cell.textContent = '?';
+      } else if (canClick(r, c)) {
+        cell.className = 'cell cell-empty can-click';
+        cell.textContent = '?';
+        cell.addEventListener('click', () => selectCell(r, c));
+      } else {
+        cell.className = 'cell cell-empty';
+        cell.textContent = '?';
+      }
+
+      cellEls[r].push(cell);
+      rowDiv.appendChild(cell);
+    }
+    wrap.appendChild(rowDiv);
+  }
+
+  requestAnimationFrame(() => drawConnectors(cellEls, wrap));
+}
+
+function drawConnectors(cellEls, wrap) {
+  const svg  = document.getElementById('connSvg');
+  const wRect = wrap.getBoundingClientRect();
+
+  for (let r = 0; r < numRows - 1; r++) {
+    const n = cellCount(r);
+    for (let c = 0; c < n; c++) {
+      const parent = cellEls[r][c];
+      const childL = cellEls[r+1][c];
+      const childR = cellEls[r+1][c+1];
+      if (!parent || !childL || !childR) continue;
+
+      const pRect = parent.getBoundingClientRect();
+      const px = pRect.left + pRect.width/2 - wRect.left;
+      const py = pRect.bottom - wRect.top;
+
+      [childL, childR].forEach(ch => {
+        const cr = ch.getBoundingClientRect();
+        const cx = cr.left + cr.width/2 - wRect.left;
+        const cy = cr.top  - wRect.top;
+        const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+        line.setAttribute('x1', px); line.setAttribute('y1', py);
+        line.setAttribute('x2', cx); line.setAttribute('y2', cy);
+        svg.appendChild(line);
+      });
+    }
+  }
+}
+
+// ═══════════════════════════════════════
+//  ANSWER LOGIC
+// ═══════════════════════════════════════
+function selectCell(r, c) {
+  selectedRow = r; selectedCol = c;
+  renderPyramid();
+  showAnswers(r, c);
+  document.getElementById('instruction').textContent = 'Vyber správné číslo:';
+}
+
+function showAnswers(r, c) {
+  const correct = values[r][c];
+  const opts = makeOptions(correct);
+  const row = document.getElementById('ansRow');
+  row.innerHTML = '';
+  opts.forEach(v => {
+    const btn = document.createElement('button');
+    btn.className = 'ans-btn';
+    btn.textContent = v;
+    btn.addEventListener('click', () => handleAnswer(btn, v, correct));
+    row.appendChild(btn);
+  });
+}
+
+function makeOptions(correct) {
+  const opts = new Set([correct]);
+  const lo = Math.max(1, correct - 5);
+  const hi = correct + 5;
+  let tries = 0;
+  while (opts.size < 3 && tries < 100) {
+    opts.add(rand(lo, hi));
+    tries++;
+  }
+  // fallback if range too small
+  while (opts.size < 3) opts.add(correct + opts.size);
+  return shuffle([...opts]);
+}
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function handleAnswer(btn, chosen, correct) {
+  document.querySelectorAll('.ans-btn').forEach(b => b.disabled = true);
+
+  if (chosen === correct) {
+    btn.classList.add('correct');
+    solved[selectedRow][selectedCol] = true;
+
+    // pop animation on solved cell
+    const wrap = document.getElementById('pyramidWrap');
+    const el = wrap.querySelector(`[data-row="${selectedRow}"][data-col="${selectedCol}"]`);
+    if (el) { el.className = 'cell cell-solved pop'; el.textContent = correct; }
+
+    selectedRow = -1; selectedCol = -1;
+    setTimeout(checkDone, 500);
+
+  } else {
+    btn.classList.add('wrong');
+    // flash the selected cell
+    const wrap = document.getElementById('pyramidWrap');
+    const el = wrap.querySelector(`[data-row="${selectedRow}"][data-col="${selectedCol}"]`);
+    if (el) el.classList.add('cell-wrong-anim');
+    setTimeout(() => {
+      selectedRow = -1; selectedCol = -1;
+      startPyramid(); // new pyramid on wrong answer
+    }, 700);
+  }
+}
+
+function checkDone() {
+  for (let r = 0; r < numRows; r++) {
+    for (let c = 0; c < cellCount(r); c++) {
+      if (!given[r][c] && !solved[r][c]) {
+        // still cells to fill — pick next or let user pick
+        const clickable = getClickable();
+        if (clickable.length === 1) {
+          selectCell(clickable[0][0], clickable[0][1]);
+        } else {
+          renderPyramid();
+          document.getElementById('instruction').textContent = 'Klikni na žluté políčko a vyber správné číslo.';
+          document.getElementById('ansRow').innerHTML = '';
+        }
+        return;
+      }
+    }
+  }
+  // all done
+  completedPyramids++;
+  updateDots();
+  if (completedPyramids >= GOAL) {
+    endGame();
+  } else {
+    document.getElementById('instruction').textContent = '🎉 Správně! Další pyramida…';
+    document.getElementById('ansRow').innerHTML = '';
+    setTimeout(startPyramid, 1000);
+  }
+}
+
+function getClickable() {
+  const res = [];
+  for (let r = 0; r < numRows; r++)
+    for (let c = 0; c < cellCount(r); c++)
+      if (canClick(r, c)) res.push([r, c]);
+  return res;
+}
+
+// ═══════════════════════════════════════
+//  PROGRESS / DIFFICULTY
+// ═══════════════════════════════════════
+function buildDots() {
+  const wrap = document.getElementById('progressDots');
+  wrap.innerHTML = '';
+  for (let i = 0; i < GOAL; i++) {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    wrap.appendChild(d);
+  }
+}
+
+function updateDots() {
+  document.querySelectorAll('.dot').forEach((d, i) => {
+    d.classList.remove('done','active');
+    if (i < completedPyramids) d.classList.add('done');
+    else if (i === completedPyramids && completedPyramids < GOAL) d.classList.add('active');
+  });
+  if (completedPyramids < GOAL)
+    document.getElementById('roundNum').textContent = completedPyramids + 1;
+}
+
+const DIFF_LABELS = { 3:'⭐ Snadná', 4:'⭐⭐ Střední', 5:'⭐⭐⭐ Těžká', 6:'⭐⭐⭐⭐ Expert' };
+function updateDiffBadge() {
+  document.getElementById('diffBadge').textContent = DIFF_LABELS[numRows] || '';
+}
+
+// ═══════════════════════════════════════
+//  TIMER
+// ═══════════════════════════════════════
+function startTimer() {
+  startMs = Date.now();
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    const s = Math.floor((Date.now() - startMs) / 1000);
+    document.getElementById('timerDisp').textContent =
+      Math.floor(s/60) + ':' + String(s%60).padStart(2,'0');
+  }, 500);
+}
+
+// ═══════════════════════════════════════
+//  GAME FLOW
+// ═══════════════════════════════════════
+function startPyramid() {
+  generatePyramid();
+  selectedRow = -1; selectedCol = -1;
+  document.getElementById('ansRow').innerHTML = '';
+  document.getElementById('instruction').textContent = 'Klikni na žluté políčko a vyber správné číslo.';
+  updateDiffBadge();
+  renderPyramid();
+  updateDots();
+}
+
+function startGame() {
+  completedPyramids = 0;
+  show('gameScreen');
+  buildDots();
+  startTimer();
+  startPyramid();
+}
+
+let finalMs = 0;
+
+function endGame() {
+  clearInterval(timerInterval);
+  finalMs = Date.now() - startMs;
+  document.getElementById('resultTime').textContent = '⏱ ' + fmtTime(finalMs);
+  document.getElementById('playerName').value = '';
+  renderLeaderboard(document.getElementById('lbEndList'));
+  show('endScreen');
+}
+
+async function saveAndShow() {
+  const nameInput = document.getElementById('playerName');
+  const name = nameInput.value.trim();
+  if (!name) { nameInput.style.outline = '3px solid #ef4444'; nameInput.focus(); return; }
+  nameInput.style.outline = '';
+  await saveScore(name, finalMs);
+  renderLeaderboard(document.getElementById('lbEndList'));
+  document.getElementById('playerName').value = '';
+}
+
+// ═══════════════════════════════════════
+//  SCREENS
+// ═══════════════════════════════════════
+function show(id) {
+  ['startScreen','gameScreen','endScreen'].forEach(s =>
+    document.getElementById(s).classList.toggle('hidden', s !== id));
+}
+
+// ═══════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════
+renderLeaderboard(document.getElementById('lbStartList'));
+document.getElementById('btnStart').addEventListener('click', startGame);
+document.getElementById('btnRestart').addEventListener('click', () => {
+  show('startScreen');
+  renderLeaderboard(document.getElementById('lbStartList'));
+});
+</script>
+</body>
+</html>

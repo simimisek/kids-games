@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-KEF2T80GE0"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-KEF2T80GE0');
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Osmisměrka | Vzdělávací hry</title>
+  <meta property="og:title" content="Osmisměrka" />
+  <meta property="og:image" content="https://simimisek.github.io/kids-games/ogimage.png" />
+  <meta property="og:description" content="Najdi skrytá slova v osmisměrce. Zábavná hra pro děti." />
+  <meta property="og:url" content="https://simimisek.github.io/kids-games/hra4.html" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://simimisek.github.io/kids-games/og-preview.png" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #6b9ab8 0%, #9bbfd4 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 16px 16px 40px;
+    }
+
+    .screen { display: none; width: 100%; max-width: 560px; }
+    .screen.active { display: flex; flex-direction: column; align-items: center; gap: 16px; padding-top: 16px; }
+
+    /* ─── TITULNÍ ─── */
+    .title {
+      font-size: 2.2rem;
+      color: #fff;
+      text-align: center;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    .subtitle {
+      color: rgba(255,255,255,0.9);
+      text-align: center;
+      font-size: 1rem;
+      line-height: 1.65;
+    }
+
+    /* ─── TLAČÍTKA ─── */
+    .btn {
+      width: 100%; padding: 15px;
+      font-size: 1.05rem; font-weight: 700;
+      border: none; border-radius: 14px; cursor: pointer;
+      transition: transform 0.1s; font-family: inherit;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary {
+      background: #3d7a96; color: #fff;
+      box-shadow: 0 4px 16px rgba(61,122,150,0.35);
+    }
+    .btn-primary:hover { background: #2e6780; }
+    .btn-secondary {
+      background: rgba(61,122,150,0.1); color: #3d7a96;
+      border: 2px solid rgba(61,122,150,0.25); box-shadow: none;
+    }
+    .btn-secondary:hover { background: rgba(61,122,150,0.18); }
+
+    /* ─── DOMŮ ─── */
+    .btn-home-fixed {
+      position: fixed; top: 12px; right: 12px; z-index: 200;
+      background: rgba(0,0,0,0.25); border: none; border-radius: 10px;
+      padding: 7px 14px; color: #fff; font-family: inherit;
+      font-size: 0.85rem; font-weight: 700; text-decoration: none; cursor: pointer;
+    }
+    .btn-home-fixed:hover { background: rgba(0,0,0,0.4); }
+
+    /* ─── RESPONZIVITA ─── */
+    @media (max-width: 400px) {
+      body { padding: 10px 10px 32px; }
+      .title { font-size: 1.9rem; }
+      .subtitle { font-size: 0.92rem; }
+      .btn { padding: 13px; font-size: 1rem; }
+      .word-chip { font-size: 0.88rem; padding: 5px 12px; }
+      .leaderboard-card { padding: 16px; }
+    }
+
+    /* ─── HUD ─── */
+    .hud {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255,255,255,0.25);
+      border-radius: 14px;
+      padding: 10px 20px;
+      color: #fff;
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+
+    /* ─── GRID ─── */
+    .grid-wrap {
+      width: min(100%, 290px);
+      background: rgba(255,255,255,0.95);
+      border-radius: 18px;
+      padding: 10px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+      touch-action: none;
+      user-select: none;
+    }
+
+    #grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 3px;
+      width: 100%;
+    }
+
+    .cell {
+      aspect-ratio: 1 / 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: clamp(0.75rem, 3.2vw, 1.05rem);
+      font-weight: 800;
+      border-radius: 6px;
+      background: #f3f3f3;
+      color: #333;
+      cursor: pointer;
+      transition: background 0.08s, color 0.08s, transform 0.08s;
+    }
+
+    .cell.selecting {
+      background: #ffd200;
+      color: #333;
+      transform: scale(1.08);
+    }
+
+    .cell.found {
+      background: #43e97b;
+      color: #fff;
+    }
+
+    .cell.found-flash {
+      animation: flashFound 0.4s ease;
+    }
+    @keyframes flashFound {
+      0%   { transform: scale(1); }
+      40%  { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+
+    /* ─── WORD LIST ─── */
+    .word-list {
+      width: 100%;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    .word-chip {
+      background: rgba(255,255,255,0.9);
+      border-radius: 20px;
+      padding: 6px 18px;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #555;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      transition: all 0.25s;
+    }
+
+    .word-chip.found {
+      background: #43e97b;
+      color: #fff;
+      text-decoration: line-through;
+      text-decoration-color: rgba(255,255,255,0.7);
+      animation: popIn 0.3s ease;
+    }
+    @keyframes popIn {
+      from { transform: scale(0.6); opacity: 0; }
+      to   { transform: scale(1);   opacity: 1; }
+    }
+
+    /* ─── END CARD ─── */
+    .result-card {
+      background: rgba(255,255,255,0.95);
+      border-radius: 22px;
+      padding: 30px 24px;
+      text-align: center;
+      width: 100%;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+    }
+    .result-icon { font-size: 4.5rem; margin-bottom: 10px; }
+    .result-title { font-size: 1.9rem; font-weight: 800; color: #333; }
+    .result-sub { color: #888; margin-top: 6px; font-size: 1rem; }
+    .result-time { font-size: 2.4rem; font-weight: 800; color: #3d7a96; margin-top: 14px; }
+
+    /* ─── JMÉNO + ŽEBŘÍČEK ─── */
+    .name-row { width: 100%; display: flex; gap: 10px; }
+    .name-row input {
+      flex: 1; padding: 14px 18px; border-radius: 12px; border: none;
+      font-size: 1rem; outline: 2px solid transparent;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.12); transition: outline 0.2s;
+    }
+    .name-row input:focus { outline: 2px solid #3d7a96; }
+    .leaderboard-card {
+      background: #fff; border-radius: 20px; padding: 22px;
+      width: 100%; box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+    .leaderboard-card h3 { text-align: center; color: #333; font-size: 1.1rem; margin-bottom: 14px; }
+    .leaderboard-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .leaderboard-list li {
+      display: grid; grid-template-columns: 28px 1fr auto;
+      gap: 8px; align-items: center; font-size: 0.95rem; color: #444;
+      padding: 6px 0; border-bottom: 1px solid #f0f0f0;
+    }
+    .leaderboard-list li:last-child { border-bottom: none; }
+    .lb-rank { font-weight: 700; color: #3d7a96; text-align: center; }
+    .lb-name { font-weight: 600; }
+    .lb-time { font-variant-numeric: tabular-nums; color: #3d7a96; font-weight: 700; }
+    .lb-date { font-size: 0.78rem; color: #aaa; grid-column: 2/4; margin-top: -4px; }
+    .lb-empty { text-align: center; color: #aaa; font-style: italic; font-size: 0.9rem; padding: 8px 0; }
+  </style>
+</head>
+<body>
+
+<!-- ══════════ START ══════════ -->
+<div id="screen-start" class="screen active">
+  <div class="title">🔍 Osmisměrka</div>
+  <div class="subtitle">
+    Najdi všechna skrytá slova v mřížce!<br>
+    Tažením myši nebo prstem označ slovo.
+  </div>
+  <button class="btn btn-primary" onclick="startGame()">▶ Hrát</button>
+  <a href="index.html" style="width:100%;text-decoration:none;">
+    <button class="btn btn-primary">🏠 Zpět na výběr</button>
+  </a>
+  <div class="leaderboard-card">
+    <h3>🏆 Nejlepší časy</h3>
+    <ul class="leaderboard-list" id="lb-start"></ul>
+  </div>
+</div>
+
+<!-- ══════════ GAME ══════════ -->
+<div id="screen-game" class="screen">
+  <div class="hud">
+    <span>⏱ <span id="timer">0:00</span></span>
+    <span>✅ <span id="found-count">0</span> / <span id="total-count">0</span></span>
+  </div>
+
+  <div class="grid-wrap">
+    <div id="grid"></div>
+  </div>
+
+  <div class="word-list" id="word-list"></div>
+
+  <a href="index.html" class="btn-home-fixed">🏠 Domů</a>
+</div>
+
+<!-- ══════════ END ══════════ -->
+<div id="screen-end" class="screen">
+  <div class="result-card">
+    <div class="result-icon">🏆</div>
+    <div class="result-title">Skvěle! Našel jsi vše!</div>
+    <div class="result-sub">Čas dokončení:</div>
+    <div class="result-time" id="final-time">—</div>
+  </div>
+  <div class="name-row">
+    <input type="text" id="player-name" placeholder="Tvoje jméno…" maxlength="20" />
+    <button class="btn btn-primary" style="width:auto;padding:14px 20px;font-size:1rem;" onclick="saveScore()">Uložit</button>
+  </div>
+  <button class="btn btn-primary" onclick="startGame()">🔄 Hrát znovu</button>
+  <a href="index.html" style="width:100%;text-decoration:none;">
+    <button class="btn btn-primary">🏠 Zpět na výběr</button>
+  </a>
+  <div class="leaderboard-card">
+    <h3>🏆 Nejlepší časy</h3>
+    <ul class="leaderboard-list" id="lb-end"></ul>
+  </div>
+</div>
+
+<script>
+const QUIZ_TYPE = 'czech-wordsearch';
+let finalMs = 0;
+
+// ─── SLOVA ──────────────────────────────────────────────────────────────────
+const ALL_WORDS = [
+  'RAKETA', 'JAHODA', 'OKURKA', 'MEDVĚD', 'KOCOUR',
+  'JABLKO', 'KLOKAN', 'POKLAD', 'FOTBAL', 'LOPATA',
+  'DELFÍN', 'ROBOT',  'HOKEJ',  'KRTEK',  'PIRÁT',
+  'RYTÍŘ',  'BAGR',   'HASIČ',  'PIRÁTI', 'KOMETA',
+  'JEŽEK',  'ŽIRAFA', 'ŠÁLEK',  'ČÁP',    'VÍLA',
+  'LIŠÁK',  'ŘÍČKA',  'ČOČKA',  'VÁNOCE', 'ŠKOLÁK',
+  'POHÁDKA', 'TŘEŠNĚ', 'SNĚŽNÍK', 'ČEPICE', 'KLOBOUK',
+];
+const WORDS_PER_GAME = 5;
+const GRID_SIZE = 7;
+
+let currentWords = [];
+const DIRS = [
+  [0, 1], [0, -1], [1, 0], [-1, 0],
+  [1, 1], [1, -1], [-1, 1], [-1, -1]
+];
+const FILL = 'ABCDEFGHIJKLMNOPRSTUVZ';
+
+let grid = [];
+let placements = [];   // [{word, cells:[{r,c}]}]
+let foundWords = new Set();
+let isSelecting = false;
+let selStart = null;
+let selCells = [];
+let timerInterval = null;
+let seconds = 0;
+
+// ─── GENEROVÁNÍ MŘÍŽKY ──────────────────────────────────────────────────────
+function buildGrid() {
+  // Vybereme náhodná slova pro tuto hru
+  currentWords = [...ALL_WORDS].sort(() => Math.random() - 0.5).slice(0, WORDS_PER_GAME);
+
+  grid = Array.from({length: GRID_SIZE}, () => Array(GRID_SIZE).fill(''));
+  placements = [];
+
+  const shuffled = [...currentWords].sort(() => Math.random() - 0.5);
+  for (const word of shuffled) placeWord(word);
+
+  // Doplníme náhodná písmena
+  for (let r = 0; r < GRID_SIZE; r++)
+    for (let c = 0; c < GRID_SIZE; c++)
+      if (!grid[r][c])
+        grid[r][c] = FILL[Math.floor(Math.random() * FILL.length)];
+}
+
+function placeWord(word) {
+  for (let attempt = 0; attempt < 300; attempt++) {
+    const [dr, dc] = DIRS[Math.floor(Math.random() * DIRS.length)];
+
+    const rMin = dr > 0 ? 0 : dr < 0 ? word.length - 1 : 0;
+    const rMax = dr > 0 ? GRID_SIZE - word.length : dr < 0 ? GRID_SIZE - 1 : GRID_SIZE - 1;
+    const cMin = dc > 0 ? 0 : dc < 0 ? word.length - 1 : 0;
+    const cMax = dc > 0 ? GRID_SIZE - word.length : dc < 0 ? GRID_SIZE - 1 : GRID_SIZE - 1;
+
+    if (rMin > rMax || cMin > cMax) continue;
+
+    const r = rMin + Math.floor(Math.random() * (rMax - rMin + 1));
+    const c = cMin + Math.floor(Math.random() * (cMax - cMin + 1));
+
+    const cells = [];
+    let ok = true;
+    for (let i = 0; i < word.length; i++) {
+      const nr = r + dr * i, nc = c + dc * i;
+      if (nr < 0 || nr >= GRID_SIZE || nc < 0 || nc >= GRID_SIZE) { ok = false; break; }
+      if (grid[nr][nc] && grid[nr][nc] !== word[i]) { ok = false; break; }
+      cells.push({r: nr, c: nc});
+    }
+
+    if (ok) {
+      cells.forEach(({r, c}, i) => { grid[r][c] = word[i]; });
+      placements.push({word, cells});
+      return;
+    }
+  }
+}
+
+// ─── VYKRESLENÍ ─────────────────────────────────────────────────────────────
+function renderGrid() {
+  const container = document.getElementById('grid');
+  container.innerHTML = '';
+  for (let r = 0; r < GRID_SIZE; r++) {
+    for (let c = 0; c < GRID_SIZE; c++) {
+      const el = document.createElement('div');
+      el.className = 'cell';
+      el.textContent = grid[r][c];
+      el.dataset.r = r;
+      el.dataset.c = c;
+      container.appendChild(el);
+    }
+  }
+}
+
+function renderWordList() {
+  const container = document.getElementById('word-list');
+  container.innerHTML = '';
+  currentWords.forEach(w => {
+    const chip = document.createElement('div');
+    chip.className = 'word-chip' + (foundWords.has(w) ? ' found' : '');
+    chip.textContent = w;
+    chip.id = 'chip-' + w;
+    container.appendChild(chip);
+  });
+  document.getElementById('total-count').textContent = currentWords.length;
+  document.getElementById('found-count').textContent = foundWords.size;
+}
+
+function refreshCells() {
+  const selSet = new Set(selCells.map(({r, c}) => `${r},${c}`));
+  const foundSet = new Set();
+  placements.forEach(p => {
+    if (foundWords.has(p.word))
+      p.cells.forEach(({r, c}) => foundSet.add(`${r},${c}`));
+  });
+
+  document.querySelectorAll('.cell').forEach(el => {
+    const key = `${el.dataset.r},${el.dataset.c}`;
+    if (foundSet.has(key)) {
+      el.className = 'cell found';
+    } else if (selSet.has(key)) {
+      el.className = 'cell selecting';
+    } else {
+      el.className = 'cell';
+    }
+  });
+}
+
+// ─── VÝBĚR BUNĚK ────────────────────────────────────────────────────────────
+function cellAt(x, y) {
+  const el = document.elementFromPoint(x, y);
+  return el && el.classList.contains('cell') ? el : null;
+}
+
+function lineBetween(r1, c1, r2, c2) {
+  const dr = r2 - r1, dc = c2 - c1;
+  if (dr === 0 && dc === 0) return [{r: r1, c: c1}];
+  const ar = Math.abs(dr), ac = Math.abs(dc);
+  if (dr !== 0 && dc !== 0 && ar !== ac) return [];   // není přímá linie
+  const steps = Math.max(ar, ac);
+  const sr = dr === 0 ? 0 : dr / ar;
+  const sc = dc === 0 ? 0 : dc / ac;
+  const cells = [];
+  for (let i = 0; i <= steps; i++)
+    cells.push({r: r1 + sr * i, c: c1 + sc * i});
+  return cells;
+}
+
+function onDown(e) {
+  e.preventDefault();
+  const pt = e.touches ? e.touches[0] : e;
+  const el = cellAt(pt.clientX, pt.clientY);
+  if (!el) return;
+  isSelecting = true;
+  selStart = {r: +el.dataset.r, c: +el.dataset.c};
+  selCells = [selStart];
+  refreshCells();
+}
+
+function onMove(e) {
+  if (!isSelecting) return;
+  e.preventDefault();
+  const pt = e.touches ? e.touches[0] : e;
+  const el = cellAt(pt.clientX, pt.clientY);
+  if (!el) return;
+  selCells = lineBetween(selStart.r, selStart.c, +el.dataset.r, +el.dataset.c);
+  refreshCells();
+}
+
+function onUp(e) {
+  if (!isSelecting) return;
+  isSelecting = false;
+  if (selCells.length >= 2) checkMatch();
+  selCells = [];
+  refreshCells();
+}
+
+// ─── KONTROLA SHODY ─────────────────────────────────────────────────────────
+function cellsEq(a, b) {
+  return a.length === b.length && a.every((cell, i) => cell.r === b[i].r && cell.c === b[i].c);
+}
+
+function checkMatch() {
+  for (const p of placements) {
+    if (foundWords.has(p.word)) continue;
+    if (cellsEq(selCells, p.cells) || cellsEq([...selCells].reverse(), p.cells)) {
+      foundWords.add(p.word);
+
+      // Flash animace
+      p.cells.forEach(({r, c}) => {
+        const el = document.querySelector(`.cell[data-r="${r}"][data-c="${c}"]`);
+        if (el) { el.className = 'cell found found-flash'; }
+      });
+
+      // Aktualizace chipsů a počítadla
+      const chip = document.getElementById('chip-' + p.word);
+      if (chip) chip.className = 'word-chip found';
+      document.getElementById('found-count').textContent = foundWords.size;
+
+      if (foundWords.size === currentWords.length) setTimeout(endGame, 600);
+      return;
+    }
+  }
+}
+
+// ─── ČASOVAČ ────────────────────────────────────────────────────────────────
+function startTimer() {
+  seconds = 0;
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    seconds++;
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    document.getElementById('timer').textContent = `${m}:${s.toString().padStart(2, '0')}`;
+  }, 1000);
+}
+
+function stopTimer() { clearInterval(timerInterval); }
+
+function formatTime(s) {
+  return `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
+}
+
+// ─── OBRAZOVKY ──────────────────────────────────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function startGame() {
+  foundWords = new Set();
+  buildGrid();
+  renderGrid();
+  renderWordList();
+
+  const gw = document.querySelector('.grid-wrap');
+
+  // Odstraníme staré listenery (jednoduše nahradíme uzel)
+  const gw2 = gw.cloneNode(true);
+  gw.parentNode.replaceChild(gw2, gw);
+
+  // Přebudujeme grid uvnitř nového nodu
+  renderGrid();
+
+  gw2.addEventListener('pointerdown', onDown);
+  window.addEventListener('pointermove', onMove);
+  window.addEventListener('pointerup', onUp);
+
+  startTimer();
+  showScreen('screen-game');
+}
+
+function endGame() {
+  stopTimer();
+  finalMs = seconds * 1000;
+  document.getElementById('final-time').textContent = formatTime(seconds);
+  document.getElementById('player-name').value = '';
+  showScreen('screen-end');
+  renderLeaderboard('lb-end');
+}
+
+// ─── ŽEBŘÍČEK ────────────────────────────────────────────────────────────────
+const DB_URL = 'https://kids-games-3a167-default-rtdb.europe-west1.firebasedatabase.app';
+
+async function getScores() {
+  try {
+    const r = await fetch(DB_URL + '/scores/' + QUIZ_TYPE + '.json');
+    const d = await r.json();
+    return Array.isArray(d) ? d : [];
+  } catch { return []; }
+}
+
+async function saveScore() {
+  const nameInput = document.getElementById('player-name');
+  const name = nameInput.value.trim();
+  if (!name) { nameInput.style.outline = '3px solid #ef4444'; nameInput.focus(); return; }
+  nameInput.style.outline = '';
+  const scores = await getScores();
+  scores.push({ name, ms: finalMs, date: new Date().toLocaleDateString('cs-CZ') });
+  scores.sort((a, b) => a.ms - b.ms);
+  const top10 = scores.slice(0, 10);
+  try {
+    await fetch(DB_URL + '/scores/' + QUIZ_TYPE + '.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(top10)
+    });
+  } catch {}
+  renderLeaderboard('lb-end');
+  document.getElementById('player-name').value = '';
+}
+
+async function renderLeaderboard(elId) {
+  const el = document.getElementById(elId);
+  el.innerHTML = '<li class="lb-loading">Načítám…</li>';
+  const scores = await getScores();
+  if (!scores.length) { el.innerHTML = '<li class="lb-empty">Zatím žádné výsledky.</li>'; return; }
+  el.innerHTML = scores.map((s, i) => `
+    <li>
+      <span class="lb-rank">${i + 1}.</span>
+      <span class="lb-name">${esc(s.name)}</span>
+      <span class="lb-time">${formatTime(s.ms / 1000)}</span>
+      <span class="lb-date">${esc(s.date)}</span>
+    </li>`).join('');
+}
+
+function esc(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+renderLeaderboard('lb-start');
+</script>
+</body>
+</html>

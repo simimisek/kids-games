@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-KEF2T80GE0"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-KEF2T80GE0');
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Slabiková hra | Vzdělávací hry</title>
+  <meta property="og:title" content="Slabiková hra" />
+  <meta property="og:image" content="https://simimisek.github.io/kids-games/ogimage.png" />
+  <meta property="og:description" content="Procvič čtení slabik. Zábavná česká hra pro děti." />
+  <meta property="og:url" content="https://simimisek.github.io/kids-games/hra3.html" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://simimisek.github.io/kids-games/og-preview.png" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(160deg, #eef2fb 0%, #f4eefb 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 16px 16px 40px;
+    }
+
+    .screen { display: none; width: 100%; max-width: 480px; }
+    .screen.active { display: flex; flex-direction: column; align-items: center; gap: 16px; padding-top: 16px; }
+
+    /* ─── TITULNÍ ─── */
+    .title {
+      font-size: 2.2rem;
+      color: #3d4a8a;
+      text-align: center;
+    }
+    .subtitle {
+      color: #555;
+      text-align: center;
+      font-size: 1rem;
+      line-height: 1.65;
+    }
+    .subtitle strong { color: #3d4a8a; }
+
+    /* ─── TLAČÍTKA ─── */
+    .btn {
+      width: 100%; padding: 15px;
+      font-size: 1.05rem; font-weight: 700;
+      border: none; border-radius: 14px; cursor: pointer;
+      transition: transform 0.1s, box-shadow 0.1s;
+      font-family: inherit;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary {
+      background: #5b6abf; color: #fff;
+      box-shadow: 0 4px 16px rgba(91,106,191,0.35);
+    }
+    .btn-primary:hover { background: #4a5aab; }
+    .btn-secondary {
+      background: rgba(91,106,191,0.1); color: #5b6abf;
+      border: 2px solid rgba(91,106,191,0.25); box-shadow: none;
+    }
+    .btn-secondary:hover { background: rgba(91,106,191,0.18); }
+
+    /* ─── HUD ─── */
+    .hud {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255,255,255,0.75);
+      backdrop-filter: blur(4px);
+      border-radius: 14px;
+      padding: 10px 20px;
+      color: #3d4a8a;
+      font-size: 1.05rem;
+      font-weight: 700;
+    }
+    .hud-timer { font-variant-numeric: tabular-nums; }
+
+    /* ─── NALEZENÁ SLOVA ─── */
+    .found-words {
+      width: 100%;
+      min-height: 26px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      justify-content: center;
+    }
+    .found-badge {
+      background: #5b6abf;
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.82rem;
+      padding: 3px 13px;
+      border-radius: 20px;
+      animation: popIn 0.22s ease;
+    }
+    @keyframes popIn {
+      from { transform: scale(0.5); opacity: 0; }
+      to   { transform: scale(1);   opacity: 1; }
+    }
+
+    /* ─── LÍSTKOVÝ PANEL ─── */
+    .ticket-area {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .syl-column {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .col-header {
+      text-align: center;
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding-bottom: 2px;
+    }
+    .col-header.h-first { color: #4a56a6; }
+    .col-header.h-last  { color: #7a4aa6; }
+
+    /* ─── SLABIKA KARTA ─── */
+    .syl-card {
+      position: relative;
+      padding: 16px 8px;
+      border-radius: 12px;
+      min-height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: clamp(1.1rem, 5vw, 1.55rem);
+      font-weight: 800;
+      color: #222;
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.1s, box-shadow 0.1s;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .syl-card:hover:not(:disabled) {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.13);
+    }
+
+    /* Levá část lístku – 1. slabika */
+    .syl-card.first {
+      background: #eef2ff;
+      border-right: 3px dashed #b8c0e8;
+      border-radius: 12px 4px 4px 12px;
+    }
+    /* Pravá část lístku – 2. slabika */
+    .syl-card.last {
+      background: #f5f0ff;
+      border-left: 3px dashed #c8b8e8;
+      border-radius: 4px 12px 12px 4px;
+    }
+
+    /* Stavy */
+    .syl-card.selected {
+      transform: translateY(-4px) !important;
+      box-shadow: 0 0 0 3px #5b6abf, 0 8px 22px rgba(91,106,191,0.28) !important;
+      z-index: 5;
+    }
+    .syl-card.first.selected { background: #dce5ff; }
+    .syl-card.last.selected  { background: #ece0ff; }
+
+    .syl-card.correct {
+      background: #dcfce7 !important;
+      border-color: #86efac !important;
+      pointer-events: none;
+      animation: cardPop 0.48s ease forwards;
+    }
+    @keyframes cardPop {
+      0%   { transform: scale(1.06); opacity: 1; }
+      55%  { transform: scale(1.14); opacity: 0.65; }
+      100% { transform: scale(0.75); opacity: 0; }
+    }
+
+    .syl-card.wrong {
+      background: #fee2e2 !important;
+      border-color: #fca5a5 !important;
+      animation: cardShake 0.38s ease;
+    }
+    @keyframes cardShake {
+      0%, 100% { transform: translateX(0); }
+      25%       { transform: translateX(-7px); }
+      75%       { transform: translateX(7px); }
+    }
+
+    /* Prázdný placeholder (po zmizení karty) */
+    .syl-card.gone {
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    /* ─── TOAST ─── */
+    .word-toast {
+      position: fixed;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%) scale(0.7);
+      background: #3d4a8a;
+      color: #fff;
+      font-size: 1.8rem;
+      font-weight: 800;
+      padding: 12px 36px;
+      border-radius: 18px;
+      box-shadow: 0 8px 28px rgba(0,0,0,0.2);
+      z-index: 200;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.15s, transform 0.15s;
+      letter-spacing: 3px;
+    }
+    .word-toast.show {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    /* ─── VÝSLEDKY ─── */
+    .result-card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 28px 24px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.09);
+    }
+    .result-icon  { font-size: 3rem; margin-bottom: 8px; }
+    .result-title { font-size: 1.8rem; font-weight: 800; color: #333; }
+    .result-sub   { color: #888; margin-top: 6px; font-size: 0.95rem; }
+    .result-time  { font-size: 2.8rem; font-weight: 800; color: #5b6abf; margin-top: 12px; }
+
+    /* ─── JMÉNO + ŽEBŘÍČEK ─── */
+    .name-row { width: 100%; display: flex; gap: 10px; }
+    .name-row input {
+      flex: 1; padding: 14px 18px; border-radius: 12px; border: none;
+      font-size: 1rem; outline: 2px solid transparent;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08); transition: outline 0.2s;
+    }
+    .name-row input:focus { outline: 2px solid #5b6abf; }
+
+    .leaderboard-card {
+      background: #fff; border-radius: 20px; padding: 22px;
+      width: 100%; box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+    .leaderboard-card h3 { text-align: center; color: #333; font-size: 1.1rem; margin-bottom: 14px; }
+    .leaderboard-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .leaderboard-list li {
+      display: grid; grid-template-columns: 28px 1fr auto;
+      gap: 8px; align-items: center; font-size: 0.93rem; color: #444;
+      padding: 6px 0; border-bottom: 1px solid #f0f0f0;
+    }
+    .leaderboard-list li:last-child { border-bottom: none; }
+    .lb-rank { font-weight: 700; color: #5b6abf; text-align: center; }
+    .lb-name { font-weight: 600; }
+    .lb-time { color: #5b6abf; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .lb-date { font-size: 0.76rem; color: #aaa; grid-column: 2/4; margin-top: -4px; }
+    .lb-empty, .lb-loading {
+      text-align: center; color: #aaa; font-style: italic;
+      padding: 8px 0; font-size: 0.88rem;
+      grid-column: 1 / -1;
+    }
+
+    /* ─── DOMŮ ─── */
+    .btn-home-fixed {
+      position: fixed; top: 12px; right: 12px; z-index: 200;
+      background: rgba(61,74,138,0.18); border: none; border-radius: 10px;
+      padding: 7px 14px; color: #3d4a8a; font-family: inherit;
+      font-size: 0.85rem; font-weight: 700; text-decoration: none; cursor: pointer;
+    }
+    .btn-home-fixed:hover { background: rgba(61,74,138,0.30); }
+
+    /* ─── RESPONZIVITA ─── */
+    @media (max-width: 360px) {
+      body { padding: 10px; }
+      .title { font-size: 1.9rem; }
+      .syl-card { min-height: 56px; padding: 12px 6px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="word-toast" id="word-toast"></div>
+
+<!-- ════ START ════ -->
+<div id="screen-start" class="screen active">
+  <div class="title">🎫 Slabiková hra</div>
+  <p class="subtitle">
+    Spoj <strong>1. slabiku</strong> s <strong>2. slabikou</strong><br>
+    tak, aby dohromady tvořily slovo!
+  </p>
+  <button class="btn btn-primary" onclick="startGame()">▶ Hrát</button>
+  <a href="index.html" style="width:100%;text-decoration:none;">
+    <button class="btn btn-primary">🏠 Zpět na výběr</button>
+  </a>
+  <div class="leaderboard-card">
+    <h3>🏆 Nejlepší časy</h3>
+    <ul class="leaderboard-list" id="lb-start"></ul>
+  </div>
+</div>
+
+<!-- ════ HRA ════ -->
+<div id="screen-game" class="screen">
+  <div class="hud">
+    <span id="hud-found">Slova: 0 / 5</span>
+    <span class="hud-timer" id="hud-timer">0:00</span>
+  </div>
+
+  <div class="found-words" id="found-words"></div>
+
+  <div class="ticket-area">
+    <div class="syl-column">
+      <div class="col-header h-first">① Začátek</div>
+      <div id="col-first"></div>
+    </div>
+    <div class="syl-column">
+      <div class="col-header h-last">② Konec</div>
+      <div id="col-last"></div>
+    </div>
+  </div>
+
+  <a href="index.html" class="btn-home-fixed">🏠 Domů</a>
+</div>
+
+<!-- ════ KONEC ════ -->
+<div id="screen-end" class="screen">
+  <div class="result-card">
+    <div class="result-icon">🎉</div>
+    <div class="result-title">Výborně!</div>
+    <div class="result-sub">Čas na všechna slova:</div>
+    <div class="result-time" id="final-time">—</div>
+  </div>
+  <div class="name-row">
+    <input type="text" id="player-name" placeholder="Tvoje jméno…" maxlength="20" />
+    <button class="btn btn-primary" style="width:auto;padding:14px 20px;font-size:1rem" onclick="saveScore()">Uložit</button>
+  </div>
+  <button class="btn btn-primary" onclick="startGame()">🔄 Hrát znovu</button>
+  <a href="index.html" style="width:100%;text-decoration:none;">
+    <button class="btn btn-primary">🏠 Zpět na výběr</button>
+  </a>
+  <div class="leaderboard-card">
+    <h3>🏆 Nejlepší časy</h3>
+    <ul class="leaderboard-list" id="lb-end"></ul>
+  </div>
+</div>
+
+<script>
+  const QUIZ_TYPE = 'czech-syllables';
+
+  // Pouze 2-slabičná slova (levá karta = 1. slabika, pravá = 2. slabika)
+  const WORD_SETS = [
+    // SADA A – sporty
+    [
+      { word: 'HOKEJ',   s: ['HO',   'KEJ']  },
+      { word: 'TENIS',   s: ['TE',   'NIS']  },
+      { word: 'FOTBAL',  s: ['FOT',  'BAL']  },
+      { word: 'KOLO',    s: ['KO',   'LO']   },
+      { word: 'JUDO',    s: ['JU',   'DO']   },
+    ],
+    // SADA B – zvířata
+    [
+      { word: 'KLOKAN',  s: ['KLO',  'KAN']  },
+      { word: 'KONDOR',  s: ['KON',  'DOR']  },
+      { word: 'TAPÍR',   s: ['TA',   'PÍR']  },
+      { word: 'VYDRA',   s: ['VYD',  'RA']   },
+      { word: 'JELEN',   s: ['JE',   'LEN']  },
+    ],
+    // SADA C – ovoce a jídlo
+    [
+      { word: 'BANÁN',   s: ['BA',   'NÁN']  },
+      { word: 'MANGO',   s: ['MAN',  'GO']   },
+      { word: 'TŘEŠNĚ',  s: ['TŘEŠ', 'NĚ']   },
+      { word: 'HRUŠKA',  s: ['HRUŠ', 'KA']   },
+      { word: 'MELOUN',  s: ['ME',   'LOUN']  },
+    ],
+    // SADA D – výpravy
+    [
+      { word: 'TRAKTOR', s: ['TRAK', 'TOR']  },
+      { word: 'KOVBOJ',  s: ['KOV',  'BOJ']  },
+      { word: 'PIRÁT',   s: ['PI',   'RÁT']  },
+      { word: 'SOPKA',   s: ['SOP',  'KA']   },
+      { word: 'POKLAD',  s: ['POK',  'LAD']  },
+    ],
+    // SADA E – příroda
+    [
+      { word: 'ŽÁBA',    s: ['ŽÁ',   'BA']   },
+      { word: 'VÍLA',    s: ['VÍ',   'LA']   },
+      { word: 'ŘÍČKA',   s: ['ŘÍČ',  'KA']   },
+      { word: 'VRÁNA',   s: ['VRÁ',  'NA']   },
+      { word: 'KAČER',   s: ['KA',   'ČER']  },
+    ],
+    // SADA F – doma
+    [
+      { word: 'ŠÁLEK',   s: ['ŠÁ',   'LEK']  },
+      { word: 'ŠKOLÁK',  s: ['ŠKO',  'LÁK']  },
+      { word: 'KOŠÍK',   s: ['KO',   'ŠÍK']  },
+      { word: 'LAMPA',   s: ['LAM',  'PA']   },
+      { word: 'TALÍŘ',   s: ['TA',   'LÍŘ']  },
+    ],
+  ];
+
+  // ─── STAV ────────────────────────────────────────────────────────────────────
+  let bubbles       = [];
+  let selectedFirst = null;   // vybraná karta z levého sloupce
+  let selectedLast  = null;   // vybraná karta z pravého sloupce
+  let foundCount    = 0;
+  let totalWords    = 0;
+  let timerStart    = null;
+  let timerInterval = null;
+  let finalMs       = 0;
+  let locked        = false;
+
+  // ─── POMOCNÉ ────────────────────────────────────────────────────────────────
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  function shuffleArr(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function formatTime(ms) {
+    const s = Math.floor(ms / 1000);
+    return `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
+  }
+
+  // ─── TIMER ───────────────────────────────────────────────────────────────────
+  function startTimer() {
+    timerStart    = Date.now();
+    timerInterval = setInterval(() => {
+      const el = document.getElementById('hud-timer');
+      if (el) el.textContent = formatTime(Date.now() - timerStart);
+    }, 100);
+  }
+  function stopTimer() {
+    clearInterval(timerInterval);
+    finalMs = Date.now() - timerStart;
+  }
+
+  // ─── START ───────────────────────────────────────────────────────────────────
+  function startGame() {
+    bubbles       = [];
+    selectedFirst = null;
+    selectedLast  = null;
+    foundCount    = 0;
+    finalMs       = 0;
+    locked        = false;
+    clearInterval(timerInterval);
+    document.getElementById('found-words').innerHTML = '';
+    document.getElementById('hud-timer').textContent = '0:00';
+
+    const set  = WORD_SETS[Math.floor(Math.random() * WORD_SETS.length)];
+    totalWords = set.length;
+    document.getElementById('hud-found').textContent = `Slova: 0 / ${totalWords}`;
+
+    set.forEach((w, wordId) => {
+      w.s.forEach((syl, sylIdx) => {
+        bubbles.push({
+          text:    syl,
+          wordId,
+          word:    w.word,
+          sylPos:  sylIdx,   // 0 = 1. slabika, 1 = 2. slabika
+          element: null,
+          matched: false,
+        });
+      });
+    });
+
+    renderCards();
+    showScreen('screen-game');
+    startTimer();
+  }
+
+  // ─── VYKRESLENÍ KARET ────────────────────────────────────────────────────────
+  function renderCards() {
+    const colFirst = document.getElementById('col-first');
+    const colLast  = document.getElementById('col-last');
+    colFirst.innerHTML = '';
+    colLast.innerHTML  = '';
+
+    // Každý sloupec zamíchaný nezávisle
+    const firstSyls = shuffleArr(bubbles.filter(b => b.sylPos === 0));
+    const lastSyls  = shuffleArr(bubbles.filter(b => b.sylPos === 1));
+
+    firstSyls.forEach(b => colFirst.appendChild(makeCard(b)));
+    lastSyls.forEach(b => colLast.appendChild(makeCard(b)));
+  }
+
+  function makeCard(b) {
+    const el = document.createElement('div');
+    el.className = 'syl-card ' + (b.sylPos === 0 ? 'first' : 'last');
+    el.textContent = b.text;
+    el.addEventListener('click', () => handleClick(b));
+    b.element = el;
+    return el;
+  }
+
+  // ─── KLIKNUTÍ ────────────────────────────────────────────────────────────────
+  function handleClick(b) {
+    if (locked || b.matched) return;
+
+    const isFirst = b.sylPos === 0;
+
+    if (isFirst) {
+      // Klik na již vybranou → odznačit
+      if (selectedFirst === b) {
+        b.element.classList.remove('selected');
+        selectedFirst = null;
+        return;
+      }
+      // Přepnout výběr v levém sloupci
+      if (selectedFirst) selectedFirst.element.classList.remove('selected');
+      selectedFirst = b;
+      b.element.classList.add('selected');
+    } else {
+      if (selectedLast === b) {
+        b.element.classList.remove('selected');
+        selectedLast = null;
+        return;
+      }
+      if (selectedLast) selectedLast.element.classList.remove('selected');
+      selectedLast = b;
+      b.element.classList.add('selected');
+    }
+
+    // Obě strany vybrány → zkontrolovat shodu
+    if (selectedFirst && selectedLast) {
+      checkMatch(selectedFirst, selectedLast);
+    }
+  }
+
+  function checkMatch(first, last) {
+    locked = true;
+    const sf = selectedFirst;
+    const sl = selectedLast;
+    selectedFirst = null;
+    selectedLast  = null;
+    sf.element.classList.remove('selected');
+    sl.element.classList.remove('selected');
+
+    if (sf.wordId === sl.wordId) {
+      // ✓ Správně
+      sf.matched = true;
+      sl.matched = true;
+      sf.element.classList.add('correct');
+      sl.element.classList.add('correct');
+      showToast(sf.word);
+      setTimeout(() => {
+        sf.element.classList.add('gone');
+        sl.element.classList.add('gone');
+        addFoundBadge(sf.word);
+        foundCount++;
+        document.getElementById('hud-found').textContent = `Slova: ${foundCount} / ${totalWords}`;
+        locked = false;
+        if (foundCount >= totalWords) setTimeout(endGame, 300);
+      }, 520);
+    } else {
+      // ✗ Špatně
+      sf.element.classList.add('wrong');
+      sl.element.classList.add('wrong');
+      setTimeout(() => {
+        sf.element.classList.remove('wrong');
+        sl.element.classList.remove('wrong');
+        locked = false;
+      }, 420);
+    }
+  }
+
+  // ─── TOAST + BADGE ───────────────────────────────────────────────────────────
+  function showToast(word) {
+    const t = document.getElementById('word-toast');
+    t.textContent = word + '  ✓';
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 850);
+  }
+
+  function addFoundBadge(word) {
+    const badge = document.createElement('span');
+    badge.className = 'found-badge';
+    badge.textContent = word;
+    document.getElementById('found-words').appendChild(badge);
+  }
+
+  // ─── KONEC ───────────────────────────────────────────────────────────────────
+  function endGame() {
+    stopTimer();
+    document.getElementById('final-time').textContent = formatTime(finalMs);
+    document.getElementById('player-name').value = '';
+    showScreen('screen-end');
+    renderLeaderboard('lb-end');
+  }
+
+  // ─── ŽEBŘÍČEK (Firebase) ─────────────────────────────────────────────────────
+  const DB_URL = 'https://kids-games-3a167-default-rtdb.europe-west1.firebasedatabase.app';
+
+  async function getScores() {
+    try {
+      const r = await fetch(DB_URL + '/scores/' + QUIZ_TYPE + '.json');
+      const d = await r.json();
+      return Array.isArray(d) ? d : [];
+    } catch { return []; }
+  }
+
+  async function saveScore() {
+    const nameInput = document.getElementById('player-name');
+    const name = nameInput.value.trim();
+    if (!name) { nameInput.style.outline = '3px solid #ef4444'; nameInput.focus(); return; }
+    nameInput.style.outline = '';
+    const scores = await getScores();
+    scores.push({ name, ms: finalMs, date: new Date().toLocaleDateString('cs-CZ') });
+    scores.sort((a, b) => a.ms - b.ms);
+    const top10 = scores.slice(0, 10);
+    try {
+      await fetch(DB_URL + '/scores/' + QUIZ_TYPE + '.json', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(top10)
+      });
+    } catch {}
+    renderLeaderboard('lb-end');
+    document.getElementById('player-name').value = '';
+  }
+
+  async function renderLeaderboard(elId) {
+    const el = document.getElementById(elId);
+    el.innerHTML = '<li class="lb-loading">Načítám…</li>';
+    const scores = await getScores();
+    if (!scores.length) { el.innerHTML = '<li class="lb-empty">Zatím žádné výsledky.</li>'; return; }
+    el.innerHTML = scores.map((s, i) => `
+      <li>
+        <span class="lb-rank">${i + 1}.</span>
+        <span class="lb-name">${esc(s.name)}</span>
+        <span class="lb-time">${formatTime(s.ms)}</span>
+        <span class="lb-date">${esc(s.date)}</span>
+      </li>`).join('');
+  }
+
+  function esc(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  renderLeaderboard('lb-start');
+</script>
+</body>
+</html>

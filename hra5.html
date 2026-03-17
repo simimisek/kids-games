@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-KEF2T80GE0"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-KEF2T80GE0');
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Doplň písmeno | Vzdělávací hry</title>
+  <meta property="og:title" content="Doplň písmeno" />
+  <meta property="og:image" content="https://simimisek.github.io/kids-games/ogimage.png" />
+  <meta property="og:description" content="Doplň chybějící písmeno do slova. Procvič pravopis hravě." />
+  <meta property="og:url" content="https://simimisek.github.io/kids-games/hra5.html" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://simimisek.github.io/kids-games/og-preview.png" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #7a62a8 0%, #a48fd4 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 16px 16px 40px;
+    }
+
+    .screen { display: none; width: 100%; max-width: 480px; }
+    .screen.active { display: flex; flex-direction: column; align-items: center; gap: 16px; padding-top: 16px; }
+
+    /* ─── TITULNÍ ─── */
+    .title {
+      font-size: 2.2rem;
+      color: #fff;
+      text-align: center;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    .subtitle {
+      color: rgba(255,255,255,0.9);
+      text-align: center;
+      font-size: 1rem;
+      line-height: 1.65;
+    }
+
+    /* ─── HUD ─── */
+    .hud {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255,255,255,0.25);
+      border-radius: 14px;
+      padding: 10px 20px;
+      color: #fff;
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+
+    /* ─── SLOVO ─── */
+    .word-card {
+      background: rgba(255,255,255,0.95);
+      border-radius: 20px;
+      padding: 24px 16px;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+      min-height: 110px;
+    }
+
+    .tile {
+      width: clamp(40px, 12vw, 56px);
+      height: clamp(46px, 14vw, 64px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: clamp(1.3rem, 4vw, 1.9rem);
+      font-weight: 800;
+      border-radius: 10px;
+      background: #ede8f8;
+      color: #333;
+    }
+
+    .tile.blank {
+      background: #d5caee;
+      border: 3px dashed #7a62a8;
+      color: #7a62a8;
+    }
+
+    .tile.blank.show-correct {
+      background: #43e97b;
+      border-color: #2db85a;
+      color: #fff;
+      animation: tileIn 0.3s ease;
+    }
+
+    .tile.blank.show-wrong {
+      animation: tileShake 0.4s ease;
+    }
+
+    @keyframes tileIn {
+      0%   { transform: scale(0.6); }
+      60%  { transform: scale(1.15); }
+      100% { transform: scale(1); }
+    }
+    @keyframes tileShake {
+      0%, 100% { transform: translateX(0); }
+      25%       { transform: translateX(-8px); }
+      75%       { transform: translateX(8px); }
+    }
+
+    /* ─── MOŽNOSTI ─── */
+    .choices {
+      width: 100%;
+      display: flex;
+      gap: 14px;
+      justify-content: center;
+    }
+
+    .choice-btn {
+      flex: 1;
+      max-width: 100px;
+      aspect-ratio: 1 / 1;
+      font-size: 2rem;
+      font-weight: 800;
+      border: none;
+      border-radius: 16px;
+      background: #fff;
+      color: #7a62a8;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.15);
+      cursor: pointer;
+      transition: transform 0.1s, box-shadow 0.1s, background 0.15s, color 0.15s;
+      outline: none;
+    }
+    .choice-btn:hover:not(:disabled) {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    }
+    .choice-btn:active:not(:disabled) { transform: scale(0.93); }
+
+    .choice-btn.correct {
+      background: #43e97b;
+      color: #fff;
+      box-shadow: 0 4px 20px rgba(67,233,123,0.45);
+    }
+    .choice-btn.wrong {
+      background: #ef4444;
+      color: #fff;
+      box-shadow: 0 4px 20px rgba(239,68,68,0.4);
+    }
+    .choice-btn:disabled { cursor: default; }
+
+    /* ─── TLAČÍTKA ─── */
+    .btn {
+      width: 100%; padding: 15px;
+      font-size: 1.05rem; font-weight: 700;
+      border: none; border-radius: 14px; cursor: pointer;
+      transition: transform 0.1s; font-family: inherit;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary {
+      background: #7a62a8; color: #fff;
+      box-shadow: 0 4px 16px rgba(122,98,168,0.35);
+    }
+    .btn-primary:hover { background: #6a52a0; }
+    .btn-secondary {
+      background: rgba(122,98,168,0.1); color: #7a62a8;
+      border: 2px solid rgba(122,98,168,0.25); box-shadow: none;
+    }
+    .btn-secondary:hover { background: rgba(122,98,168,0.18); }
+
+    /* ─── DOMŮ ─── */
+    .btn-home-fixed {
+      position: fixed; top: 12px; right: 12px; z-index: 200;
+      background: rgba(0,0,0,0.25); border: none; border-radius: 10px;
+      padding: 7px 14px; color: #fff; font-family: inherit;
+      font-size: 0.85rem; font-weight: 700; text-decoration: none; cursor: pointer;
+    }
+    .btn-home-fixed:hover { background: rgba(0,0,0,0.4); }
+
+    /* ─── RESPONZIVITA ─── */
+    @media (max-width: 400px) {
+      body { padding: 10px 10px 32px; }
+      .title { font-size: 1.9rem; }
+      .subtitle { font-size: 0.92rem; }
+      .choice-btn { font-size: 1.7rem; }
+      .btn { padding: 13px; font-size: 1rem; }
+      .leaderboard-card { padding: 16px; }
+    }
+
+    /* ─── VÝSLEDKY ─── */
+    .result-card {
+      background: rgba(255,255,255,0.95);
+      border-radius: 22px;
+      padding: 30px 24px;
+      text-align: center;
+      width: 100%;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    }
+    .result-icon  { font-size: 4rem; margin-bottom: 10px; }
+    .result-title { font-size: 1.9rem; font-weight: 800; color: #333; }
+    .result-sub   { color: #888; margin-top: 6px; font-size: 1rem; }
+    .result-time  { font-size: 2.4rem; font-weight: 800; color: #7a62a8; margin-top: 14px; }
+
+    /* ─── JMÉNO + ŽEBŘÍČEK ─── */
+    .name-row { width: 100%; display: flex; gap: 10px; }
+    .name-row input {
+      flex: 1; padding: 14px 18px; border-radius: 12px; border: none;
+      font-size: 1rem; outline: 2px solid transparent;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1); transition: outline 0.2s;
+    }
+    .name-row input:focus { outline: 2px solid #7a62a8; }
+    .leaderboard-card {
+      background: #fff; border-radius: 20px; padding: 22px;
+      width: 100%; box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+    .leaderboard-card h3 { text-align: center; color: #333; font-size: 1.1rem; margin-bottom: 14px; }
+    .leaderboard-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .leaderboard-list li {
+      display: grid; grid-template-columns: 28px 1fr auto;
+      gap: 8px; align-items: center; font-size: 0.95rem; color: #444;
+      padding: 6px 0; border-bottom: 1px solid #f0f0f0;
+    }
+    .leaderboard-list li:last-child { border-bottom: none; }
+    .lb-rank { font-weight: 700; color: #7a62a8; text-align: center; }
+    .lb-name { font-weight: 600; }
+    .lb-time { font-variant-numeric: tabular-nums; color: #7a62a8; font-weight: 700; }
+    .lb-date { font-size: 0.78rem; color: #aaa; grid-column: 2/4; margin-top: -4px; }
+    .lb-empty { text-align: center; color: #aaa; font-style: italic; font-size: 0.9rem; padding: 8px 0; }
+  </style>
+</head>
+<body>
+
+<!-- ════ START ════ -->
+<div id="screen-start" class="screen active">
+  <div class="title">🔤 Doplň písmeno</div>
+  <div class="subtitle">
+    Ve slově chybí jedno písmeno.<br>
+    Klikni na správné ze tří možností!
+  </div>
+  <button class="btn btn-primary" onclick="startGame()">▶ Hrát</button>
+  <a href="index.html" style="width:100%;text-decoration:none;">
+    <button class="btn btn-primary">🏠 Zpět na výběr</button>
+  </a>
+  <div class="leaderboard-card">
+    <h3>🏆 Nejlepší časy</h3>
+    <ul class="leaderboard-list" id="lb-start"></ul>
+  </div>
+</div>
+
+<!-- ════ HRA ════ -->
+<div id="screen-game" class="screen">
+  <div class="hud">
+    <span>📝 <span id="progress">1 / 6</span></span>
+    <span>⏱ <span id="timer">0:00</span></span>
+  </div>
+
+  <div class="word-card" id="word-card"></div>
+
+  <div class="choices" id="choices"></div>
+
+  <a href="index.html" class="btn-home-fixed">🏠 Domů</a>
+</div>
+
+<!-- ════ KONEC ════ -->
+<div id="screen-end" class="screen">
+  <div class="result-card">
+    <div class="result-icon">🏆</div>
+    <div class="result-title">Skvěle! 🎉</div>
+    <div class="result-sub">Čas na 6 správných odpovědí:</div>
+    <div class="result-time" id="final-time">—</div>
+  </div>
+  <div class="name-row">
+    <input type="text" id="player-name" placeholder="Tvoje jméno…" maxlength="20" />
+    <button class="btn btn-primary" style="width:auto;padding:14px 20px;font-size:1rem;" onclick="saveScore()">Uložit</button>
+  </div>
+  <button class="btn btn-primary" onclick="startGame()">🔄 Hrát znovu</button>
+  <a href="index.html" style="width:100%;text-decoration:none;">
+    <button class="btn btn-primary">🏠 Zpět na výběr</button>
+  </a>
+  <div class="leaderboard-card">
+    <h3>🏆 Nejlepší časy</h3>
+    <ul class="leaderboard-list" id="lb-end"></ul>
+  </div>
+</div>
+
+<script>
+// ─── SLOVNÍ ZÁSOBA ────────────────────────────────────────────────────────────
+// pos = index chybějícího písmene (0 = první), wrong = dvě špatné možnosti
+const ALL_WORDS = [
+  // bez háčků a čárek
+  { word: 'KOZA',   pos: 1, wrong: ['A', 'U'] },   // K_ZA   → O
+  { word: 'KOLO',   pos: 2, wrong: ['D', 'N'] },   // KO_O   → L
+  { word: 'HORA',   pos: 1, wrong: ['A', 'I'] },   // H_RA   → O
+  { word: 'BOTA',   pos: 1, wrong: ['E', 'U'] },   // B_TA   → O
+  { word: 'RYBA',   pos: 0, wrong: ['T', 'N'] },   // _YBA   → R
+  { word: 'MAPA',   pos: 2, wrong: ['K', 'T'] },   // MA_A   → P
+  { word: 'LANO',   pos: 2, wrong: ['K', 'D'] },   // LA_O   → N
+  { word: 'VODA',   pos: 2, wrong: ['K', 'N'] },   // VO_A   → D
+  { word: 'ROBOT',  pos: 2, wrong: ['K', 'D'] },   // RO_OT  → B
+  { word: 'OKNO',   pos: 2, wrong: ['R', 'T'] },   // OK_O   → N
+  { word: 'KRAVA',  pos: 3, wrong: ['K', 'B'] },   // KRA_A  → V
+  { word: 'JAHODA', pos: 2, wrong: ['K', 'N'] },   // JA_ODA → H
+  { word: 'FOTBAL', pos: 3, wrong: ['K', 'D'] },   // FOT_AL → B
+  { word: 'KLOKAN', pos: 2, wrong: ['A', 'I'] },   // KL_KAN → O
+  { word: 'ZEBRA',  pos: 2, wrong: ['K', 'N'] },   // ZE_RA  → B
+  { word: 'JELEN',  pos: 3, wrong: ['A', 'O'] },   // JEL_N  → E
+  { word: 'TENIS',  pos: 2, wrong: ['K', 'D'] },   // TE_IS  → N
+  { word: 'LOPATA', pos: 2, wrong: ['K', 'N'] },   // LO_ATA → P
+  { word: 'GORILA', pos: 2, wrong: ['T', 'D'] },   // GO_ILA → R
+  { word: 'TRAKTOR',pos: 4, wrong: ['K', 'D'] },   // TRAK_OR → T
+  // s háčky a čárkami
+  { word: 'ŽÁBA',   pos: 1, wrong: ['A', 'E'] },   // Ž_BA   → Á
+  { word: 'JEŽEK',  pos: 1, wrong: ['A', 'I'] },   // J_ŽEK  → E
+  { word: 'ŘÍČKA',  pos: 2, wrong: ['T', 'K'] },   // ŘÍ_KA  → Č
+  { word: 'ŠÁLEK',  pos: 2, wrong: ['R', 'N'] },   // ŠÁ_EK  → L
+  { word: 'VÍLA',   pos: 1, wrong: ['A', 'E'] },   // V_LA   → Í
+  { word: 'PIRÁT',  pos: 3, wrong: ['A', 'O'] },   // PIR_T  → Á
+  { word: 'MEDVĚD', pos: 4, wrong: ['A', 'I'] },   // MEDV_D → Ě
+  { word: 'DELFÍN',  pos: 5, wrong: ['A', 'E'] },   // DELFÍ_  → N
+  { word: 'POHÁDKA', pos: 3, wrong: ['A', 'E'] },   // POH_DKA → Á
+  { word: 'ČOKOLÁDA',pos: 5, wrong: ['A', 'E'] },   // ČOKOL_DA → Á
+  { word: 'VÁNOCE', pos: 1, wrong: ['E', 'O'] },   // V_NOCE  → Á
+  { word: 'TŘEŠNĚ', pos: 2, wrong: ['A', 'I'] },   // TŘ_ŠNĚ → E
+  { word: 'ŠKOLÁK', pos: 3, wrong: ['A', 'E'] },   // ŠKO_ÁK → L
+  { word: 'RYTÍŘ',  pos: 3, wrong: ['A', 'E'] },   // RYT_Ř  → Í
+  { word: 'HASIČ',  pos: 4, wrong: ['K', 'T'] },   // HASI_  → Č
+];
+
+const QUIZ_TYPE  = 'czech-letters';
+const ROUND_SIZE = 6;
+
+let score      = 0;
+let usedWords  = new Set();
+let currentQ   = null;   // { word, pos, wrong }
+let seconds    = 0;
+let timerInt   = null;
+let locked     = false;
+let finalMs    = 0;
+
+// ─── POMOCNÉ ─────────────────────────────────────────────────────────────────
+function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
+
+function formatTime(s) {
+  return `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ─── OTÁZKA ──────────────────────────────────────────────────────────────────
+function renderQuestion() {
+  // Vyber náhodné slovo, které ještě nebylo správně zodpovězeno
+  const available = ALL_WORDS.filter(w => !usedWords.has(w.word));
+  if (!available.length) { endGame(); return; }
+  currentQ = available[Math.floor(Math.random() * available.length)];
+
+  const { word, pos, wrong } = currentQ;
+  const correct = word[pos];
+
+  // Dlaždice slova
+  const card = document.getElementById('word-card');
+  card.innerHTML = '';
+  for (let i = 0; i < word.length; i++) {
+    const tile = document.createElement('div');
+    if (i === pos) {
+      tile.className = 'tile blank';
+      tile.textContent = '?';
+      tile.id = 'blank-tile';
+    } else {
+      tile.className = 'tile';
+      tile.textContent = word[i];
+    }
+    card.appendChild(tile);
+  }
+
+  // Tlačítka s možnostmi (zamíchaná)
+  const choicesEl = document.getElementById('choices');
+  choicesEl.innerHTML = '';
+  shuffle([correct, ...wrong]).forEach(letter => {
+    const btn = document.createElement('button');
+    btn.className = 'choice-btn';
+    btn.textContent = letter;
+    btn.onclick = () => handleGuess(letter, correct, btn);
+    choicesEl.appendChild(btn);
+  });
+
+  document.getElementById('progress').textContent = `${score + 1} / ${ROUND_SIZE}`;
+  locked = false;
+}
+
+// ─── ODPOVĚĎ ─────────────────────────────────────────────────────────────────
+function handleGuess(letter, correct, btn) {
+  if (locked) return;
+  locked = true;
+
+  const blank   = document.getElementById('blank-tile');
+  const allBtns = document.querySelectorAll('.choice-btn');
+  allBtns.forEach(b => b.disabled = true);
+
+  if (letter === correct) {
+    // Správně → zaznamenat a přejít dál
+    score++;
+    usedWords.add(currentQ.word);
+    btn.classList.add('correct');
+    blank.textContent = letter;
+    blank.classList.add('show-correct');
+    setTimeout(() => {
+      if (score >= ROUND_SIZE) endGame();
+      else renderQuestion();
+    }, 700);
+  } else {
+    // Špatně → červená, pak nová otázka (skóre se nezměnilo)
+    btn.classList.add('wrong');
+    blank.classList.add('show-wrong');
+    setTimeout(renderQuestion, 900);
+  }
+}
+
+// ─── ČASOVAČ ─────────────────────────────────────────────────────────────────
+function startTimer() {
+  seconds = 0;
+  clearInterval(timerInt);
+  timerInt = setInterval(() => {
+    seconds++;
+    document.getElementById('timer').textContent = formatTime(seconds);
+  }, 1000);
+}
+
+function stopTimer() { clearInterval(timerInt); }
+
+// ─── OBRAZOVKY ───────────────────────────────────────────────────────────────
+function startGame() {
+  score     = 0;
+  usedWords = new Set();
+  finalMs   = 0;
+  clearInterval(timerInt);
+  renderQuestion();
+  startTimer();
+  showScreen('screen-game');
+}
+
+function endGame() {
+  stopTimer();
+  finalMs = seconds * 1000;
+  document.getElementById('final-time').textContent = formatTime(seconds);
+  document.getElementById('player-name').value = '';
+  showScreen('screen-end');
+  renderLeaderboard('lb-end');
+}
+
+// ─── ŽEBŘÍČEK ────────────────────────────────────────────────────────────────
+const DB_URL = 'https://kids-games-3a167-default-rtdb.europe-west1.firebasedatabase.app';
+
+async function getScores() {
+  try {
+    const r = await fetch(DB_URL + '/scores/' + QUIZ_TYPE + '.json');
+    const d = await r.json();
+    return Array.isArray(d) ? d : [];
+  } catch { return []; }
+}
+
+async function saveScore() {
+  const nameInput = document.getElementById('player-name');
+  const name = nameInput.value.trim();
+  if (!name) { nameInput.style.outline = '3px solid #ef4444'; nameInput.focus(); return; }
+  nameInput.style.outline = '';
+  const scores = await getScores();
+  scores.push({ name, ms: finalMs, date: new Date().toLocaleDateString('cs-CZ') });
+  scores.sort((a, b) => a.ms - b.ms);
+  const top10 = scores.slice(0, 10);
+  try {
+    await fetch(DB_URL + '/scores/' + QUIZ_TYPE + '.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(top10)
+    });
+  } catch {}
+  renderLeaderboard('lb-end');
+  document.getElementById('player-name').value = '';
+}
+
+async function renderLeaderboard(elId) {
+  const el = document.getElementById(elId);
+  el.innerHTML = '<li class="lb-loading">Načítám…</li>';
+  const scores = await getScores();
+  if (!scores.length) { el.innerHTML = '<li class="lb-empty">Zatím žádné výsledky.</li>'; return; }
+  el.innerHTML = scores.map((s, i) => `
+    <li>
+      <span class="lb-rank">${i + 1}.</span>
+      <span class="lb-name">${esc(s.name)}</span>
+      <span class="lb-time">${formatTime(s.ms / 1000)}</span>
+      <span class="lb-date">${esc(s.date)}</span>
+    </li>`).join('');
+}
+
+function esc(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+renderLeaderboard('lb-start');
+</script>
+</body>
+</html>
