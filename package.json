@@ -1,0 +1,26 @@
+{
+  "name": "playwright-agent-mcp-starter",
+  "version": "1.0.0",
+  "description": "Production-ready QA automation boilerplate using Playwright with TypeScript, Page Object Model, and MCP support.",
+  "license": "MIT",
+  "scripts": {
+    "test": "npx playwright test",
+    "test:ui": "npx playwright test --grep @ui",
+    "test:api": "npx playwright test --grep @api",
+    "test:debug": "npx playwright test --debug",
+    "report": "npx playwright show-report",
+    "lint": "eslint . --ext .ts"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.52.0",
+    "@playwright/mcp": "^0.0.19",
+    "typescript": "^5.7.0",
+    "eslint": "^8.57.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "dotenv": "^16.4.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
