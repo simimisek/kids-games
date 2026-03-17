@@ -1,26 +1,19 @@
 {
-  "name": "playwright-agent-mcp-starter",
+  "name": "kids-games",
   "version": "1.0.0",
-  "description": "Production-ready QA automation boilerplate using Playwright with TypeScript, Page Object Model, and MCP support.",
-  "license": "MIT",
+  "private": true,
   "scripts": {
-    "test": "npx playwright test",
-    "test:ui": "npx playwright test --grep @ui",
-    "test:api": "npx playwright test --grep @api",
-    "test:debug": "npx playwright test --debug",
-    "report": "npx playwright show-report",
-    "lint": "eslint . --ext .ts"
+    "test": "playwright test",
+    "test:ui": "playwright test --grep @ui",
+    "test:api": "playwright test --grep @api",
+    "test:debug": "playwright test --debug",
+    "report": "playwright show-report",
+    "lint": "tsc --noEmit"
   },
   "devDependencies": {
-    "@playwright/test": "^1.52.0",
-    "@playwright/mcp": "^0.0.19",
-    "typescript": "^5.7.0",
-    "eslint": "^8.57.0",
-    "@typescript-eslint/parser": "^7.0.0",
-    "@typescript-eslint/eslint-plugin": "^7.0.0",
-    "dotenv": "^16.4.0"
-  },
-  "engines": {
-    "node": ">=18"
+    "@playwright/test": "^1.44.0",
+    "dotenv": "^16.4.5",
+    "sharp": "^0.34.5",
+    "typescript": "^5.4.5"
   }
 }
