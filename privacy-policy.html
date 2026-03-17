@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zásady ochrany osobních údajů — Vzdělávací hry pro děti</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #1a237e 0%, #0277bd 100%);
+      min-height: 100vh;
+      padding: 24px 16px;
+      color: #fff;
+    }
+    .container {
+      max-width: 760px;
+      margin: 0 auto;
+      background: rgba(255,255,255,0.08);
+      border-radius: 20px;
+      padding: 36px 32px;
+      backdrop-filter: blur(8px);
+    }
+    h1 { font-size: 1.8rem; margin-bottom: 8px; }
+    .subtitle { color: rgba(255,255,255,0.7); font-size: 0.95rem; margin-bottom: 32px; }
+    h2 { font-size: 1.15rem; margin: 28px 0 10px; color: #90caf9; }
+    p, li { line-height: 1.7; color: rgba(255,255,255,0.9); margin-bottom: 8px; }
+    ul { padding-left: 20px; }
+    a { color: #90caf9; }
+    .lang-switch {
+      text-align: right;
+      margin-bottom: 24px;
+    }
+    .lang-switch a {
+      background: rgba(255,255,255,0.15);
+      padding: 6px 14px;
+      border-radius: 20px;
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+    .lang-switch a:hover { background: rgba(255,255,255,0.25); }
+    hr { border: none; border-top: 1px solid rgba(255,255,255,0.15); margin: 40px 0; }
+    .en-section { color: rgba(255,255,255,0.85); }
+    .date { font-size: 0.85rem; color: rgba(255,255,255,0.5); margin-top: 32px; }
+    .back { display: inline-block; margin-bottom: 24px; color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.9rem; }
+    .back:hover { color: #fff; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="index.html" class="back">← Zpět na hry</a>
+
+    <!-- ČESKY -->
+    <h1>Zásady ochrany osobních údajů</h1>
+    <p class="subtitle">Vzdělávací hry pro děti (Šimonka &amp; Daník)</p>
+
+    <h2>Kdo provozuje aplikaci</h2>
+    <p>Tato aplikace je nekomerční vzdělávací projekt určený dětem. Kontakt: dostupný přes GitHub repozitář projektu.</p>
+
+    <h2>Jaká data sbíráme</h2>
+    <p>Aplikace sbírá <strong>pouze</strong> tyto údaje, a to výhradně <strong>dobrovolně na základě akce uživatele</strong>:</p>
+    <ul>
+      <li><strong>Přezdívka/jméno</strong> — zadané hráčem při ukládání výsledku do žebříčku</li>
+      <li><strong>Čas dokončení hry</strong> — herní výsledek v sekundách</li>
+      <li><strong>Datum</strong> — datum uložení výsledku (formát DD.MM.RRRR)</li>
+    </ul>
+    <p>Ukládání skóre je zcela <strong>dobrovolné</strong>. Hru lze hrát opakovaně bez jakéhokoliv ukládání dat.</p>
+
+    <h2>Co <strong>nesbíráme</strong></h2>
+    <ul>
+      <li>Žádné e-mailové adresy ani kontaktní údaje</li>
+      <li>Žádnou polohu ani identifikátory zařízení</li>
+      <li>Žádné cookies pro sledování chování</li>
+      <li>Žádné reklamní nebo analytické nástroje třetích stran</li>
+    </ul>
+
+    <h2>Kde jsou data uložena</h2>
+    <p>Data žebříčku jsou uložena ve službě <strong>Firebase Realtime Database</strong> (Google LLC), server v regionu <strong>Evropa — západ 1 (Belgie)</strong>. Data jsou zpracovávána v souladu s GDPR.</p>
+    <p>Více informací: <a href="https://firebase.google.com/support/privacy" target="_blank">firebase.google.com/support/privacy</a></p>
+
+    <h2>Jak dlouho data uchováváme</h2>
+    <p>Záznamy v žebříčku jsou uchovávány průběžně. Každá hra zobrazuje maximálně <strong>10 nejlepších výsledků</strong>. Starší záznamy jsou automaticky nahrazeny lepšími výsledky.</p>
+
+    <h2>Práva uživatele (GDPR)</h2>
+    <p>Máte právo na výmaz svého záznamu ze žebříčku. Protože záznamy obsahují pouze přezdívku (ne e-mail), kontaktujte nás přes GitHub Issues projektu s uvedením přezdívky a hry — záznam odstraníme ručně.</p>
+
+    <h2>Děti a rodiče</h2>
+    <p>Aplikace je určena dětem školního věku. Nepožadujeme žádnou registraci ani osobní údaje. Ukládání skóre (přezdívka) je dobrovolné a rodiče mohou děti vést k používání fiktivního jména nebo iniciál.</p>
+
+    <h2>Reklama</h2>
+    <p>Aplikace <strong>neobsahuje žádnou reklamu</strong>.</p>
+
+    <h2>Změny těchto zásad</h2>
+    <p>Případné změny budou zveřejněny na této stránce s aktualizovaným datem.</p>
+
+    <p class="date">Poslední aktualizace: 17. března 2026</p>
+
+    <hr>
+
+    <!-- ENGLISH -->
+    <div class="en-section">
+      <h1>Privacy Policy</h1>
+      <p class="subtitle">Kids Educational Games (Šimonka &amp; Daník)</p>
+
+      <h2>About this app</h2>
+      <p>This is a non-commercial educational app for children. Contact available via the project's GitHub repository.</p>
+
+      <h2>What data we collect</h2>
+      <p>The app collects <strong>only</strong> the following data, and only when <strong>voluntarily submitted by the user</strong>:</p>
+      <ul>
+        <li><strong>Nickname/name</strong> — entered by the player when saving a leaderboard score</li>
+        <li><strong>Completion time</strong> — game result in seconds</li>
+        <li><strong>Date</strong> — date of the saved result (DD.MM.YYYY format)</li>
+      </ul>
+      <p>Saving a score is entirely <strong>optional</strong>. Games can be played repeatedly without any data being stored.</p>
+
+      <h2>What we do <strong>NOT</strong> collect</h2>
+      <ul>
+        <li>No email addresses or contact information</li>
+        <li>No location or device identifiers</li>
+        <li>No tracking cookies</li>
+        <li>No third-party advertising or analytics</li>
+      </ul>
+
+      <h2>Data storage</h2>
+      <p>Leaderboard data is stored in <strong>Firebase Realtime Database</strong> (Google LLC), located in the <strong>Europe-West 1 (Belgium)</strong> region, in compliance with GDPR.</p>
+      <p>More info: <a href="https://firebase.google.com/support/privacy" target="_blank">firebase.google.com/support/privacy</a></p>
+
+      <h2>Data retention</h2>
+      <p>Each game leaderboard stores a maximum of <strong>10 top scores</strong>. Older entries are automatically replaced by better results.</p>
+
+      <h2>Your rights (GDPR)</h2>
+      <p>You have the right to request deletion of your leaderboard entry. Please contact us via GitHub Issues with your nickname and game name, and we will remove the record manually.</p>
+
+      <h2>Children and parents</h2>
+      <p>This app is designed for school-age children. No registration or personal information is required. Score saving (nickname only) is voluntary — parents can guide children to use a made-up name or initials.</p>
+
+      <h2>Advertising</h2>
+      <p>This app contains <strong>no advertising</strong>.</p>
+
+      <h2>Changes to this policy</h2>
+      <p>Any changes will be posted on this page with an updated date.</p>
+
+      <p class="date">Last updated: March 17, 2026</p>
+    </div>
+
+  </div>
+</body>
+</html>
