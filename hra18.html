@@ -92,6 +92,7 @@
     .lb-rank { font-weight: 700; color: #1a237e; }
     .lb-name { font-weight: 600; }
     .lb-time { color: #1a237e; font-weight: 700; }
+    .lb-date { font-size: 0.75rem; color: #aaa; grid-column: 2/4; margin-top: -6px; }
     .lb-empty, .lb-loading {
       text-align: center; color: #aaa; font-style: italic;
       padding: 8px 0; font-size: 0.88rem; grid-column: 1/-1;
@@ -361,14 +362,15 @@
       Špatná ho vrátí zpět. Máš <strong style="color:#ffca28">5 sekund</strong> na odpověď.<br><br>
       🏁 3 kola &nbsp;•&nbsp; 5 správných v každém kole
     </div>
-    <div class="leaderboard-card">
-      <h3>🏆 Nejlepší časy</h3>
-      <ul class="leaderboard-list" id="lb-start"></ul>
-    </div>
     <button class="btn btn-primary" onclick="startGame()">🚦 Start!</button>
     <a href="index.html" style="width:100%;text-decoration:none;">
       <button class="btn btn-secondary">🏠 Zpět na výběr</button>
     </a>
+    <div class="leaderboard-card">
+      <h3>🏆 Nejlepší časy</h3>
+      <p style="font-size:0.75rem;opacity:0.5;margin:0 0 8px;text-align:center;">↺ Resetuje se 1. každého měsíce</p>
+      <ul class="leaderboard-list" id="lb-start"></ul>
+    </div>
   </div>
 
   <!-- ═══════════════════════════════════
@@ -453,12 +455,12 @@
         <button class="btn btn-primary" style="width:auto;padding:14px 22px;" onclick="saveScore()">Uložit</button>
       </div>
     </div>
+    <button class="btn btn-secondary" onclick="resetGame()">🔄 Hrát znovu</button>
+    <a href="index.html" class="btn btn-secondary" style="text-decoration:none;text-align:center;display:block;">🏠 Domů</a>
     <div class="leaderboard-card">
       <h3>🏆 Nejlepší časy</h3>
       <ul class="leaderboard-list" id="lb-end"></ul>
     </div>
-    <button class="btn btn-secondary" onclick="resetGame()">🔄 Hrát znovu</button>
-    <a href="index.html" class="btn btn-secondary" style="text-decoration:none;text-align:center;display:block;">🏠 Domů</a>
   </div>
 
   <script>
@@ -507,7 +509,10 @@
       try {
         const r = await fetch(DB_URL + '/scores/' + QUIZ_TYPE + '.json');
         const d = await r.json();
-        return Array.isArray(d) ? d : [];
+        const scores = Array.isArray(d) ? d : [];
+        const ym = new Date().getFullYear() + '-' + String(new Date().getMonth()+1).padStart(2,'0');
+        if (scores.some(s => s.month && s.month !== ym)) return [];
+        return scores;
       } catch { return []; }
     }
 
@@ -521,7 +526,8 @@
       }
       nameInput.style.outline = '';
       const scores = await getScores();
-      scores.push({ name, ms: finalMs, date: new Date().toLocaleDateString('cs-CZ') });
+      const ym = new Date().getFullYear() + '-' + String(new Date().getMonth()+1).padStart(2,'0');
+      scores.push({ name, ms: finalMs, month: ym, date: new Date().toLocaleDateString('cs-CZ') });
       scores.sort((a, b) => a.ms - b.ms);
       const top10 = scores.slice(0, 10);
       try {
@@ -548,6 +554,7 @@
           <span class="lb-rank">${i + 1}.</span>
           <span class="lb-name">${esc(s.name)}</span>
           <span class="lb-time">${fmtTime(s.ms)}</span>
+          <span class="lb-date">${esc(s.date||'')}</span>
         </li>`).join('');
     }
 

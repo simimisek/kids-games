@@ -361,6 +361,7 @@
   </a>
   <div class="leaderboard-card">
     <h3>🏆 Nejlepší časy</h3>
+    <p style="font-size:0.75rem;opacity:0.5;margin:0 0 8px;text-align:center;">↺ Resetuje se 1. každého měsíce</p>
     <ul class="leaderboard-list" id="lb-start"></ul>
   </div>
 </div>
@@ -659,7 +660,10 @@
     try {
       const r = await fetch(DB_URL + '/scores/' + QUIZ_TYPE + '.json');
       const d = await r.json();
-      return Array.isArray(d) ? d : [];
+      const scores = Array.isArray(d) ? d : [];
+      const ym = new Date().getFullYear() + '-' + String(new Date().getMonth()+1).padStart(2,'0');
+      if (scores.some(s => s.month && s.month !== ym)) return [];
+      return scores;
     } catch { return []; }
   }
 
@@ -669,7 +673,8 @@
     if (!name) { nameInput.style.outline = '3px solid #ef4444'; nameInput.focus(); return; }
     nameInput.style.outline = '';
     const scores = await getScores();
-    scores.push({ name, ms: finalMs, date: new Date().toLocaleDateString('cs-CZ') });
+    const ym = new Date().getFullYear() + '-' + String(new Date().getMonth()+1).padStart(2,'0');
+    scores.push({ name, ms: finalMs, month: ym, date: new Date().toLocaleDateString('cs-CZ') });
     scores.sort((a, b) => a.ms - b.ms);
     const top10 = scores.slice(0, 10);
     try {

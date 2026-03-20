@@ -58,10 +58,29 @@ background: linear-gradient(135deg, #4a148c 0%, #880e4f 100%); /* fialová */
 Úvodní obrazovka → Herní obrazovka → Konečná obrazovka
 ```
 - **Úvod**: ikona, název, popis, [žebříček], tlačítko Hrát
-- **Hra**: progress indikátor, časomíra, herní obsah
+- **Hra**: progress indikátor, časomíra, herní obsah, **tlačítko Domů** (fixed vpravo nahoře)
 - **Konec**: výsledek, pole pro jméno + uložení, žebříček, tlačítko Hrát znovu
 
-### 8. Technické detaily
+### 8. Tlačítko Domů na herní obrazovce
+Každá hra musí mít na herní obrazovce (`screen-game`) tlačítko pro návrat na hlavní stránku:
+
+```css
+/* ─── HOME BUTTON ─── */
+.btn-home-fixed {
+  position: fixed; top: 12px; right: 12px; z-index: 200;
+  background: rgba(0,0,0,0.25); border: none; border-radius: 10px;
+  padding: 7px 14px; color: #fff; font-family: inherit;
+  font-size: 0.85rem; font-weight: 700; text-decoration: none; cursor: pointer;
+}
+.btn-home-fixed:hover { background: rgba(0,0,0,0.4); }
+```
+
+```html
+<!-- Hned za opening tagem div#screen-game: -->
+<a href="index.html" class="btn-home-fixed">🏠 Domů</a>
+```
+
+### 9. Technické detaily
 - Každá hra = jeden soubor `.html` (CSS + JS inline)
 - QUIZ_TYPE: unikátní string, např. `'math-pyramid'`, `'czech-letters'`
 - Funkce vždy přítomné: `getScores()`, `saveScore()`, `renderLeaderboard(elId)`, `fmtTime(ms)`, `esc(s)`
@@ -148,8 +167,10 @@ renderLeaderboard('lb-start');
 | hra13.html | Skládej slova | Čeština | `czech-build` |
 | hra14.html | Páry písmen | Čeština | `czech-letter-pairs` |
 | hra15.html | Psací páry | Čeština | `czech-cursive-pairs` |
+| hra20.html | Srovnej zmrzlinky | Hrátky pro nejmenší | `preschool-icecream` |
+| hra21.html | Najdi správné slovo | Čeština | `czech-find-word` |
 
 ## Sekce v index.html
 - 🔢 **Matematika** — hra.html, hra2.html, hra8.html, hra16.html, hra18.html, hra19.html
-- 📖 **Čeština** — hra3.html, hra4.html, hra5.html, hra13.html, hra14.html, hra15.html
-- 🌈 **Hrátky pro nejmenší** — hra6.html, hra7.html, hra10.html, hra11.html, hra12.html, hra17.html
+- 📖 **Čeština** — hra3.html, hra4.html, hra5.html, hra13.html, hra14.html, hra15.html, hra21.html
+- 🌈 **Hrátky pro nejmenší** — hra6.html, hra7.html, hra10.html, hra11.html, hra12.html, hra17.html, hra20.html

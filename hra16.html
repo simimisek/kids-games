@@ -71,10 +71,13 @@
 
     .back-link {
       display: block; text-align: center;
-      color: rgba(255,255,255,0.7); font-size: 0.9rem;
-      margin-top: 16px; text-decoration: none;
+      color: rgba(255,255,255,0.9); font-size: 1.1rem; font-weight: 700;
+      padding: 16px; border-radius: 16px; text-decoration: none;
+      border: 2px solid rgba(255,255,255,0.4);
+      margin-top: 0;
+      transition: background 0.15s, border-color 0.15s;
     }
-    .back-link:hover { color: white; }
+    .back-link:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.7); color: white; }
 
     /* ─── HOME BUTTON ─── */
     .btn-home-fixed {
@@ -90,7 +93,7 @@
     .lb-title { font-size: 1rem; font-weight: 700; opacity: 0.9; margin-bottom: 12px; }
     .lb-list  { list-style: none; }
     .lb-list li {
-      display: flex; align-items: center; gap: 8px;
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
       padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 0.95rem;
     }
     .lb-list li:last-child { border-bottom: none; }
@@ -98,6 +101,7 @@
     .lb-name { flex: 1; text-align: left; }
     .lb-time { font-weight: 700; font-variant-numeric: tabular-nums; }
     .lb-empty { opacity: 0.6; font-style: italic; }
+    .lb-date  { font-size: 0.75rem; opacity: 0.5; flex-basis: 100%; margin-top: -4px; padding-left: 32px; }
 
     /* ─── HUD ─── */
     .game-hud {
@@ -203,7 +207,7 @@
 
     /* ─── POUŽITÁ ČÍSLA ─── */
     .used-box {
-      max-width: 480px; margin: 16px auto 0;
+      max-width: 480px; margin: 0 auto 16px;
       background: rgba(255,255,255,0.10);
       border-radius: 16px; padding: 14px 18px;
       position: relative; z-index: 1;
@@ -302,15 +306,16 @@
       Zvládni 5 příkladů co nejrychleji.
     </div>
 
+    <button class="btn-primary" onclick="startGame()">▶ Hrát</button>
+    <a href="index.html" class="back-link">← Zpět na výběr her</a>
+
     <div class="lb-card">
       <div class="lb-title">🏆 Nejlepší časy</div>
+      <p style="font-size:0.75rem;opacity:0.5;margin:0 0 8px;text-align:center;">↺ Resetuje se 1. každého měsíce</p>
       <ul class="lb-list" id="lb-start">
         <li><span class="lb-empty">Načítám…</span></li>
       </ul>
     </div>
-
-    <button class="btn-primary" onclick="startGame()">▶ Hrát</button>
-    <a href="index.html" class="back-link">← Zpět na výběr her</a>
   </div>
 </div>
 
@@ -331,6 +336,14 @@
 
   <div class="progress-bar-wrap">
     <div class="progress-bar-fill" id="progress-bar" style="width:0%"></div>
+  </div>
+
+  <!-- Použitá čísla -->
+  <div class="used-box">
+    <div class="used-label">🚫 Již použitá čísla</div>
+    <div class="used-chips" id="used-chips">
+      <span style="opacity:0.45;font-size:0.85rem;font-style:italic">zatím žádná</span>
+    </div>
   </div>
 
   <div class="eq-card">
@@ -355,14 +368,6 @@
 
     <button class="btn-check" id="btn-check" onclick="checkAnswer()">✓ Hotovo</button>
   </div>
-
-  <!-- Použitá čísla -->
-  <div class="used-box">
-    <div class="used-label">🚫 Již použitá čísla</div>
-    <div class="used-chips" id="used-chips">
-      <span style="opacity:0.45;font-size:0.85rem;font-style:italic">zatím žádná</span>
-    </div>
-  </div>
 </div>
 
 <!-- ══════════════ END ══════════════ -->
@@ -379,13 +384,13 @@
       <button onclick="saveScore()">Uložit</button>
     </div>
 
+    <button class="btn-primary" onclick="startGame()">▶ Hrát znovu</button>
+    <a href="index.html" class="back-link">← Zpět na výběr her</a>
+
     <div class="lb-card">
       <div class="lb-title">🏆 Nejlepší časy</div>
       <ul class="lb-list" id="lb-end"></ul>
     </div>
-
-    <button class="btn-primary" onclick="startGame()">▶ Hrát znovu</button>
-    <a href="index.html" class="back-link">← Zpět na výběr her</a>
   </div>
 </div>
 
@@ -404,13 +409,39 @@
   let usedNumbers   = new Set();   // čísla použitá napříč příklady
 
   // ─── GENEROVÁNÍ KOL ──────────────────────────────────────────────
+  // Rostoucí rozsahy: pozdější kola mají větší čísla → vždy řešitelné
   function generateRounds() {
-    const ops = ['+', '+', '+', '-', '-'];   // 3× sčítání, 2× odčítání
+    const ops = ['+', '+', '+', '-', '-'];
     shuffle(ops);
-    return ops.map(op => ({
-      op,
-      result: op === '+' ? randInt(5, 50) : randInt(2, 25)
-    }));
+    const addRanges = [[5,14],[12,22],[18,30],[25,40],[35,55]];
+    const subRanges = [[2,10],[5,14],[8,20],[12,26],[18,35]];
+    return ops.map((op, i) => {
+      const [lo, hi] = op === '+' ? addRanges[i] : subRanges[i];
+      return { op, result: randInt(lo, hi) };
+    });
+  }
+
+  // Zjistí, zda existuje alespoň jeden platný pár čísel pro dané kolo
+  function isSolvable(result, op) {
+    if (op === '+') {
+      for (let a = 0; a <= result; a++) {
+        if (!usedNumbers.has(a) && !usedNumbers.has(result - a)) return true;
+      }
+    } else {
+      for (let b = 0; b <= 60; b++) {
+        if (!usedNumbers.has(result + b) && !usedNumbers.has(b)) return true;
+      }
+    }
+    return false;
+  }
+
+  // Pokud kolo není řešitelné, zvyšuj výsledek dokud nenajde řešení
+  function ensureSolvable(idx) {
+    const round = rounds[idx];
+    if (isSolvable(round.result, round.op)) return;
+    for (let r = round.result + 1; r <= 120; r++) {
+      if (isSolvable(r, round.op)) { round.result = r; return; }
+    }
   }
 
   function randInt(min, max) {
@@ -430,7 +461,10 @@
     try {
       const r = await fetch(DB_URL + '/scores/' + QUIZ_TYPE + '.json');
       const d = await r.json();
-      return Array.isArray(d) ? d : [];
+      const scores = Array.isArray(d) ? d : [];
+      const ym = new Date().getFullYear() + '-' + String(new Date().getMonth()+1).padStart(2,'0');
+      if (scores.some(s => s.month && s.month !== ym)) return [];
+      return scores;
     } catch { return []; }
   }
 
@@ -444,7 +478,8 @@
     }
     nameInput.style.outline = '';
     const scores = await getScores();
-    scores.push({ name, ms: finalMs, date: new Date().toLocaleDateString('cs-CZ') });
+    const ym = new Date().getFullYear() + '-' + String(new Date().getMonth()+1).padStart(2,'0');
+    scores.push({ name, ms: finalMs, month: ym, date: new Date().toLocaleDateString('cs-CZ') });
     scores.sort((a, b) => a.ms - b.ms);
     const top10 = scores.slice(0, 10);
     try {
@@ -471,6 +506,7 @@
         <span class="lb-rank">${i + 1}.</span>
         <span class="lb-name">${esc(s.name)}</span>
         <span class="lb-time">${fmtTime(s.ms)}</span>
+        <span class="lb-date">${esc(s.date||'')}</span>
       </li>`).join('');
   }
 
@@ -509,6 +545,7 @@
   }
 
   function loadRound() {
+    ensureSolvable(roundIndex);
     const round = rounds[roundIndex];
     const inputA = document.getElementById('num-a');
     const inputB = document.getElementById('num-b');

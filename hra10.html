@@ -233,6 +233,7 @@
   </a>
   <div class="leaderboard-card">
     <h3>🏆 Nejlepší časy</h3>
+    <p style="font-size:0.75rem;opacity:0.5;margin:0 0 8px;text-align:center;">↺ Resetuje se 1. každého měsíce</p>
     <ol class="leaderboard-list" id="lb-start"></ol>
   </div>
 </div>
@@ -263,14 +264,14 @@
     <input id="player-name" type="text" placeholder="Tvoje jméno" maxlength="30" />
     <button class="btn btn-primary" style="width:auto;padding:14px 20px;font-size:1rem;" onclick="saveScore()">Uložit</button>
   </div>
-  <div class="leaderboard-card">
-    <h3>🏆 Nejlepší časy</h3>
-    <ol class="leaderboard-list" id="lb-end"></ol>
-  </div>
   <button class="btn btn-primary" onclick="startGame()">🔄 Hrát znovu</button>
   <a href="index.html" style="width:100%;text-decoration:none;">
     <button class="btn btn-primary">🏠 Zpět na výběr</button>
   </a>
+  <div class="leaderboard-card">
+    <h3>🏆 Nejlepší časy</h3>
+    <ol class="leaderboard-list" id="lb-end"></ol>
+  </div>
 </div>
 
 <script>
@@ -283,7 +284,13 @@
       const r = await fetch(DB_URL + '/scores/' + QUIZ_TYPE + '.json');
       const data = await r.json();
       if (!data) return [];
-      return Object.values(data).sort((a, b) => a.ms - b.ms).slice(0, 10);
+      const scores = Object.values(data).sort((a, b) => a.ms - b.ms).slice(0, 10);
+      const ym = new Date().getFullYear() + '-' + String(new Date().getMonth()+1).padStart(2,'0');
+      if (scores.some(s => s.month && s.month !== ym)) {
+        await fetch(DB_URL + '/scores/' + QUIZ_TYPE + '.json', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: 'null' });
+        return [];
+      }
+      return scores;
     } catch { return []; }
   }
 
@@ -296,7 +303,7 @@
       await fetch(DB_URL + '/scores/' + QUIZ_TYPE + '.json', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, ms: finalMs, date: new Date().toLocaleDateString('cs-CZ') })
+        body: JSON.stringify({ name, ms: finalMs, month: new Date().getFullYear() + '-' + String(new Date().getMonth()+1).padStart(2,'0'), date: new Date().toLocaleDateString('cs-CZ') })
       });
     } catch {}
     renderLeaderboard(document.getElementById('lb-end'));

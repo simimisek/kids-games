@@ -307,6 +307,7 @@
 
   <div class="leaderboard-card">
     <h3>🏆 Nejlepší časy</h3>
+    <p style="font-size:0.75rem;opacity:0.5;margin:0 0 8px;text-align:center;">↺ Resetuje se 1. každého měsíce</p>
     <ul class="leaderboard-list" id="lbStartList"></ul>
   </div>
 </div>
@@ -346,15 +347,15 @@
     <button class="btn btn-primary" style="width:auto;padding:14px 20px;font-size:1rem;" onclick="saveAndShow()">Uložit</button>
   </div>
 
-  <div class="leaderboard-card">
-    <h3>🏆 Nejlepší časy</h3>
-    <ul class="leaderboard-list" id="lbEndList"></ul>
-  </div>
-
   <button class="btn btn-primary" id="btnRestart">🔄 Hrát znovu</button>
   <a href="index.html" style="width:100%;text-decoration:none;">
     <button class="btn btn-primary">🏠 Zpět na výběr</button>
   </a>
+
+  <div class="leaderboard-card">
+    <h3>🏆 Nejlepší časy</h3>
+    <ul class="leaderboard-list" id="lbEndList"></ul>
+  </div>
 </div>
 
 <script>
@@ -394,12 +395,16 @@ async function getScores() {
   try {
     const r = await fetch(DB_URL + '/scores/' + QUIZ_TYPE + '.json');
     const d = await r.json();
-    return Array.isArray(d) ? d : [];
+    const scores = Array.isArray(d) ? d : [];
+    const ym = new Date().getFullYear() + '-' + String(new Date().getMonth()+1).padStart(2,'0');
+    if (scores.some(s => s.month && s.month !== ym)) return [];
+    return scores;
   } catch { return []; }
 }
 async function saveScore(name, ms) {
   const arr = await getScores();
-  arr.push({ name: name || 'Anonym', ms });
+  const ym = new Date().getFullYear() + '-' + String(new Date().getMonth()+1).padStart(2,'0');
+  arr.push({ name: name || 'Anonym', ms, month: ym });
   arr.sort((a, b) => a.ms - b.ms);
   arr.splice(10);
   try {
