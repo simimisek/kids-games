@@ -80,6 +80,7 @@
       backdrop-filter: blur(4px);
       border-radius: 14px;
       padding: 10px 20px;
+      margin-top: 55px;
       color: #3d4a8a;
       font-size: 1.05rem;
       font-weight: 700;
@@ -609,6 +610,8 @@
     document.getElementById('player-name').value = '';
     showScreen('screen-end');
     renderLeaderboard('lb-end');
+    const saveRow = document.querySelector('.save-row') || document.querySelector('.name-row');
+    if (saveRow) saveRow.style.display = 'none';
   }
 
   // ─── ŽEBŘÍČEK (Firebase) ─────────────────────────────────────────────────────

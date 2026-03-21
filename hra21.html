@@ -61,7 +61,8 @@
     .hud {
       display: flex; justify-content: space-between; align-items: center;
       width: 100%; max-width: 420px; margin-bottom: 16px;
-      padding: 12px 20px; background: rgba(255,255,255,0.15); border-radius: 16px;
+      padding: 12px 20px;
+      margin-top: 55px; background: rgba(255,255,255,0.15); border-radius: 16px;
     }
     .hud-round { font-size: 1rem; font-weight: 700; }
     .hud-timer { font-size: 1.2rem; font-weight: 800; color: #fbbf24; }
@@ -438,6 +439,8 @@
       });
     } catch {}
     renderLeaderboard('lb-end');
+    const saveRow = document.querySelector('.save-row') || document.querySelector('.name-row');
+    if (saveRow) saveRow.style.display = 'none';
     nameInput.value = '';
   }
 

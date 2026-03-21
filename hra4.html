@@ -97,6 +97,7 @@
       background: rgba(255,255,255,0.25);
       border-radius: 14px;
       padding: 10px 20px;
+      margin-top: 55px;
       color: #fff;
       font-size: 1.1rem;
       font-weight: 700;
@@ -548,6 +549,8 @@ function endGame() {
   document.getElementById('player-name').value = '';
   showScreen('screen-end');
   renderLeaderboard('lb-end');
+    const saveRow = document.querySelector('.save-row') || document.querySelector('.name-row');
+    if (saveRow) saveRow.style.display = 'none';
 }
 
 // ─── ŽEBŘÍČEK ────────────────────────────────────────────────────────────────

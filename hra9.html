@@ -71,6 +71,7 @@
       backdrop-filter: blur(4px);
       border-radius: 14px;
       padding: 10px 16px;
+      margin-top: 55px;
     }
     .hud-score { font-size: 1.2rem; font-weight: 800; color: #16a34a; }
     .hud-level { font-size: 0.82rem; font-weight: 700; color: #888; }
@@ -556,6 +557,8 @@
     document.getElementById('player-name').value = '';
     showScreen('screen-end');
     renderLeaderboard('lb-end');
+    const saveRow = document.querySelector('.save-row') || document.querySelector('.name-row');
+    if (saveRow) saveRow.style.display = 'none';
   }
 
   // ─── ŽEBŘÍČEK (Firebase) ─────────────────────────────────────────────────────

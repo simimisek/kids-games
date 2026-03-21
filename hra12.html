@@ -62,7 +62,7 @@
       color: rgba(255,255,255,0.9); font-size: 1.1rem; font-weight: 700;
       padding: 16px; border-radius: 16px; text-decoration: none;
       border: 2px solid rgba(255,255,255,0.4);
-      margin-top: 0;
+      margin-top: 12px;
       transition: background 0.15s, border-color 0.15s;
     }
     .back-link:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.7); color: white; }
@@ -104,12 +104,14 @@
     /* ─── GAME HEADER ─── */
     .game-header {
       display: flex; justify-content: space-between; align-items: center;
-      max-width: 480px; margin: 0 auto 14px;
+      max-width: 480px; margin: 55px auto 14px;
       background: rgba(255,255,255,0.12); border-radius: 12px; padding: 10px 18px;
     }
     .timer       { font-size: 1.3rem; font-weight: 700; color: #fbbf24; }
-    .round-badge { font-size: 0.95rem; font-weight: 600; }
-    .round-stars { letter-spacing: 2px; }
+    .round-badge { font-size: 0.95rem; font-weight: 600; margin-bottom: 4px; }
+    .round-dots  { display: flex; gap: 5px; justify-content: flex-end; }
+    .round-dot   { width: 12px; height: 12px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.5); transition: background 0.25s, border-color 0.25s; }
+    .round-dot.done { background: #fbbf24; border-color: #fbbf24; }
 
     /* ─── TOP AREA ─── */
     .top-area {
@@ -135,6 +137,7 @@
       width: 16px; height: 26px;
       background: linear-gradient(to top, #6d28d9, #a78bfa);
       border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+      transition: background 0.4s ease;
     }
     .m-spike:nth-child(2) { height: 34px; width: 18px; }
 
@@ -145,6 +148,7 @@
       border-radius: 44px 44px 34px 34px;
       position: relative;
       box-shadow: 0 6px 22px rgba(0,0,0,0.35);
+      transition: background 0.4s ease;
     }
     /* Eyes */
     .m-eyes { display: flex; justify-content: space-around; padding: 18px 10px 0; }
@@ -174,7 +178,7 @@
     .m-tooth { width: 8px; height: 11px; background: white; border-radius: 0 0 4px 4px; }
     /* Feet */
     .m-feet { display: flex; justify-content: center; gap: 7px; margin-top: -3px; }
-    .m-foot { width: 25px; height: 15px; background: linear-gradient(to bottom, #a78bfa, #7c3aed); border-radius: 50%; }
+    .m-foot { width: 25px; height: 15px; background: linear-gradient(to bottom, #a78bfa, #7c3aed); border-radius: 50%; transition: background 0.4s ease; }
 
     /* ─── TASK CARD ─── */
     .task-card { flex: 1; text-align: center; }
@@ -211,8 +215,11 @@
     .game-obj:active { transform: scale(0.94); }
 
     .game-obj.selected {
-      transform: scale(1.13) !important;
-      filter: brightness(1.2) drop-shadow(0 0 8px white) drop-shadow(0 0 14px rgba(255,255,255,0.5)) !important;
+      transform: scale(1.22) !important;
+      filter: brightness(1.35)
+        drop-shadow(0 0 4px #fff)
+        drop-shadow(0 0 10px #fff)
+        drop-shadow(0 0 20px rgba(255,255,255,0.8)) !important;
     }
     .game-obj.wrong-flash {
       animation: wrongShake 0.45s ease;
@@ -318,7 +325,7 @@
     </div>
     <div>
       <div class="round-badge" id="roundBadge">Kolo 1 / 5</div>
-      <div class="round-stars" id="roundStars"></div>
+      <div class="round-dots" id="roundDots"></div>
     </div>
   </div>
 
@@ -406,7 +413,7 @@
     { id:'white',  cs:'bílých',    hex:'#ffffff' },
   ];
 
-  const SHAPES = ['s-circle', 's-star', 's-square', 's-blob'];
+  const SHAPES = ['s-circle', 's-square', 's-blob'];
 
   const CONFETTI_COLORS = ['#f87171','#60a5fa','#4ade80','#facc15','#c084fc','#fb923c','#f472b6'];
 
@@ -442,6 +449,8 @@
       });
     } catch {}
     renderLeaderboard('lb-end');
+    const saveRow = document.querySelector('.save-row') || document.querySelector('.name-row');
+    if (saveRow) saveRow.style.display = 'none';
     inp.value = '';
   }
 
@@ -522,8 +531,16 @@
 
     // Header
     document.getElementById('roundBadge').textContent = `Kolo ${roundIdx + 1} / 5`;
-    document.getElementById('roundStars').textContent =
-      '⭐'.repeat(roundIdx) + '○'.repeat(5 - roundIdx);
+    const dotsWrap = document.getElementById('roundDots');
+    dotsWrap.innerHTML = '';
+    for (let i = 0; i < 5; i++) {
+      const d = document.createElement('div');
+      d.className = 'round-dot' + (i < roundIdx ? ' done' : '');
+      dotsWrap.appendChild(d);
+    }
+
+    // Monster color
+    setMonsterColor(targetColorHex);
 
     // Task display
     const numEl = document.getElementById('taskNum');
@@ -766,6 +783,30 @@
         setTimeout(() => p.remove(), 3200);
       }, i * 38);
     }
+  }
+
+  // ─── MONSTER COLOR ─────────────────────────────────────────
+  function lighten(hex, amount) {
+    const r = parseInt(hex.slice(1,3), 16);
+    const g = parseInt(hex.slice(3,5), 16);
+    const b = parseInt(hex.slice(5,7), 16);
+    const lr = Math.min(255, Math.round(r + (255-r)*amount));
+    const lg = Math.min(255, Math.round(g + (255-g)*amount));
+    const lb = Math.min(255, Math.round(b + (255-b)*amount));
+    return '#' + [lr,lg,lb].map(v => v.toString(16).padStart(2,'0')).join('');
+  }
+
+  function setMonsterColor(hex) {
+    const c = hex === '#ffffff' ? '#bbbbbb' : hex;
+    const light = lighten(c, 0.45);
+    document.querySelector('.m-body').style.background =
+      `linear-gradient(155deg, ${light} 0%, ${c} 100%)`;
+    document.querySelectorAll('.m-spike').forEach(el => {
+      el.style.background = `linear-gradient(to top, ${c}, ${light})`;
+    });
+    document.querySelectorAll('.m-foot').forEach(el => {
+      el.style.background = `linear-gradient(to bottom, ${light}, ${c})`;
+    });
   }
 
   // ─── UTILS ─────────────────────────────────────────────────

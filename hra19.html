@@ -116,6 +116,7 @@
     .game-hdr {
       width: 100%;
       display: flex; justify-content: space-between; align-items: center;
+      margin-top: 55px;
     }
     .game-hdr-left { display: flex; flex-direction: column; gap: 2px; }
     .game-hdr-right { display: flex; align-items: center; }
@@ -420,6 +421,8 @@
         });
       } catch {}
       renderLeaderboard('lb-end');
+    const saveRow = document.querySelector('.save-row') || document.querySelector('.name-row');
+    if (saveRow) saveRow.style.display = 'none';
       nameInput.value = '';
     }
 

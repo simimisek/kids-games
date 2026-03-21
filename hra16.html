@@ -74,7 +74,7 @@
       color: rgba(255,255,255,0.9); font-size: 1.1rem; font-weight: 700;
       padding: 16px; border-radius: 16px; text-decoration: none;
       border: 2px solid rgba(255,255,255,0.4);
-      margin-top: 0;
+      margin-top: 12px;
       transition: background 0.15s, border-color 0.15s;
     }
     .back-link:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.7); color: white; }
@@ -106,7 +106,7 @@
     /* ─── HUD ─── */
     .game-hud {
       display: flex; justify-content: space-between; align-items: center;
-      max-width: 480px; margin: 0 auto 16px;
+      max-width: 480px; margin: 55px auto 16px;
       background: rgba(255,255,255,0.12); border-radius: 12px; padding: 10px 18px;
       position: relative; z-index: 1;
     }
@@ -490,6 +490,8 @@
       });
     } catch {}
     renderLeaderboard('lb-end');
+    const saveRow = document.querySelector('.save-row') || document.querySelector('.name-row');
+    if (saveRow) saveRow.style.display = 'none';
     nameInput.value = '';
   }
 

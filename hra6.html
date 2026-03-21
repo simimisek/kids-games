@@ -118,6 +118,7 @@
       background: rgba(255,255,255,0.2);
       border-radius: 14px;
       padding: 10px 20px;
+      margin-top: 55px;
       color: #fff;
       font-size: 1.1rem;
       font-weight: 700;
@@ -275,7 +276,8 @@
       .candy-row { gap: 4px; }
       .candy-inner { gap: 4px; }
       .question-label { font-size: 1.1rem; }
-      .hud { font-size: 0.95rem; padding: 8px 14px; }
+      .hud { font-size: 0.95rem; padding: 8px 14px;
+      margin-top: 55px; }
       .btn { padding: 14px; font-size: 1rem; }
       .leaderboard-card { padding: 16px; }
     }
@@ -515,6 +517,8 @@
     document.getElementById('player-name').value = '';
     showScreen('screen-end');
     renderLeaderboard('lb-end');
+    const saveRow = document.querySelector('.save-row') || document.querySelector('.name-row');
+    if (saveRow) saveRow.style.display = 'none';
   }
 
   /* ─── ŽEBŘÍČEK ─── */
