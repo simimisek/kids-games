@@ -461,6 +461,7 @@
 
   // ─── START ───────────────────────────────────────────────────────────────────
   function startGame() {
+    const _sr = document.querySelector('.save-row') || document.querySelector('.name-row'); if (_sr) _sr.style.display = '';
     bubbles       = [];
     selectedFirst = null;
     selectedLast  = null;

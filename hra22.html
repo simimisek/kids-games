@@ -428,6 +428,7 @@ function stopTimer() {
 
 // ─── GAME FLOW ────────────────────────────────────────────────────────────────
 function startGame() {
+  const _sr = document.querySelector('.name-card'); if (_sr) _sr.style.display = '';
   totalCorrect = 0;
   achievedLen  = 2;
   clearInterval(timerInterval);

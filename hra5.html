@@ -446,6 +446,7 @@ function stopTimer() { clearInterval(timerInt); }
 
 // ─── OBRAZOVKY ───────────────────────────────────────────────────────────────
 function startGame() {
+    const _sr = document.querySelector('.save-row') || document.querySelector('.name-row'); if (_sr) _sr.style.display = '';
   score     = 0;
   usedWords = new Set();
   finalMs   = 0;

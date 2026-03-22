@@ -449,6 +449,7 @@
 
   // ─── START ─────────────────────────────────────────────────
   function startGame() {
+    const _sr = document.querySelector('.save-row') || document.querySelector('.name-row'); if (_sr) _sr.style.display = '';
     matched  = 0;
     selected = null;
     locked   = false;
