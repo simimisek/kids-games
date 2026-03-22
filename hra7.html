@@ -654,8 +654,6 @@
     document.getElementById('player-name').value = '';
     showScreen('screen-end');
     renderLeaderboard('lb-end');
-    const saveRow = document.querySelector('.save-row') || document.querySelector('.name-row');
-    if (saveRow) saveRow.style.display = 'none';
   }
 
   /* ─── ŽEBŘÍČEK ─── */
@@ -690,6 +688,7 @@
       });
     } catch {}
     renderLeaderboard('lb-end');
+    const saveRow = document.querySelector('.save-row') || document.querySelector('.name-row'); if (saveRow) saveRow.style.display = 'none';
     document.getElementById('player-name').value = '';
   }
 
