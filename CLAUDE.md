@@ -169,8 +169,9 @@ renderLeaderboard('lb-start');
 | hra15.html | Psací páry | Čeština | `czech-cursive-pairs` |
 | hra20.html | Srovnej zmrzlinky | Hrátky pro nejmenší | `preschool-icecream` |
 | hra21.html | Najdi správné slovo | Čeština | `czech-find-word` |
+| hra22.html | Spoj podle vzoru | Hrátky pro nejmenší | `preschool-connect-pattern` |
 
 ## Sekce v index.html
 - 🔢 **Matematika** — hra.html, hra2.html, hra8.html, hra16.html, hra18.html, hra19.html
 - 📖 **Čeština** — hra3.html, hra4.html, hra5.html, hra13.html, hra14.html, hra15.html, hra21.html
-- 🌈 **Hrátky pro nejmenší** — hra6.html, hra7.html, hra10.html, hra11.html, hra12.html, hra17.html, hra20.html
+- 🌈 **Hrátky pro nejmenší** — hra6.html, hra7.html, hra10.html, hra11.html, hra12.html, hra17.html, hra20.html, hra22.html

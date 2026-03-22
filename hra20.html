@@ -81,14 +81,14 @@
 
     .scoops-area {
       position: relative;
-      width: 85px;
-      height: 408px; /* 7 * 48 + 72 */
+      width: 92px;
+      height: 416px; /* 7 * 48 + 80 */
     }
 
     .scoop {
       position: absolute;
       left: 50%; transform: translateX(-50%);
-      width: 72px; height: 72px; border-radius: 50%;
+      width: 80px; height: 80px; border-radius: 50%;
       touch-action: none;
       box-shadow:
         inset -6px -6px 14px rgba(0,0,0,0.18),
@@ -117,10 +117,13 @@
 
     .cone-count { font-size: 2rem; font-weight: 800; margin-top: 10px; text-shadow: 0 2px 6px rgba(0,0,0,0.3); }
 
+    /* ─── 3-CONE LAYOUT ─── */
+    .game-area.three-cones { gap: 28px; }
+
     /* ─── DRAG GHOST ─── */
     #drag-ghost {
       position: fixed;
-      width: 72px; height: 72px; border-radius: 50%;
+      width: 80px; height: 80px; border-radius: 50%;
       pointer-events: none; z-index: 1000;
       transform: translate(-50%, -50%) scale(1.18);
       box-shadow: 0 10px 28px rgba(0,0,0,0.5);
@@ -175,11 +178,12 @@
 
     /* ─── MOBILE ─── */
     @media (max-width: 400px) {
-      .game-area   { gap: 28px; }
-      .scoops-area { width: 68px; height: 324px; } /* 7*38+58 */
-      .scoop       { width: 58px; height: 58px; }
+      .game-area             { gap: 20px; }
+      .game-area.three-cones { gap: 12px; }
+      .scoops-area { width: 72px; height: 330px; } /* 7*38+64 */
+      .scoop       { width: 64px; height: 64px; }
       .cone-body   { width: 72px; height: 88px; }
-      #drag-ghost  { width: 58px; height: 58px; }
+      #drag-ghost  { width: 64px; height: 64px; }
       .cone-count  { font-size: 1.6rem; }
     }
   </style>
@@ -216,16 +220,21 @@
     <div class="hud-round" id="hud-round">Kolo 1 / 3</div>
     <div class="hud-timer" id="hud-timer">0:00</div>
   </div>
-  <div class="game-area">
-    <div class="cone-wrap">
+  <div class="game-area" id="game-area">
+    <div class="cone-wrap" id="cone-wrap-0">
       <div class="scoops-area" id="scoops-0"></div>
       <div class="cone-body"></div>
       <div class="cone-count" id="count-0">0</div>
     </div>
-    <div class="cone-wrap">
+    <div class="cone-wrap" id="cone-wrap-1">
       <div class="scoops-area" id="scoops-1"></div>
       <div class="cone-body"></div>
       <div class="cone-count" id="count-1">0</div>
+    </div>
+    <div class="cone-wrap" id="cone-wrap-2" style="display:none">
+      <div class="scoops-area" id="scoops-2"></div>
+      <div class="cone-body"></div>
+      <div class="cone-count" id="count-2">0</div>
     </div>
   </div>
 </div>
@@ -255,14 +264,15 @@
   const QUIZ_TYPE = 'preschool-icecream';
   const DB_URL    = 'https://kids-games-3a167-default-rtdb.europe-west1.firebasedatabase.app';
 
-  const ROUND_POOL = {
-    easy:   [[1,3],[3,5],[5,7],[2,4],[4,6],[6,8]],
-    medium: [[1,5],[3,7],[2,6],[4,8]],
-    hard:   [[1,7],[2,8]]
-  };
+  // Fáze 1: 3 kola, 2 kornouty, max 6 kopečků
+  // Fáze 2: 3 kola, 2 kornouty, max 8 kopečků
+  // Fáze 3: 5 kol,  3 kornouty, celkový počet dělitelný 3
   function makeRounds() {
-    const sh = arr => { const a=[...arr]; for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a; };
-    return [sh(ROUND_POOL.easy)[0], sh(ROUND_POOL.medium)[0], sh(ROUND_POOL.hard)[0]];
+    const sh = a => { a=[...a]; for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a; };
+    const p1 = sh([[1,3],[2,4],[1,5],[3,5],[2,6],[4,6]]).slice(0,3).map(d=>({cones:2,dist:d}));
+    const p2 = sh([[3,7],[4,8],[5,7],[2,8],[6,8],[4,6]]).slice(0,3).map(d=>({cones:2,dist:d}));
+    const p3 = sh([[1,2,3],[1,3,5],[2,3,4],[2,4,6],[3,4,5],[1,4,7],[3,5,7],[4,5,6],[2,5,8],[4,6,8],[5,6,7],[3,7,8]]).slice(0,5).map(d=>({cones:3,dist:d}));
+    return [...p1, ...p2, ...p3];
   }
   let ROUNDS = [];
 
@@ -282,9 +292,10 @@
   ];
 
   /* ─── STATE ─── */
-  let roundIndex = 0;
-  let piles      = [[], []]; // color-index arrays
-  let finalMs    = 0;
+  let roundIndex     = 0;
+  let numActiveCones = 2;
+  let piles          = [[], []];
+  let finalMs        = 0;
   let startTime  = null;
   let timerIv    = null;
   let gameActive = false;
@@ -322,17 +333,34 @@
   }
 
   function loadRound() {
-    let [a, b] = ROUNDS[roundIndex];
-    if (Math.random() < 0.5) [a, b] = [b, a];
+    const round = ROUNDS[roundIndex];
+    numActiveCones = round.cones;
 
-    // Assign shuffled colors
-    const pool = [];
-    for (let i = 0; i < a + b; i++) pool.push(i % COLORS.length);
-    for (let i = pool.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
+    // Náhodně zamíchej distribuci kopečků
+    let dist = [...round.dist];
+    for (let i = dist.length-1; i > 0; i--) {
+      const j = Math.floor(Math.random()*(i+1));
+      [dist[i], dist[j]] = [dist[j], dist[i]];
+    }
+
+    // Třetí kornout zobrazit/skrýt
+    document.getElementById('cone-wrap-2').style.display = numActiveCones === 3 ? '' : 'none';
+    const gameArea = document.getElementById('game-area');
+    gameArea.classList.toggle('three-cones', numActiveCones === 3);
+
+    // Přiraď barvy
+    const total = dist.reduce((a,b)=>a+b, 0);
+    const pool  = Array.from({length: total}, (_, i) => i % COLORS.length);
+    for (let i = pool.length-1; i > 0; i--) {
+      const j = Math.floor(Math.random()*(i+1));
       [pool[i], pool[j]] = [pool[j], pool[i]];
     }
-    piles = [pool.slice(0, a), pool.slice(a)];
+    piles = [];
+    let off = 0;
+    for (let c = 0; c < numActiveCones; c++) {
+      piles.push(pool.slice(off, off + dist[c]));
+      off += dist[c];
+    }
 
     document.getElementById('hud-round').textContent = `Kolo ${roundIndex + 1} / ${ROUNDS.length}`;
     gameActive = true;
@@ -340,14 +368,15 @@
   }
 
   function renderCones() {
-    for (let c = 0; c < 2; c++) {
+    const minLen = Math.min(...piles.map(p => p.length));
+
+    for (let c = 0; c < numActiveCones; c++) {
       const area = document.getElementById(`scoops-${c}`);
       area.innerHTML = '';
 
-      const n    = piles[c].length;
-      const step = SCOOP_STEP();
-      const other = 1 - c;
-      const isLarger = n > piles[other].length;
+      const n        = piles[c].length;
+      const step     = SCOOP_STEP();
+      const canDrag  = n > minLen; // větší než alespoň jeden jiný
 
       piles[c].forEach((colorIdx, i) => {
         const el = document.createElement('div');
@@ -358,9 +387,8 @@
         el.dataset.cone     = c;
 
         if (i === n - 1) {
-          // Top scoop — draggable only if this pile is larger
           el.classList.add('top-scoop');
-          if (isLarger) {
+          if (canDrag) {
             el.addEventListener('pointerdown', onPointerDown);
           } else {
             el.style.cursor = 'default';
@@ -368,12 +396,10 @@
         } else {
           el.style.cursor = 'default';
         }
-
         area.appendChild(el);
       });
 
-      // Arrow hint above the bigger pile
-      if (isLarger && n > 0) {
+      if (canDrag && n > 0) {
         const arrow = document.createElement('div');
         arrow.className = 'hint-arrow';
         arrow.textContent = '👆';
@@ -390,8 +416,8 @@
     e.preventDefault();
 
     const fromCone = parseInt(e.currentTarget.dataset.cone);
-    const other    = 1 - fromCone;
-    if (piles[fromCone].length <= piles[other].length) return;
+    const minOther = Math.min(...piles.filter((_,i) => i !== fromCone).map(p => p.length));
+    if (piles[fromCone].length <= minOther) return;
 
     const colorIdx = piles[fromCone][piles[fromCone].length - 1];
     const ghost    = document.getElementById('drag-ghost');
@@ -424,18 +450,21 @@
     const ghost = document.getElementById('drag-ghost');
     ghost.style.display = 'none';
 
-    const targetCone = 1 - dragState.fromCone;
-    const targetWrap = document.querySelectorAll('.cone-wrap')[targetCone];
-    const rect = targetWrap.getBoundingClientRect();
-
-    // Generous hit zone: bounding rect OR elementFromPoint
+    // Najdi cílový kornout — libovolný (kromě zdrojového) pod prstem
+    let targetCone = -1;
     const elUnder = document.elementFromPoint(e.clientX, e.clientY);
-    const inTarget =
-      (e.clientX >= rect.left && e.clientX <= rect.right &&
-       e.clientY >= rect.top  && e.clientY <= rect.bottom) ||
-      (elUnder && targetWrap.contains(elUnder));
+    for (let idx = 0; idx < numActiveCones; idx++) {
+      if (idx === dragState.fromCone) continue;
+      const wrap = document.getElementById(`cone-wrap-${idx}`);
+      const rect = wrap.getBoundingClientRect();
+      if ((e.clientX >= rect.left && e.clientX <= rect.right &&
+           e.clientY >= rect.top  && e.clientY <= rect.bottom) ||
+          (elUnder && wrap.contains(elUnder))) {
+        targetCone = idx; break;
+      }
+    }
 
-    if (inTarget && piles[dragState.fromCone].length > piles[targetCone].length) {
+    if (targetCone !== -1 && piles[dragState.fromCone].length > piles[targetCone].length) {
       const color = piles[dragState.fromCone].pop();
       piles[targetCone].push(color);
       playSound('move');
@@ -453,7 +482,8 @@
 
   /* ─── WIN CHECK ─── */
   function checkWin() {
-    if (piles[0].length !== piles[1].length) return;
+    const len = piles[0].length;
+    if (!piles.every(p => p.length === len)) return;
 
     gameActive = false;
     playSound('win');

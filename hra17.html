@@ -172,46 +172,31 @@
     .balloon-wrap:hover .balloon { transform: scale(1.08); }
 
     .balloon {
-      border-radius: 50% 50% 50% 50% / 45% 45% 55% 55%;
+      border-radius: 50% 50% 46% 46% / 55% 55% 45% 45%;
       display: flex; align-items: center; justify-content: center;
-      position: relative;
-      box-shadow:
-        inset -7px -7px 18px rgba(0,0,0,0.18),
-        inset  5px  5px 12px rgba(255,255,255,0.28),
-        0 4px 14px rgba(0,0,0,0.25);
       transition: transform .12s;
       flex-shrink: 0;
-    }
-    /* Světlý odraz */
-    .balloon::before {
-      content: '';
-      position: absolute;
-      top: 14%; left: 20%;
-      width: 28%; height: 32%;
-      background: rgba(255,255,255,0.32);
-      border-radius: 50%;
-      transform: rotate(-30deg);
     }
     .balloon-num {
       font-size: 2.2rem; font-weight: 900;
       color: #fff;
-      text-shadow: 0 2px 6px rgba(0,0,0,0.3);
-      position: relative; z-index: 1;
     }
 
-    /* Uzlík */
+    /* Uzlík — přichycen přímo pod balonkem bez mezery */
     .balloon-knot {
       width: 0; height: 0;
-      border-left: 6px solid transparent;
-      border-right: 6px solid transparent;
-      /* border-top set inline */
-      margin-top: 12px;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      /* border-top nastaveno inline = barva balónku */
+      margin-top: 0;
+      flex-shrink: 0;
     }
-    /* Nit */
+    /* Šnůrka */
     .balloon-string {
-      width: 2px; height: 30px;
-      background: rgba(255,255,255,0.35);
+      width: 2px; height: 22px;
+      background: rgba(255,255,255,0.45);
       border-radius: 1px;
+      flex-shrink: 0;
     }
 
     /* Animace */
@@ -223,11 +208,7 @@
       animation: balloonWobble .45s ease;
     }
     .balloon-wrap.wrong-shake .balloon {
-      box-shadow:
-        inset -7px -7px 18px rgba(0,0,0,0.18),
-        inset  5px  5px 12px rgba(255,255,255,0.28),
-        0 0 0 4px rgba(239,68,68,0.7),
-        0 4px 14px rgba(0,0,0,0.25);
+      box-shadow: 0 0 0 4px rgba(239,68,68,0.75);
     }
 
     @keyframes popBalloon {
@@ -406,12 +387,6 @@
     '#ec4899','#8b5cf6','#06b6d4','#f97316',
   ];
 
-  // Barva uzlíku = tmavší varianta barvy balónku
-  const KNOT_COLORS = [
-    '#b91c1c','#1d4ed8','#15803d','#b45309',
-    '#be185d','#6d28d9','#0e7490','#c2410c',
-  ];
-
   // ─── STAV HRY ────────────────────────────────────────────────────
   let finalMs       = 0;
   let timerInterval = null;
@@ -507,29 +482,32 @@
     return arr;
   }
 
-  // Generuje nepřekrývající se pozice
-  function scatterPositions(count, areaW, areaH, size) {
-    const minDist = size * 1.12;
-    const positions = [];
-    const maxX = areaW - size;
-    const maxY = areaH - size;
-    let attempts = 0;
+  // Grid-jitter: plocha rozdělena na buňky, 1 balónek/buňka — žádné překryvy, rovnoměrné pokrytí
+  function scatterPositions(count, areaW, areaH, ballW, ballH) {
+    // Počet sloupců odpovídá poměru stran plochy
+    const cols = Math.max(1, Math.round(Math.sqrt(count * areaW / areaH)));
+    const rows = Math.ceil(count / cols);
+    const cellW = areaW / cols;
+    const cellH = areaH / rows;
 
-    while (positions.length < count && attempts < 4000) {
-      attempts++;
-      const x = Math.random() * Math.max(0, maxX);
-      const y = Math.random() * Math.max(0, maxY);
-      let ok = true;
-      for (const p of positions) {
-        if (Math.hypot(p.x - x, p.y - y) < minDist) { ok = false; break; }
-      }
-      if (ok) positions.push({ x, y });
+    // Zamícháme pořadí buněk — každý balónek dostane jinou buňku
+    const cellOrder = Array.from({ length: cols * rows }, (_, i) => i);
+    for (let i = cellOrder.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [cellOrder[i], cellOrder[j]] = [cellOrder[j], cellOrder[i]];
     }
-    while (positions.length < count) {
-      positions.push({
-        x: Math.random() * Math.max(1, maxX),
-        y: Math.random() * Math.max(1, maxY)
-      });
+
+    const positions = [];
+    for (let i = 0; i < count; i++) {
+      const idx = cellOrder[i];
+      const col = idx % cols;
+      const row = Math.floor(idx / cols);
+      // Náhodná pozice uvnitř buňky (balónek zůstane v buňce)
+      const jitterX = Math.max(0, cellW - ballW);
+      const jitterY = Math.max(0, cellH - ballH);
+      const x = Math.min(col * cellW + Math.random() * jitterX, areaW - ballW);
+      const y = Math.min(row * cellH + Math.random() * jitterY, areaH - ballH);
+      positions.push({ x, y });
     }
     return positions;
   }
@@ -602,16 +580,16 @@
     const area = document.getElementById('play-area');
     area.innerHTML = '';
 
-    const W    = area.clientWidth;
-    const H    = area.clientHeight;
-    const SIZE = window.innerWidth <= 400 ? 68 : 78;
+    const W      = area.clientWidth;
+    const H      = area.clientHeight;
+    const SIZE   = window.innerWidth <= 400 ? 58 : 64;
+    const BALL_H = Math.round(SIZE * 1.1) + 31; // tělo + uzlík(9) + šnůrka(22)
 
-    const positions = scatterPositions(nums.length, W, H - 40, SIZE);
+    const positions = scatterPositions(nums.length, W, H, SIZE, BALL_H);
 
     nums.forEach((num, i) => {
       const colorIdx = colorIdxs[i];
       const color    = BALLOON_COLORS[colorIdx];
-      const knotCol  = KNOT_COLORS[colorIdx];
 
       const wrap = document.createElement('div');
       wrap.className = 'balloon-wrap';
@@ -630,14 +608,15 @@
       const numEl = document.createElement('span');
       numEl.className = 'balloon-num';
       numEl.textContent = num;
+      numEl.style.fontSize = Math.round(SIZE * 0.46) + 'px';
       ball.appendChild(numEl);
 
-      // Uzlík
+      // Uzlík — stejná barva jako balónek, bez mezery
       const knot = document.createElement('div');
       knot.className = 'balloon-knot';
-      knot.style.borderTop = `10px solid ${knotCol}`;
+      knot.style.borderTop = `9px solid ${color}`;
 
-      // Nit
+      // Šnůrka
       const string = document.createElement('div');
       string.className = 'balloon-string';
 

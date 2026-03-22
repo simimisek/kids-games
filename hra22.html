@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-KEF2T80GE0"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-KEF2T80GE0');
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spoj podle vzoru</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #4a148c 0%, #880e4f 100%);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ─── SCREENS ─── */
+    .screen { display: none; }
+    .screen.active {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    /* ─── HOME BUTTON ─── */
+    .btn-home-fixed {
+      position: fixed; top: 12px; right: 12px; z-index: 200;
+      background: rgba(0,0,0,0.25); border: none; border-radius: 10px;
+      padding: 7px 14px; color: #fff; font-family: inherit;
+      font-size: 0.85rem; font-weight: 700; text-decoration: none; cursor: pointer;
+    }
+    .btn-home-fixed:hover { background: rgba(0,0,0,0.4); }
+
+    /* ─── START SCREEN ─── */
+    #screen-start { padding: 48px 20px 60px; }
+
+    .start-icon  { margin-bottom: 16px; }
+    .start-title {
+      font-size: 2rem; font-weight: 800; color: #fff;
+      text-align: center; margin-bottom: 10px;
+    }
+    .start-desc {
+      font-size: 1rem; color: rgba(255,255,255,0.8); text-align: center;
+      max-width: 340px; line-height: 1.65; margin-bottom: 28px;
+    }
+
+    /* ─── BUTTONS ─── */
+    .btn-play {
+      display: block; width: 100%; max-width: 380px;
+      background: linear-gradient(135deg, #FFD600, #FF6B00);
+      border: none; border-radius: 16px; padding: 18px;
+      font-size: 1.3rem; font-weight: 800; color: #fff; cursor: pointer;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.3); text-align: center;
+      transition: transform 0.12s, box-shadow 0.12s;
+    }
+    .btn-play:hover  { transform: translateY(-3px); box-shadow: 0 10px 32px rgba(0,0,0,0.35); }
+    .btn-play:active { transform: translateY(0); }
+
+    .back-link {
+      display: block; width: 100%; max-width: 380px; text-align: center;
+      color: rgba(255,255,255,0.9); font-size: 1.3rem; font-weight: 700;
+      padding: 18px; border-radius: 16px; text-decoration: none;
+      border: 2px solid rgba(255,255,255,0.32);
+      margin-top: 12px; margin-bottom: 32px;
+      transition: background 0.15s;
+    }
+    .back-link:hover { background: rgba(255,255,255,0.1); color: #fff; }
+
+    /* ─── LEADERBOARD ─── */
+    .lb-card {
+      width: 100%; max-width: 380px;
+      background: rgba(255,255,255,0.12);
+      border: 2px solid rgba(255,255,255,0.2);
+      border-radius: 16px; padding: 20px; margin-bottom: 20px;
+    }
+    .lb-title { font-size: 1rem; font-weight: 700; color: rgba(255,255,255,0.9); margin-bottom: 12px; text-align: center; }
+    .lb-list  { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+    .lb-list li { display: flex; align-items: center; gap: 10px; color: #fff; font-size: 0.92rem; }
+    .lb-rank  { min-width: 24px; font-weight: 700; color: rgba(255,255,255,0.6); }
+    .lb-name  { flex: 1; }
+    .lb-score { font-weight: 700; color: #FFD600; white-space: nowrap; }
+    .lb-empty { color: rgba(255,255,255,0.5); font-style: italic; text-align: center; width: 100%; }
+
+    /* ─── GAME SCREEN ─── */
+    #screen-game { padding: 52px 12px 36px; }
+
+    .game-header {
+      width: 100%; max-width: 480px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 4px; margin-bottom: 12px;
+    }
+    .level-badge {
+      background: rgba(255,255,255,0.2); border-radius: 8px;
+      padding: 5px 13px; color: #fff; font-size: 0.9rem; font-weight: 700;
+    }
+    .progress-text { color: rgba(255,255,255,0.8); font-size: 0.9rem; font-weight: 600; }
+    .score-text    { color: #FFD600; font-size: 1.05rem; font-weight: 800; }
+
+    .phase-text {
+      font-size: 1.1rem; font-weight: 700; color: #FFD600;
+      margin-bottom: 10px; min-height: 28px; text-align: center;
+    }
+
+
+    /* ─── GRID CONTAINER ─── */
+    .grid-container {
+      position: relative;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 20px;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+      flex-shrink: 0;
+    }
+    .grid-svg {
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      overflow: visible;
+    }
+
+    /* ─── DOTS ─── */
+    .dot {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.2);
+      border: 3px solid rgba(255,255,255,0.4);
+      transform: translate(-50%, -50%);
+      transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+      pointer-events: none;
+    }
+    /* preview: gold dots along path */
+    .dot-preview {
+      background: #FFD600;
+      border-color: #FF9800;
+      box-shadow: 0 0 14px rgba(255,214,0,0.5);
+    }
+    /* preview: start dot — white pulsing */
+    .dot-start {
+      background: #fff;
+      border-color: #fff;
+      animation: startPulse 1s ease-in-out infinite;
+    }
+    @keyframes startPulse {
+      0%, 100% { box-shadow: 0 0 0 4px rgba(255,255,255,0.2); }
+      50%       { box-shadow: 0 0 0 10px rgba(255,255,255,0.07); }
+    }
+    /* input: subtle start hint before first tap */
+    .dot-hint {
+      background: rgba(255,255,255,0.35);
+      border-color: rgba(255,255,255,0.8);
+    }
+    /* input: selected */
+    .dot-selected {
+      background: rgba(255,122,0,0.75);
+      border-color: #FFD600;
+      box-shadow: 0 0 12px rgba(255,122,0,0.5);
+    }
+    .dot-last {
+      background: #FF7A00;
+      border-color: #FFD600;
+      box-shadow: 0 0 20px rgba(255,122,0,0.7);
+    }
+
+    .dot-correct {
+      background: #22c55e !important;
+      border-color: #16a34a !important;
+      box-shadow: 0 0 18px rgba(34,197,94,0.7) !important;
+    }
+    .dot-wrong {
+      background: #ef4444 !important;
+      border-color: #b91c1c !important;
+      box-shadow: 0 0 18px rgba(239,68,68,0.7) !important;
+    }
+
+    /* ─── RESULT SCREEN ─── */
+    #screen-result { padding: 48px 20px 60px; }
+
+    .result-icon  { font-size: 4rem; margin-bottom: 16px; }
+    .result-score { font-size: 2.4rem; font-weight: 900; color: #fff; text-align: center; margin-bottom: 6px; }
+    .result-time  { font-size: 1rem; color: rgba(255,255,255,0.65); text-align: center; margin-bottom: 32px; }
+
+    .name-card {
+      width: 100%; max-width: 380px;
+      background: rgba(255,255,255,0.12);
+      border: 2px solid rgba(255,255,255,0.2);
+      border-radius: 16px; padding: 20px; margin-bottom: 20px;
+    }
+    .name-label { font-size: 0.9rem; color: rgba(255,255,255,0.8); margin-bottom: 8px; }
+    .name-row {
+      display: flex; gap: 10px; align-items: stretch;
+    }
+    .name-input {
+      flex: 1; min-width: 0; padding: 12px 14px; border-radius: 10px;
+      border: 2px solid rgba(255,255,255,0.3);
+      background: rgba(255,255,255,0.15); color: #fff;
+      font-family: inherit; font-size: 1rem; outline: none;
+    }
+    .name-input::placeholder { color: rgba(255,255,255,0.4); }
+    .name-input:focus { border-color: #FFD600; background: rgba(255,255,255,0.22); }
+
+    .btn-save {
+      flex-shrink: 0; white-space: nowrap;
+      background: linear-gradient(135deg, #FFD600, #FF6B00);
+      border: none; border-radius: 12px; padding: 12px 18px;
+      font-size: 1rem; font-weight: 800; color: #fff; cursor: pointer;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.25); transition: transform 0.12s;
+    }
+    .btn-save:hover { transform: translateY(-2px); }
+
+    .result-btns {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 12px; width: 100%; max-width: 380px; margin-bottom: 32px;
+    }
+
+    /* ─── FLASH OVERLAY ─── */
+    .flash-overlay { position: fixed; inset: 0; z-index: 300; pointer-events: none; opacity: 0; }
+    .flash-correct { background: rgba(34,197,94,0.32); }
+    .flash-wrong   { background: rgba(239,68,68,0.35); }
+    .flash-show    { animation: flashAnim 0.42s ease-out forwards; }
+    @keyframes flashAnim { 0% { opacity: 1; } 100% { opacity: 0; } }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 400px) {
+      .start-title  { font-size: 1.65rem; }
+      .start-desc   { font-size: 0.9rem; }
+      .btn-play     { font-size: 1.1rem; }
+      .back-link    { font-size: 1.1rem; }
+      .result-score { font-size: 2rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="flash-overlay" id="flash-overlay"></div>
+
+<!-- ═══════════════ START SCREEN ═══════════════ -->
+<div id="screen-start" class="screen active">
+
+  <div class="start-icon">
+    <svg viewBox="0 0 88 88" width="108" height="108" aria-hidden="true">
+      <circle cx="66" cy="66" r="9" fill="rgba(255,255,255,0.13)" stroke="rgba(255,255,255,0.28)" stroke-width="2.5"/>
+      <line x1="22" y1="22" x2="66" y2="22" stroke="#FFD600" stroke-width="5" stroke-linecap="round"/>
+      <line x1="66" y1="22" x2="22" y2="66" stroke="#FFD600" stroke-width="5" stroke-linecap="round"/>
+      <circle cx="66" cy="22" r="10" fill="#FFD600"/>
+      <circle cx="22" cy="66" r="10" fill="#FFD600"/>
+      <circle cx="22" cy="22" r="13" fill="#fff"/>
+    </svg>
+  </div>
+
+  <div class="start-title">Spoj podle vzoru</div>
+  <div class="start-desc">
+    Sleduj, jak se vzor vykresluje — pak ho zopakuj!<br>
+    Začínej vždy u bílé tečky.<br>
+    Vzory se postupně ztěžují.
+  </div>
+
+  <button class="btn-play" onclick="startGame()">▶ Hrát</button>
+  <a href="index.html" class="back-link">← Zpět na výběr her</a>
+
+  <div class="lb-card">
+    <div class="lb-title">🏆 Nejlepší výsledky</div>
+    <ol class="lb-list" id="lb-start"><li class="lb-empty">Načítám…</li></ol>
+  </div>
+</div>
+
+<!-- ═══════════════ GAME SCREEN ═══════════════ -->
+<div id="screen-game" class="screen">
+  <a href="index.html" class="btn-home-fixed">🏠 Domů</a>
+
+  <div class="game-header">
+    <div class="level-badge" id="level-badge">2×2</div>
+    <div class="progress-text" id="progress-text">Kolo 1</div>
+    <div class="score-text" id="score-text">✓ 0</div>
+  </div>
+
+  <div class="phase-text" id="phase-text">👀 Zapamatuj si vzor!</div>
+
+  <div class="grid-container" id="grid-container">
+    <svg class="grid-svg" id="grid-svg"></svg>
+  </div>
+
+</div>
+
+<!-- ═══════════════ RESULT SCREEN ═══════════════ -->
+<div id="screen-result" class="screen">
+
+  <div class="result-icon"  id="result-icon">⭐</div>
+  <div class="result-score" id="result-score">Vyřešeno: 0</div>
+  <div class="result-time"  id="result-time">Čas: 0:00</div>
+
+  <div class="name-card">
+    <div class="name-label">Zadej jméno a ulož výsledek:</div>
+    <div class="name-row">
+      <input type="text" class="name-input" id="player-name"
+             placeholder="Tvoje jméno…" maxlength="30" />
+      <button class="btn-save" onclick="saveScore()">Uložit</button>
+    </div>
+  </div>
+
+  <div class="result-btns">
+    <button class="btn-play" onclick="startGame()">▶ Hrát znovu</button>
+    <a href="index.html" class="back-link" style="margin:0">← Zpět na výběr her</a>
+  </div>
+
+  <div class="lb-card">
+    <div class="lb-title">🏆 Nejlepší výsledky</div>
+    <ol class="lb-list" id="lb-end"><li class="lb-empty">Načítám…</li></ol>
+  </div>
+</div>
+
+<script>
+// ─── CONFIG ───────────────────────────────────────────────────────────────────
+const QUIZ_TYPE    = 'preschool-connect-pattern';
+const DB_URL       = 'https://kids-games-3a167-default-rtdb.europe-west1.firebasedatabase.app';
+const PREVIEW_TIME = 2000; // ms — configurable
+const STEP_MS      = 430;  // ms per animation step (dot-to-dot travel time)
+
+// Difficulty: grid size + pattern length based on total correct rounds
+// 2×2: rounds 0-1 only (warm-up), then 3×3, later 4×4 — forever
+function getDifficulty(n) {
+  if (n === 0)  return { grid: 2, minLen: 2, maxLen: 2 };
+  if (n === 1)  return { grid: 2, minLen: 3, maxLen: 3 };
+  // ── 3×3 (rounds 2–11, 10 rounds total) ───
+  if (n <= 4)   return { grid: 3, minLen: 3, maxLen: 3 };
+  if (n <= 7)   return { grid: 3, minLen: 3, maxLen: 4 };
+  if (n <= 11)  return { grid: 3, minLen: 4, maxLen: 5 };
+  // ── 4×4 (from round 12 onwards) ──────────
+  if (n <= 17)  return { grid: 4, minLen: 4, maxLen: 4 };
+  if (n <= 24)  return { grid: 4, minLen: 4, maxLen: 5 };
+  if (n <= 33)  return { grid: 4, minLen: 5, maxLen: 6 };
+  if (n <= 44)  return { grid: 4, minLen: 6, maxLen: 6 };
+  if (n <= 57)  return { grid: 4, minLen: 6, maxLen: 7 };
+  if (n <= 72)  return { grid: 4, minLen: 7, maxLen: 7 };
+  return         { grid: 4, minLen: 7, maxLen: 8 };
+}
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let totalCorrect    = 0;
+let achievedLen     = 2; // nejvyšší dosažená délka vzoru — nikdy neklesá
+let pattern         = [];
+let playerSeq       = [];
+let phase           = 'idle';
+let isDragging      = false;
+let dots            = [];
+
+let gridN = 2, ctnrSz = 0, margin = 0, cellStep = 0, dotR = 0, lineW = 0, hitR = 0;
+
+let timerInterval    = null;
+let startMs          = 0;
+let finalMs          = 0;
+let previewTimeout   = null;
+let animStepTimeout  = null; // for the preview animation
+
+// ─── FIREBASE / LEADERBOARD ───────────────────────────────────────────────────
+async function getScores() {
+  try {
+    const r = await fetch(DB_URL + '/scores/' + QUIZ_TYPE + '.json');
+    const d = await r.json();
+    return Array.isArray(d) ? d : [];
+  } catch { return []; }
+}
+
+async function saveScore() {
+  const inp  = document.getElementById('player-name');
+  const name = inp.value.trim();
+  if (!name) { inp.style.outline = '3px solid #ef4444'; inp.focus(); return; }
+  inp.style.outline = '';
+  const scores = await getScores();
+  scores.push({ name, rounds: totalCorrect, ms: finalMs, date: new Date().toLocaleDateString('cs-CZ') });
+  scores.sort((a, b) => (b.rounds || 0) - (a.rounds || 0) || a.ms - b.ms);
+  const top10 = scores.slice(0, 10);
+  try {
+    await fetch(DB_URL + '/scores/' + QUIZ_TYPE + '.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(top10),
+    });
+  } catch {}
+  renderLeaderboard('lb-end');
+  inp.value = '';
+}
+
+async function renderLeaderboard(elId) {
+  const el = document.getElementById(elId);
+  el.innerHTML = '<li class="lb-empty">Načítám…</li>';
+  const scores = await getScores();
+  if (!scores.length) { el.innerHTML = '<li class="lb-empty">Zatím žádné výsledky.</li>'; return; }
+  el.innerHTML = scores.map((s, i) => `
+    <li>
+      <span class="lb-rank">${i + 1}.</span>
+      <span class="lb-name">${esc(s.name)}</span>
+      <span class="lb-score">${s.rounds || 0} kol &nbsp;·&nbsp; ${fmtTime(s.ms)}</span>
+    </li>`).join('');
+}
+
+function esc(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function fmtTime(ms) {
+  const s = Math.floor(ms / 1000);
+  return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+}
+
+// ─── SCREEN MANAGEMENT ────────────────────────────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ─── TIMER ────────────────────────────────────────────────────────────────────
+function startTimer() {
+  startMs = Date.now();
+}
+function stopTimer() {
+  finalMs = Date.now() - startMs;
+}
+
+// ─── GAME FLOW ────────────────────────────────────────────────────────────────
+function startGame() {
+  totalCorrect = 0;
+  achievedLen  = 2;
+  clearInterval(timerInterval);
+  clearTimeout(previewTimeout);
+  clearTimeout(animStepTimeout);
+  startTimer();
+  showScreen('screen-game');
+  startRound();
+}
+
+function startRound() {
+  clearTimeout(previewTimeout);
+  clearTimeout(animStepTimeout);
+
+  const diff   = getDifficulty(totalCorrect);
+  gridN = diff.grid;
+  setupGrid();
+  const effMin = Math.max(diff.minLen, achievedLen);
+  const effMax = Math.max(diff.maxLen, achievedLen);
+  pattern      = generatePattern(gridN, effMin, effMax);
+  playerSeq = [];
+  phase     = 'preview';
+
+  document.getElementById('level-badge').textContent   = gridN + '\xd7' + gridN;
+  document.getElementById('progress-text').textContent = 'Kolo ' + (totalCorrect + 1);
+  document.getElementById('score-text').textContent    = '✓ ' + totalCorrect;
+  document.getElementById('phase-text').textContent    = '👀 Zapamatuj si vzor!';
+
+  animatePreview();
+
+  previewTimeout = setTimeout(() => {
+    clearTimeout(animStepTimeout);
+    phase = 'input';
+    document.getElementById('phase-text').textContent  = '✏️ Teď ho zopakuj!';
+    renderInput();
+  }, PREVIEW_TIME);
+}
+
+function endGame() {
+  stopTimer();
+  clearTimeout(previewTimeout);
+  clearTimeout(animStepTimeout);
+  phase = 'idle';
+
+  document.getElementById('result-score').textContent = 'Vyřešeno: ' + totalCorrect;
+  document.getElementById('result-time').textContent  = 'Čas: ' + fmtTime(finalMs);
+  document.getElementById('result-icon').textContent  =
+    totalCorrect >= 40 ? '🏆' : totalCorrect >= 20 ? '🌟' : totalCorrect >= 8 ? '⭐' : '😊';
+
+  showScreen('screen-result');
+  renderLeaderboard('lb-end');
+}
+
+// ─── GRID SETUP ───────────────────────────────────────────────────────────────
+function setupGrid() {
+  ctnrSz = Math.min(Math.floor(window.innerWidth * 0.88), 420);
+  const frac = ctnrSz / 420;
+
+  if (gridN === 2) {
+    margin = Math.round(88 * frac);
+    dotR   = Math.max(Math.round(40 * frac), 20);
+    lineW  = Math.max(Math.round(12 * frac), 5);
+  } else if (gridN === 3) {
+    margin = Math.round(52 * frac);
+    dotR   = Math.max(Math.round(32 * frac), 20);
+    lineW  = Math.max(Math.round(10 * frac), 4);
+  } else {
+    margin = Math.round(40 * frac);
+    dotR   = Math.max(Math.round(24 * frac), 20);
+    lineW  = Math.max(Math.round( 8 * frac), 3);
+  }
+  cellStep = gridN > 1 ? (ctnrSz - 2 * margin) / (gridN - 1) : 0;
+  hitR     = Math.round(cellStep * 0.46);
+
+  const ctnr = document.getElementById('grid-container');
+  ctnr.style.width  = ctnrSz + 'px';
+  ctnr.style.height = ctnrSz + 'px';
+
+  ctnr.querySelectorAll('.dot').forEach(d => d.remove());
+  dots = [];
+  for (let r = 0; r < gridN; r++) {
+    for (let c = 0; c < gridN; c++) {
+      const x  = margin + c * cellStep;
+      const y  = margin + r * cellStep;
+      const el = document.createElement('div');
+      el.className = 'dot';
+      el.style.cssText =
+        `left:${x}px;top:${y}px;width:${dotR * 2}px;height:${dotR * 2}px;`;
+      ctnr.appendChild(el);
+      dots.push({ x, y, el });
+    }
+  }
+
+  const svg = document.getElementById('grid-svg');
+  svg.setAttribute('viewBox', `0 0 ${ctnrSz} ${ctnrSz}`);
+  svg.innerHTML = '';
+}
+
+// ─── PATTERN GENERATION ───────────────────────────────────────────────────────
+function generatePattern(n, minLen, maxLen) {
+  const target = minLen + Math.floor(Math.random() * (maxLen - minLen + 1));
+  const start  = Math.floor(Math.random() * n * n);
+  const seq    = [start];
+  const seen   = new Set([start]);
+  let cur      = start;
+
+  while (seq.length < target) {
+    const nbrs = neighbors(cur, n).filter(i => !seen.has(i));
+    if (!nbrs.length) break;
+    const next = nbrs[Math.floor(Math.random() * nbrs.length)];
+    seq.push(next); seen.add(next); cur = next;
+  }
+  return seq;
+}
+
+function neighbors(idx, n) {
+  const r = Math.floor(idx / n), c = idx % n, res = [];
+  for (let dr = -1; dr <= 1; dr++)
+    for (let dc = -1; dc <= 1; dc++) {
+      if (!dr && !dc) continue;
+      const nr = r + dr, nc = c + dc;
+      if (nr >= 0 && nr < n && nc >= 0 && nc < n) res.push(nr * n + nc);
+    }
+  return res;
+}
+
+// ─── PREVIEW ANIMATION ────────────────────────────────────────────────────────
+// A glowing white orb traces the complete path, then the full pattern stays visible.
+function animatePreview() {
+  const svg = document.getElementById('grid-svg');
+
+  // Two SVG layers: lines below, traveler above
+  svg.innerHTML = `
+    <defs>
+      <filter id="orb-glow" x="-80%" y="-80%" width="260%" height="260%">
+        <feGaussianBlur stdDeviation="4" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>`;
+
+  const linesG   = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+  const travelerG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+  svg.appendChild(linesG);
+  svg.appendChild(travelerG);
+
+  // Reset all dots
+  dots.forEach(d => { d.el.className = 'dot'; });
+
+  // Light up start dot immediately
+  dots[pattern[0]].el.className = 'dot dot-start';
+
+  // Create the travelling orb
+  const orb = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+  const orbR = Math.round(dotR * 0.55);
+  orb.setAttribute('cx', '0');
+  orb.setAttribute('cy', '0');
+  orb.setAttribute('r', orbR);
+  orb.setAttribute('fill', 'rgba(255,255,255,0.92)');
+  orb.setAttribute('filter', 'url(#orb-glow)');
+  // Initial position via CSS transform (better cross-browser for animation)
+  orb.style.transform = `translate(${dots[pattern[0]].x}px, ${dots[pattern[0]].y}px)`;
+  travelerG.appendChild(orb);
+
+  let step = 1;
+
+  function doStep() {
+    if (step >= pattern.length) {
+      // All dots reached — fade out orb
+      orb.style.transition = 'opacity 0.35s ease';
+      orb.style.opacity = '0';
+      return;
+    }
+
+    const prev = pattern[step - 1];
+    const curr = pattern[step];
+
+    // Draw line from prev → curr
+    svgLineInto(linesG, dots[prev].x, dots[prev].y, dots[curr].x, dots[curr].y, '#FFD600', lineW);
+
+    // Light up current dot (first dot keeps dot-start)
+    dots[curr].el.className = 'dot dot-preview';
+
+    // Move orb smoothly
+    orb.style.transition = `transform ${Math.round(STEP_MS * 0.82)}ms cubic-bezier(0.4, 0, 0.2, 1)`;
+    orb.style.transform  = `translate(${dots[curr].x}px, ${dots[curr].y}px)`;
+
+    step++;
+    animStepTimeout = setTimeout(doStep, STEP_MS);
+  }
+
+  // Short initial pause then start animating
+  animStepTimeout = setTimeout(doStep, 280);
+}
+
+// ─── RENDERING ────────────────────────────────────────────────────────────────
+function renderInput(curX, curY) {
+  dots.forEach(d => { d.el.className = 'dot'; });
+
+  // Show subtle start hint before first tap
+  if (playerSeq.length === 0 && pattern.length > 0) {
+    dots[pattern[0]].el.className = 'dot dot-hint';
+  }
+
+  playerSeq.forEach((di, i) => {
+    dots[di].el.className =
+      i === playerSeq.length - 1 ? 'dot dot-last' : 'dot dot-selected';
+  });
+
+  const svg = document.getElementById('grid-svg');
+  svg.innerHTML = '';
+  for (let i = 1; i < playerSeq.length; i++) {
+    svgLine(svg,
+      dots[playerSeq[i-1]].x, dots[playerSeq[i-1]].y,
+      dots[playerSeq[i  ]].x, dots[playerSeq[i  ]].y,
+      '#FF7A00', lineW);
+  }
+  if (curX !== undefined && isDragging && playerSeq.length > 0) {
+    const last = dots[playerSeq[playerSeq.length - 1]];
+    svgLine(svg, last.x, last.y, curX, curY, 'rgba(255,122,0,0.38)', lineW * 0.75);
+  }
+}
+
+function svgLine(parent, x1, y1, x2, y2, color, w) {
+  svgLineInto(parent, x1, y1, x2, y2, color, w);
+}
+function svgLineInto(parent, x1, y1, x2, y2, color, w) {
+  const el = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+  el.setAttribute('x1', x1); el.setAttribute('y1', y1);
+  el.setAttribute('x2', x2); el.setAttribute('y2', y2);
+  el.setAttribute('stroke', color);
+  el.setAttribute('stroke-width', w);
+  el.setAttribute('stroke-linecap', 'round');
+  parent.appendChild(el);
+}
+
+// ─── POINTER EVENTS ───────────────────────────────────────────────────────────
+function initEvents() {
+  const ctnr = document.getElementById('grid-container');
+  ctnr.addEventListener('pointerdown',   onPtrDown, { passive: false });
+  ctnr.addEventListener('pointermove',   onPtrMove, { passive: false });
+  ctnr.addEventListener('pointerup',     onPtrUp);
+  ctnr.addEventListener('pointercancel', onPtrUp);
+  ctnr.addEventListener('contextmenu',   e => e.preventDefault());
+}
+
+function ctnrPos(e) {
+  const r = document.getElementById('grid-container').getBoundingClientRect();
+  return { x: e.clientX - r.left, y: e.clientY - r.top };
+}
+
+function findDot(px, py) {
+  let best = null, bestDist = hitR;
+  dots.forEach((d, i) => {
+    const dist = Math.sqrt((d.x - px) ** 2 + (d.y - py) ** 2);
+    if (dist < bestDist) { bestDist = dist; best = i; }
+  });
+  return best;
+}
+
+function onPtrDown(e) {
+  if (phase !== 'input') return;
+  if (playerSeq.length >= pattern.length) return;
+  e.preventDefault();
+  const { x, y } = ctnrPos(e);
+  const di = findDot(x, y);
+  if (di === null) return;
+  isDragging = true;
+  try { document.getElementById('grid-container').setPointerCapture(e.pointerId); } catch {}
+  if (!playerSeq.includes(di)) {
+    playerSeq.push(di);
+    renderInput(x, y);
+    tryCheck();
+  }
+}
+
+function onPtrMove(e) {
+  if (!isDragging || phase !== 'input') return;
+  e.preventDefault();
+  const { x, y } = ctnrPos(e);
+  if (playerSeq.length < pattern.length) {
+    const di = findDot(x, y);
+    if (di !== null && !playerSeq.includes(di)) {
+      playerSeq.push(di);
+      renderInput(x, y);
+      tryCheck();
+      return;
+    }
+  }
+  renderInput(x, y);
+}
+
+function onPtrUp() {
+  isDragging = false;
+  if (phase === 'input') renderInput();
+}
+
+
+// ─── VALIDATION ───────────────────────────────────────────────────────────────
+function tryCheck() {
+  if (playerSeq.length < pattern.length) return;
+  phase = 'checking';
+
+  const ok = pattern.every((d, i) => d === playerSeq[i]);
+  flash(ok ? 'correct' : 'wrong');
+
+  if (ok) {
+    document.getElementById('phase-text').textContent = '✅ Správně!';
+    playerSeq.forEach(di => { dots[di].el.className = 'dot dot-correct'; });
+    const svg = document.getElementById('grid-svg');
+    svg.querySelectorAll('line').forEach(l => l.setAttribute('stroke', '#22c55e'));
+    achievedLen = Math.max(achievedLen, pattern.length);
+    setTimeout(() => { totalCorrect++; startRound(); }, 750);
+  } else {
+    document.getElementById('phase-text').textContent = '❌ Chyba!';
+    playerSeq.forEach(di => { dots[di].el.className = 'dot dot-wrong'; });
+    const svg = document.getElementById('grid-svg');
+    svg.querySelectorAll('line').forEach(l => l.setAttribute('stroke', '#ef4444'));
+    setTimeout(() => { endGame(); }, 1100);
+  }
+}
+
+function flash(type) {
+  const el = document.getElementById('flash-overlay');
+  el.className = 'flash-overlay flash-' + type + ' flash-show';
+  setTimeout(() => { el.className = 'flash-overlay'; }, 430);
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+initEvents();
+renderLeaderboard('lb-start');
+</script>
+
+</body>
+</html>
