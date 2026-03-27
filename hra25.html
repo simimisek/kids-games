@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Slož panáčka</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #4a148c 0%, #880e4f 100%);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ─── SCREENS ─── */
+    .screen { display: none; }
+    .screen.active { display: flex; flex-direction: column; align-items: center; }
+
+    /* ─── START ─── */
+    #screen-start { min-height: 100vh; padding: 48px 16px 40px; }
+    .start-icon { font-size: 5rem; margin-bottom: 12px; }
+    .start-title { font-size: 2rem; font-weight: 800; color: #fff; text-align: center; margin-bottom: 10px; }
+    .start-desc { color: rgba(255,255,255,0.85); text-align: center; font-size: 1rem; max-width: 340px; margin-bottom: 28px; }
+    .btn-play {
+      display: block; width: 100%; max-width: 380px; text-align: center; padding: 18px;
+      background: #fff; color: #4a148c; font-size: 1.15rem; font-weight: 800;
+      border: none; border-radius: 14px; cursor: pointer; text-decoration: none;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.2); margin-bottom: 14px;
+    }
+    .btn-play:hover { background: #f3e8ff; }
+    .back-link {
+      display: block; width: 100%; max-width: 380px; text-align: center; padding: 18px;
+      color: rgba(255,255,255,0.9); text-decoration: none; font-size: 0.95rem; font-weight: 700;
+      margin-bottom: 32px; border: 2px solid rgba(255,255,255,0.45); border-radius: 14px; outline: none;
+    }
+    .back-link:hover { color: #fff; border-color: rgba(255,255,255,0.75); }
+
+    /* ─── LEADERBOARD ─── */
+    .lb-card { width: 100%; max-width: 420px; background: rgba(0,0,0,0.2); border-radius: 16px; padding: 18px 20px; }
+    .lb-title { color: rgba(255,255,255,0.7); font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px; }
+    .lb-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .lb-list li { display: flex; align-items: center; gap: 10px; color: #fff; font-size: 0.95rem; }
+    .lb-rank { color: rgba(255,255,255,0.5); font-size: 0.8rem; width: 20px; }
+    .lb-name { flex: 1; font-weight: 600; }
+    .lb-time { font-variant-numeric: tabular-nums; color: rgba(255,255,255,0.85); }
+    .lb-empty { color: rgba(255,255,255,0.5); font-size: 0.9rem; }
+
+    /* ─── HOME BUTTON ─── */
+    .btn-home-fixed {
+      position: fixed; top: 12px; right: 12px; z-index: 300;
+      background: rgba(0,0,0,0.25); border: none; border-radius: 10px;
+      padding: 7px 14px; color: #fff; font-family: inherit;
+      font-size: 0.85rem; font-weight: 700; text-decoration: none; cursor: pointer;
+    }
+    .btn-home-fixed:hover { background: rgba(0,0,0,0.4); }
+
+    /* ─── GAME SCREEN ─── */
+    #screen-game { min-height: 100vh; padding: 52px 16px 36px; justify-content: flex-start; }
+
+    .game-header {
+      width: 100%; max-width: 420px;
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 18px;
+    }
+    .game-timer {
+      background: rgba(0,0,0,0.2); border-radius: 10px;
+      padding: 6px 16px; color: #fff; font-size: 1.05rem; font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+    .round-dots { display: flex; gap: 8px; align-items: center; }
+    .round-dot {
+      width: 14px; height: 14px; border-radius: 50%;
+      background: rgba(255,255,255,0.25); border: 2px solid rgba(255,255,255,0.5);
+      transition: background 0.3s;
+    }
+    .round-dot.done { background: #fbbf24; border-color: #fbbf24; }
+    .round-dot.active { background: #fff; border-color: #fff; }
+
+    /* Reference card */
+    .ref-card {
+      position: fixed; left: 50%; top: 50%; z-index: 400;
+      transform: translate(-50%, -50%);
+      background: rgba(255,255,255,0.97);
+      border-radius: 24px; padding: 22px 32px 26px;
+      display: flex; flex-direction: column; align-items: center; gap: 0;
+      box-shadow: 0 12px 48px rgba(0,0,0,0.5);
+      pointer-events: none;
+      animation: refFade 4s forwards;
+    }
+    @keyframes refFade {
+      0%   { opacity: 1; }
+      72%  { opacity: 1; }
+      100% { opacity: 0; }
+    }
+    .ref-card-label {
+      font-size: 0.82rem; font-weight: 800; color: #6b21a8;
+      text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 14px;
+    }
+    .ref-stick-wrap {
+      position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px;
+    }
+    .ref-stick-wrap::before {
+      content: ''; position: absolute; left: 50%; top: 8px; bottom: 8px;
+      transform: translateX(-50%);
+      width: 12px; background: rgba(107,33,168,0.18); border-radius: 6px; z-index: 0;
+    }
+    .ref-shape { position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; }
+
+    /* Stick + slots */
+    .stick-wrap {
+      position: relative; width: 100%; max-width: 220px;
+      display: flex; flex-direction: column; align-items: center;
+      gap: 12px; margin-bottom: 28px;
+    }
+    .stick-wrap::before {
+      content: '';
+      position: absolute; left: 50%; top: 10px; bottom: 10px;
+      transform: translateX(-50%);
+      width: 18px; background: rgba(255,255,255,0.22);
+      border-radius: 8px; z-index: 0;
+    }
+    .slot {
+      width: 116px; height: 116px; border-radius: 50%;
+      border: 4px dashed rgba(255,255,255,0.4);
+      background: rgba(255,255,255,0.07);
+      display: flex; align-items: center; justify-content: center;
+      position: relative; z-index: 1;
+      transition: border-color 0.15s, background 0.15s, transform 0.15s;
+    }
+    .slot.highlight {
+      border-color: rgba(255,255,255,0.95);
+      background: rgba(255,255,255,0.2);
+      transform: scale(1.1);
+    }
+    .slot.filled {
+      border-style: solid;
+      border-color: rgba(255,255,255,0.6);
+    }
+    .slot.wrong-flash { animation: slotWrong 0.4s ease; }
+    @keyframes slotWrong {
+      0%,100% { transform: translateX(0); }
+      25% { transform: translateX(-8px); }
+      75% { transform: translateX(8px); }
+    }
+    .slot.celebrate { animation: slotCelebrate 0.5s ease; }
+    @keyframes slotCelebrate {
+      0%   { transform: scale(1); }
+      40%  { transform: scale(1.15) rotate(6deg); }
+      70%  { transform: scale(0.95) rotate(-4deg); }
+      100% { transform: scale(1) rotate(0); }
+    }
+
+    /* Shape tray */
+    .shape-tray {
+      width: 100%; max-width: 400px;
+      display: flex; justify-content: center; align-items: center;
+      gap: 20px; position: relative;
+    }
+    .shape-piece {
+      width: 110px; height: 110px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: grab; user-select: none; touch-action: none;
+      border-radius: 18px;
+      transition: opacity 0.3s, transform 0.2s;
+      filter: drop-shadow(0 4px 10px rgba(0,0,0,0.35));
+      /* větší hitbox bez vizuálního pozadí */
+      padding: 6px;
+    }
+    .shape-piece:active { cursor: grabbing; transform: scale(1.06); }
+    .shape-piece.used { opacity: 0.18; pointer-events: none; }
+    .shape-piece.dragging-src { opacity: 0.22; }
+
+    /* Floating drag element */
+    .shape-float {
+      position: fixed; pointer-events: none; z-index: 250;
+      width: 110px; height: 110px;
+      display: flex; align-items: center; justify-content: center;
+      filter: drop-shadow(0 8px 18px rgba(0,0,0,0.45));
+      transform: scale(1.1);
+    }
+
+    /* Celebration overlay */
+    .celebrate-overlay {
+      position: fixed; inset: 0; z-index: 180;
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: 8px;
+      pointer-events: none;
+    }
+    .celebrate-text {
+      font-size: 3rem; font-weight: 900; color: #fbbf24;
+      text-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .celebrate-stars { font-size: 2.5rem; animation: popIn 0.4s 0.1s cubic-bezier(0.34,1.56,0.64,1) both; }
+    @keyframes popIn {
+      from { transform: scale(0); opacity: 0; }
+      to   { transform: scale(1); opacity: 1; }
+    }
+
+    /* ─── RESULT SCREEN ─── */
+    #screen-result { min-height: 100vh; padding: 48px 16px 40px; }
+    .result-icon { font-size: 4rem; margin-bottom: 14px; }
+    .result-score { font-size: 1.8rem; font-weight: 800; color: #fff; margin-bottom: 8px; text-align: center; }
+    .result-time  { font-size: 1.1rem; color: rgba(255,255,255,0.8); margin-bottom: 24px; }
+    .name-card {
+      width: 100%; max-width: 420px;
+      background: rgba(0,0,0,0.2); border-radius: 16px;
+      padding: 18px 20px; margin-bottom: 16px;
+    }
+    .name-card p { color: rgba(255,255,255,0.8); font-size: 0.9rem; margin-bottom: 10px; }
+    .name-row { display: flex; gap: 8px; }
+    .name-row input {
+      flex: 1; padding: 12px 14px; border-radius: 10px; border: none;
+      font-size: 1rem; font-family: inherit; background: rgba(255,255,255,0.9);
+    }
+    .name-row input:focus { outline: none; }
+    .name-row button {
+      padding: 12px 20px; border-radius: 10px; border: none;
+      background: #fff; color: #4a148c; font-weight: 800;
+      font-family: inherit; font-size: 1rem; cursor: pointer;
+    }
+    .name-row button:hover { background: #f3e8ff; }
+    .result-btns {
+      width: 100%; max-width: 380px;
+      display: flex; flex-direction: column; align-items: center;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 400px) {
+      .slot { width: 100px; height: 100px; }
+      .shape-piece, .shape-float { width: 96px; height: 96px; }
+      .shape-tray { gap: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══ START ═══ -->
+<div id="screen-start" class="screen active">
+  <div class="start-icon">🧍</div>
+  <h1 class="start-title">Slož panáčka</h1>
+  <p class="start-desc">Přetáhni tvary na tyčku ve správném pořadí jako na vzoru!</p>
+  <button class="btn-play" onclick="startGame()">▶ Hrát</button>
+  <a href="index.html" class="back-link">← Zpět na výběr her</a>
+  <div class="lb-card">
+    <div class="lb-title">Nejlepší časy</div>
+    <ul class="lb-list" id="lb-start"></ul>
+  </div>
+</div>
+
+<!-- ═══ GAME ═══ -->
+<div id="screen-game" class="screen">
+  <a href="index.html" class="btn-home-fixed">🏠 Domů</a>
+  <div class="game-header">
+    <div class="game-timer" id="timer-display">0:00</div>
+    <div class="round-dots" id="round-dots"></div>
+  </div>
+
+  <!-- Reference card (round 1 only, injected by JS) -->
+
+  <!-- Stick + slots -->
+  <div class="stick-wrap" id="stick-wrap">
+    <div class="slot" id="slot-0"></div>
+    <div class="slot" id="slot-1"></div>
+    <div class="slot" id="slot-2"></div>
+  </div>
+
+  <!-- Shape tray -->
+  <div class="shape-tray" id="shape-tray"></div>
+</div>
+
+<!-- ═══ RESULT ═══ -->
+<div id="screen-result" class="screen">
+  <div class="result-icon">⭐</div>
+  <div class="result-score" id="result-score"></div>
+  <div class="result-time" id="result-time"></div>
+  <div class="name-card" id="name-card">
+    <p>Zadej jméno pro uložení do žebříčku:</p>
+    <div class="name-row">
+      <input id="player-name" type="text" placeholder="Tvoje jméno" maxlength="20"/>
+      <button onclick="saveScore()">Uložit</button>
+    </div>
+  </div>
+  <div class="result-btns">
+    <button class="btn-play" onclick="startGame()">▶ Hrát znovu</button>
+    <a href="index.html" class="back-link">← Zpět</a>
+  </div>
+  <div class="lb-card">
+    <div class="lb-title">Nejlepší časy</div>
+    <ul class="lb-list" id="lb-end"></ul>
+  </div>
+</div>
+
+<script>
+  const QUIZ_TYPE = 'preschool-figure';
+  const DB_URL = 'https://kids-games-3a167-default-rtdb.europe-west1.firebasedatabase.app';
+  let finalMs = 0;
+
+  /* ─── Shape SVGs ─── */
+  function shapeSVG(type, color, size, withFace) {
+    const S = size || 84; const cx = S / 2;
+    let body = '', eyeY, ex1, ex2, mouthY;
+    if (type === 'circle') {
+      body = `<circle cx="${cx}" cy="${cx}" r="${cx - 4}" fill="${color}"/>`;
+      eyeY = cx - 8; ex1 = cx - 14; ex2 = cx + 14; mouthY = cx + 10;
+    } else if (type === 'square') {
+      body = `<rect x="5" y="5" width="${S-10}" height="${S-10}" rx="12" fill="${color}"/>`;
+      eyeY = cx - 8; ex1 = cx - 14; ex2 = cx + 14; mouthY = cx + 10;
+    } else {
+      body = `<polygon points="${cx},5 ${S-5},${S-5} 5,${S-5}" fill="${color}"/>`;
+      eyeY = cx + 10; ex1 = cx - 12; ex2 = cx + 12; mouthY = cx + 24;
+    }
+    const er = Math.max(5, S * 0.08);
+    const face = withFace ? `
+      <circle cx="${ex1}" cy="${eyeY}" r="${er}" fill="white"/>
+      <circle cx="${ex2}" cy="${eyeY}" r="${er}" fill="white"/>
+      <circle cx="${ex1+1}" cy="${eyeY+1}" r="${er*0.48}" fill="#222"/>
+      <circle cx="${ex2+1}" cy="${eyeY+1}" r="${er*0.48}" fill="#222"/>
+      <path d="M${ex1-2} ${mouthY} Q${cx} ${mouthY+10} ${ex2+2} ${mouthY}" stroke="white" stroke-width="${Math.max(2.5, S*0.035)}" fill="none" stroke-linecap="round"/>` : '';
+    return `<svg viewBox="0 0 ${S} ${S}" width="${S}" height="${S}" xmlns="http://www.w3.org/2000/svg">${body}${face}</svg>`;
+  }
+
+  /* ─── Round configs ─── */
+  // Barva per pozici, pool může mít opakující se tvary
+  let generatedRounds = [];
+
+  function generateRounds() {
+    const ALL = ['circle','square','triangle'];
+    const DISTINCT = [
+      ['#ef4444','#3b82f6','#22c55e'],
+      ['#f97316','#8b5cf6','#06b6d4'],
+      ['#f43f5e','#fbbf24','#14b8a6'],
+      ['#ef4444','#06b6d4','#a855f7'],
+    ];
+    const SIMILAR = [
+      ['#ef4444','#f97316','#fbbf24'],   // teplé
+      ['#3b82f6','#06b6d4','#8b5cf6'],   // studené
+      ['#22c55e','#14b8a6','#84cc16'],   // zelené
+      ['#f43f5e','#e879f9','#f97316'],   // růžové
+    ];
+    function rnd(arr) { return arr[Math.floor(Math.random()*arr.length)]; }
+    function sh(a)    { a=[...a]; for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+
+    // Kola 1–2: všechny 3 různé tvary, výrazné barvy (lehké)
+    const r1 = { pool: sh(ALL), colors: sh(rnd(DISTINCT)) };
+    const r2 = { pool: sh(ALL), colors: sh(rnd(DISTINCT)) };
+
+    // Kolo 3: jeden tvar 2× + jiný, výrazné barvy (střední)
+    const s3 = rnd(ALL), other3 = rnd(ALL.filter(s=>s!==s3));
+    const r3 = { pool: sh([s3, s3, other3]), colors: sh(rnd(DISTINCT)) };
+
+    // Kolo 4: jeden tvar 2× + jiný, podobné barvy (těžší)
+    const s4 = rnd(ALL), other4 = rnd(ALL.filter(s=>s!==s4));
+    const r4 = { pool: sh([s4, s4, other4]), colors: sh(rnd(SIMILAR)) };
+
+    // Kolo 5: všechny stejný tvar, jen barva odliší (nejtěžší)
+    const s5 = rnd(ALL);
+    const r5 = { pool: [s5, s5, s5], colors: sh(rnd(SIMILAR)) };
+
+    return [r1, r2, r3, r4, r5];
+  }
+
+  /* ─── Firebase ─── */
+  async function getScores() {
+    try {
+      const r = await fetch(DB_URL + '/scores/' + QUIZ_TYPE + '.json');
+      const d = await r.json();
+      return Array.isArray(d) ? d : [];
+    } catch { return []; }
+  }
+  async function saveScore() {
+    const inp = document.getElementById('player-name');
+    const name = inp.value.trim();
+    if (!name) { inp.style.outline = '3px solid #ef4444'; inp.focus(); return; }
+    inp.style.outline = '';
+    const scores = await getScores();
+    scores.push({ name, ms: finalMs, date: new Date().toLocaleDateString('cs-CZ') });
+    scores.sort((a, b) => a.ms - b.ms);
+    try {
+      await fetch(DB_URL + '/scores/' + QUIZ_TYPE + '.json', {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(scores.slice(0, 10))
+      });
+    } catch {}
+    renderLeaderboard('lb-end');
+    document.getElementById('name-card').style.display = 'none';
+    inp.value = '';
+  }
+  async function renderLeaderboard(elId) {
+    const el = document.getElementById(elId);
+    el.innerHTML = '<li class="lb-empty">Načítám…</li>';
+    const scores = await getScores();
+    if (!scores.length) { el.innerHTML = '<li class="lb-empty">Zatím žádné výsledky.</li>'; return; }
+    el.innerHTML = scores.map((s, i) => `<li>
+      <span class="lb-rank">${i+1}.</span>
+      <span class="lb-name">${esc(s.name)}</span>
+      <span class="lb-time">${fmtTime(s.ms)}</span></li>`).join('');
+  }
+  function fmtTime(ms) { const s = Math.floor(ms/1000); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); }
+  function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  /* ─── Game state ─── */
+  let roundIndex = 0, pattern = [], slotContents = [];
+  let timerInterval = null, startTime = 0;
+  let blocked = false;
+  let floatEl = null, dragPiecePos = null, dragSrcEl = null;
+  let dragOffX = 0, dragOffY = 0;
+
+  function shuffle(a) {
+    a = [...a]; for (let i = a.length-1; i>0; i--) { const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a;
+  }
+
+  function startGame() {
+    document.getElementById('name-card').style.display = '';
+    clearInterval(timerInterval);
+    roundIndex = 0; blocked = false;
+    generatedRounds = generateRounds();
+    showScreen('screen-game');
+    startTime = Date.now();
+    timerInterval = setInterval(() => {
+      document.getElementById('timer-display').textContent = fmtTime(Date.now() - startTime);
+    }, 500);
+    loadRound();
+  }
+
+  function updateDots() {
+    const wrap = document.getElementById('round-dots');
+    wrap.innerHTML = '';
+    for (let i = 0; i < 5; i++) {
+      const d = document.createElement('div');
+      d.className = 'round-dot' + (i < roundIndex ? ' done' : i === roundIndex ? ' active' : '');
+      wrap.appendChild(d);
+    }
+  }
+
+  function loadRound() {
+    blocked = false;
+    slotContents = [null, null, null];
+    const cfg = generatedRounds[roundIndex];
+    pattern = shuffle([...cfg.pool]);
+    updateDots();
+    clearSlots();
+    buildTray(cfg);
+    showRefCard(pattern, cfg.colors);
+  }
+
+  function clearSlots() {
+    [0,1,2].forEach(i => {
+      const s = document.getElementById('slot-'+i);
+      s.innerHTML = '';
+      s.className = 'slot';
+    });
+  }
+
+  function buildTray(cfg) {
+    const tray = document.getElementById('shape-tray');
+    tray.innerHTML = '';
+    shuffle([0, 1, 2]).forEach(pos => {
+      const type = pattern[pos];
+      const color = cfg.colors[pos];
+      const el = document.createElement('div');
+      el.className = 'shape-piece';
+      el.id = 'piece-pos-' + pos;
+      el.innerHTML = shapeSVG(type, color, 96, pos === 0);
+      el.addEventListener('pointerdown', e => onPieceDown(e, pos, type, color));
+      tray.appendChild(el);
+    });
+  }
+
+  /* ─── Reference card ─── */
+  function showRefCard(pat, colors) {
+    removeRefCard();
+    blocked = true;
+    const card = document.createElement('div');
+    card.className = 'ref-card';
+    card.id = 'ref-card';
+    card.innerHTML = `<div class="ref-card-label">Zapamatuj si panáčka!</div>
+      <div class="ref-stick-wrap">` +
+      pat.map((t, i) => `<div class="ref-shape">${shapeSVG(t, colors[i], 90, i === 0)}</div>`).join('') +
+      `</div>`;
+    document.body.appendChild(card);
+    setTimeout(() => {
+      removeRefCard();
+      blocked = false;
+    }, 4000);
+  }
+
+  function removeRefCard() {
+    const old = document.getElementById('ref-card');
+    if (old) old.remove();
+  }
+
+  /* ─── Drag ─── */
+  function onPieceDown(e, pos, type, color) {
+    if (blocked || slotContents.includes(pos)) return;
+    e.preventDefault();
+
+    dragPiecePos = pos;
+    dragSrcEl = document.getElementById('piece-pos-' + pos);
+    dragSrcEl.classList.add('dragging-src');
+
+    const rect = dragSrcEl.getBoundingClientRect();
+    dragOffX = e.clientX - rect.left;
+    dragOffY = e.clientY - rect.top;
+
+    floatEl = document.createElement('div');
+    floatEl.className = 'shape-float';
+    floatEl.innerHTML = shapeSVG(type, color, 96, pos === 0);
+    floatEl.style.left = (e.clientX - dragOffX) + 'px';
+    floatEl.style.top  = (e.clientY - dragOffY) + 'px';
+    document.body.appendChild(floatEl);
+
+    document.addEventListener('pointermove', onPointerMove);
+    document.addEventListener('pointerup',   onPointerUp);
+    dragSrcEl.setPointerCapture(e.pointerId);
+  }
+
+  function onPointerMove(e) {
+    if (!floatEl) return;
+    floatEl.style.left = (e.clientX - dragOffX) + 'px';
+    floatEl.style.top  = (e.clientY - dragOffY) + 'px';
+    // Highlight nearest slot
+    const nearest = getNearestSlot(e.clientX, e.clientY, 100);
+    [0,1,2].forEach(i => {
+      const s = document.getElementById('slot-'+i);
+      s.classList.toggle('highlight', i === nearest && !slotContents[i]);
+    });
+  }
+
+  function onPointerUp(e) {
+    document.removeEventListener('pointermove', onPointerMove);
+    document.removeEventListener('pointerup',   onPointerUp);
+    [0,1,2].forEach(i => document.getElementById('slot-'+i).classList.remove('highlight'));
+
+    if (floatEl) { floatEl.remove(); floatEl = null; }
+    if (dragSrcEl) dragSrcEl.classList.remove('dragging-src');
+
+    const slotIdx = getNearestSlot(e.clientX, e.clientY, 110);
+    if (slotIdx !== -1 && slotContents[slotIdx] === null) {
+      placeInSlot(slotIdx, dragPiecePos);
+    }
+    dragPiecePos = null; dragSrcEl = null;
+  }
+
+  function getNearestSlot(x, y, maxDist) {
+    let best = -1, bestDist = maxDist;
+    [0,1,2].forEach(i => {
+      const s = document.getElementById('slot-'+i);
+      const r = s.getBoundingClientRect();
+      const cx = r.left + r.width/2, cy = r.top + r.height/2;
+      const d = Math.sqrt((x-cx)**2 + (y-cy)**2);
+      if (d < bestDist) { bestDist = d; best = i; }
+    });
+    return best;
+  }
+
+  function placeInSlot(slotIdx, pos) {
+    const cfg = generatedRounds[roundIndex];
+    slotContents[slotIdx] = pos;
+
+    const type = pattern[pos];
+    const color = cfg.colors[pos];
+    const slot = document.getElementById('slot-'+slotIdx);
+    slot.innerHTML = shapeSVG(type, color, 96, pos === 0);
+    slot.classList.add('filled');
+
+    // Mark piece as used
+    const piece = document.getElementById('piece-pos-' + pos);
+    if (piece) piece.classList.add('used');
+
+    // Check if all filled
+    if (slotContents.every(s => s !== null)) {
+      blocked = true;
+      setTimeout(checkPattern, 200);
+    }
+  }
+
+  function checkPattern() {
+    const correct = slotContents.every((pos, i) => pos === i);
+    if (correct) {
+      // Celebrate each slot
+      [0,1,2].forEach((i, delay) => {
+        setTimeout(() => {
+          document.getElementById('slot-'+i).classList.add('celebrate');
+        }, i * 100);
+      });
+      showCelebration();
+      setTimeout(() => {
+        hideCelebration();
+        roundIndex++;
+        if (roundIndex >= 5) {
+          endGame();
+        } else {
+          removeRefCard();
+          loadRound();
+        }
+      }, 1400);
+    } else {
+      // Shake wrong slots, return shapes
+      slotContents.forEach((pos, i) => {
+        if (pos !== i) {
+          const s = document.getElementById('slot-'+i);
+          s.classList.add('wrong-flash');
+          setTimeout(() => s.classList.remove('wrong-flash'), 450);
+        }
+      });
+      setTimeout(() => {
+        resetSlots();
+        showRefCard(pattern, generatedRounds[roundIndex].colors);
+      }, 700);
+    }
+  }
+
+  function resetSlots() {
+    slotContents = [null, null, null];
+    clearSlots();
+    document.querySelectorAll('.shape-piece').forEach(p => p.classList.remove('used'));
+    blocked = false;
+  }
+
+  let celebEl = null;
+  function showCelebration() {
+    celebEl = document.createElement('div');
+    celebEl.className = 'celebrate-overlay';
+    celebEl.innerHTML = `<div class="celebrate-text">Výborně!</div><div class="celebrate-stars">⭐⭐⭐</div>`;
+    document.body.appendChild(celebEl);
+  }
+  function hideCelebration() {
+    if (celebEl) { celebEl.remove(); celebEl = null; }
+  }
+
+  function endGame() {
+    clearInterval(timerInterval);
+    removeRefCard();
+    finalMs = Date.now() - startTime;
+    document.getElementById('result-score').textContent = '🎉 5 panáčků složeno!';
+    document.getElementById('result-time').textContent  = 'Čas: ' + fmtTime(finalMs);
+    showScreen('screen-result');
+    renderLeaderboard('lb-end');
+  }
+
+  renderLeaderboard('lb-start');
+</script>
+</body>
+</html>

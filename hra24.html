@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ukliď slova</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ─── SCREENS ─── */
+    .screen { display: none; }
+    .screen.active { display: flex; flex-direction: column; align-items: center; }
+
+    /* ─── START ─── */
+    #screen-start { min-height: 100vh; padding: 48px 16px 40px; }
+    .start-icon { font-size: 5rem; margin-bottom: 12px; }
+    .start-title { font-size: 2rem; font-weight: 800; color: #fff; text-align: center; margin-bottom: 10px; }
+    .start-desc { color: rgba(255,255,255,0.85); text-align: center; font-size: 1rem; max-width: 340px; margin-bottom: 28px; }
+    .btn-play {
+      display: block; width: 100%; max-width: 380px; text-align: center; padding: 18px;
+      background: #fff; color: #1b5e20; font-size: 1.15rem; font-weight: 800;
+      border: none; border-radius: 14px; cursor: pointer; text-decoration: none;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.2); margin-bottom: 14px;
+    }
+    .btn-play:hover { background: #f0f0f0; }
+    .back-link {
+      display: block; width: 100%; max-width: 380px; text-align: center; padding: 18px;
+      color: rgba(255,255,255,0.9); text-decoration: none; font-size: 0.95rem; font-weight: 700;
+      margin-bottom: 32px; border: 2px solid rgba(255,255,255,0.45); border-radius: 14px; outline: none;
+    }
+    .back-link:hover { color: #fff; border-color: rgba(255,255,255,0.75); }
+
+    /* ─── LEADERBOARD ─── */
+    .lb-card { width: 100%; max-width: 420px; background: rgba(0,0,0,0.2); border-radius: 16px; padding: 18px 20px; }
+    .lb-title { color: rgba(255,255,255,0.7); font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px; }
+    .lb-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .lb-list li { display: flex; align-items: center; gap: 10px; color: #fff; font-size: 0.95rem; }
+    .lb-rank { color: rgba(255,255,255,0.5); font-size: 0.8rem; width: 20px; }
+    .lb-name { flex: 1; font-weight: 600; }
+    .lb-time { font-variant-numeric: tabular-nums; color: rgba(255,255,255,0.85); }
+    .lb-empty { color: rgba(255,255,255,0.5); font-size: 0.9rem; }
+
+    /* ─── HOME BUTTON ─── */
+    .btn-home-fixed {
+      position: fixed; top: 12px; right: 12px; z-index: 200;
+      background: rgba(0,0,0,0.25); border: none; border-radius: 10px;
+      padding: 7px 14px; color: #fff; font-family: inherit;
+      font-size: 0.85rem; font-weight: 700; text-decoration: none; cursor: pointer;
+    }
+    .btn-home-fixed:hover { background: rgba(0,0,0,0.4); }
+
+    /* ─── GAME SCREEN ─── */
+    #screen-game { min-height: 100vh; padding: 52px 16px 24px; justify-content: flex-start; }
+
+    .game-header {
+      width: 100%; max-width: 480px;
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 18px;
+    }
+    .game-timer, .game-progress {
+      background: rgba(0,0,0,0.2); border-radius: 10px;
+      padding: 6px 16px; color: #fff; font-size: 1.05rem; font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Word stage */
+    .word-stage {
+      width: 100%; max-width: 480px;
+      display: flex; align-items: center; justify-content: center;
+      height: 110px; margin-bottom: 20px;
+      position: relative;
+    }
+    .word-card {
+      background: #fff; border-radius: 20px;
+      padding: 22px 36px; min-width: 160px; max-width: 260px;
+      text-align: center; font-size: 1.55rem; font-weight: 800; color: #1a3a1c;
+      box-shadow: 0 8px 28px rgba(0,0,0,0.28);
+      cursor: grab; user-select: none; touch-action: none; word-break: break-word;
+      position: relative; z-index: 10;
+    }
+    .word-card:active { cursor: grabbing; }
+
+    /* Hand hint animation */
+    .drag-hand {
+      position: absolute;
+      font-size: 2.6rem;
+      pointer-events: none;
+      z-index: 20;
+      opacity: 0;
+      animation: handDrag 1.8s ease-in-out 0.6s forwards;
+    }
+    @keyframes handDrag {
+      0%   { transform: translate(0px,   0px);  opacity: 0; }
+      12%  { transform: translate(0px,   0px);  opacity: 1; }
+      55%  { transform: translate(30px, -35px); opacity: 1; }
+      80%  { transform: translate(30px, -35px); opacity: 0; }
+      100% { transform: translate(30px, -35px); opacity: 0; }
+    }
+
+    /* Baskets */
+    .baskets-row {
+      width: 100%; max-width: 480px;
+      display: flex; gap: 14px;
+    }
+    .basket { flex: 1; }
+    .basket-body {
+      width: 100%; border-radius: 22px;
+      background: rgba(0,0,0,0.2);
+      border: 3px solid transparent;
+      padding: 16px 10px 20px;
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+      min-height: 210px;
+      transition: background 0.15s, border-color 0.15s, transform 0.15s;
+    }
+    .basket-cat-name {
+      color: rgba(255,255,255,0.95); font-size: 0.95rem; font-weight: 800;
+      text-align: center;
+    }
+    /* Wrapper kolem košíku — ikonka jako nálepka přímo NA 🧺 */
+    .basket-emoji-wrap {
+      position: relative; display: inline-flex;
+      align-items: center; justify-content: center;
+    }
+    .basket-icon { font-size: 5.5rem; line-height: 1; }
+    .basket-cat-icon {
+      position: absolute; bottom: 2px; right: -6px;
+      width: 40px; height: 40px; border-radius: 50%;
+      background: rgba(255,255,255,0.95);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem; line-height: 1;
+    }
+
+    .basket-body.hovered {
+      background: rgba(255,255,255,0.22);
+      border-color: rgba(255,255,255,0.65);
+      transform: scale(1.05);
+    }
+    .basket-body.flash-ok  { background: rgba(34,197,94,0.5);  border-color: #22c55e; }
+    .basket-body.flash-err { background: rgba(239,68,68,0.4);   border-color: #ef4444; }
+
+    @media (max-width: 400px) {
+      .word-card { font-size: 1.3rem; padding: 18px 20px; }
+      .basket-icon { font-size: 4.5rem; }
+      .basket-body { min-height: 180px; }
+      .basket-cat-icon { width: 34px; height: 34px; font-size: 1.4rem; }
+    }
+
+    /* ─── RESULT SCREEN ─── */
+    #screen-result { min-height: 100vh; padding: 48px 16px 40px; }
+    .result-icon { font-size: 4rem; margin-bottom: 14px; }
+    .result-score { font-size: 1.8rem; font-weight: 800; color: #fff; margin-bottom: 8px; text-align: center; }
+    .result-time  { font-size: 1.1rem; color: rgba(255,255,255,0.8); margin-bottom: 24px; }
+
+    .name-card {
+      width: 100%; max-width: 420px;
+      background: rgba(0,0,0,0.2); border-radius: 16px;
+      padding: 18px 20px; margin-bottom: 16px;
+    }
+    .name-card p { color: rgba(255,255,255,0.8); font-size: 0.9rem; margin-bottom: 10px; }
+    .name-row { display: flex; gap: 8px; }
+    .name-row input {
+      flex: 1; padding: 12px 14px; border-radius: 10px; border: none;
+      font-size: 1rem; font-family: inherit; background: rgba(255,255,255,0.9);
+    }
+    .name-row input:focus { outline: none; }
+    .name-row button {
+      padding: 12px 20px; border-radius: 10px; border: none;
+      background: #fff; color: #1b5e20; font-weight: 800;
+      font-family: inherit; font-size: 1rem; cursor: pointer;
+    }
+    .name-row button:hover { background: #f0f0f0; }
+
+    .result-btns {
+      width: 100%; max-width: 380px;
+      display: flex; flex-direction: column; align-items: center;
+      margin-bottom: 24px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══ START ═══ -->
+<div id="screen-start" class="screen active">
+  <div class="start-icon">🧹</div>
+  <h1 class="start-title">Ukliď slova</h1>
+  <p class="start-desc">Přetáhni každé slovo do správného košíku co nejrychleji!</p>
+  <button class="btn-play" onclick="startGame()">▶ Hrát</button>
+  <a href="index.html" class="back-link">← Zpět na výběr her</a>
+  <div class="lb-card">
+    <div class="lb-title">Nejlepší časy</div>
+    <ul class="lb-list" id="lb-start"></ul>
+  </div>
+</div>
+
+<!-- ═══ GAME ═══ -->
+<div id="screen-game" class="screen">
+  <a href="index.html" class="btn-home-fixed">🏠 Domů</a>
+  <div class="game-header">
+    <div class="game-timer" id="timer-display">0:00</div>
+    <div class="game-progress" id="progress-display">0 / 10</div>
+  </div>
+
+  <div class="word-stage" id="word-stage">
+    <div class="word-card" id="word-card"></div>
+  </div>
+
+  <div class="baskets-row">
+    <div class="basket">
+      <div class="basket-body" id="basket-body-0">
+        <span class="basket-cat-name" id="cat-name-0"></span>
+        <div class="basket-emoji-wrap">
+          <span class="basket-icon">🧺</span>
+          <span class="basket-cat-icon" id="cat-icon-0"></span>
+        </div>
+      </div>
+    </div>
+    <div class="basket">
+      <div class="basket-body" id="basket-body-1">
+        <span class="basket-cat-name" id="cat-name-1"></span>
+        <div class="basket-emoji-wrap">
+          <span class="basket-icon">🧺</span>
+          <span class="basket-cat-icon" id="cat-icon-1"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ RESULT ═══ -->
+<div id="screen-result" class="screen">
+  <div class="result-icon">🧹</div>
+  <div class="result-score" id="result-score"></div>
+  <div class="result-time" id="result-time"></div>
+  <div class="name-card" id="name-card">
+    <p>Zadej jméno pro uložení do žebříčku:</p>
+    <div class="name-row">
+      <input id="player-name" type="text" placeholder="Tvoje jméno" maxlength="20"/>
+      <button onclick="saveScore()">Uložit</button>
+    </div>
+  </div>
+  <div class="result-btns">
+    <button class="btn-play" onclick="startGame()">▶ Hrát znovu</button>
+    <a href="index.html" class="back-link">← Zpět</a>
+  </div>
+  <div class="lb-card">
+    <div class="lb-title">Nejlepší časy</div>
+    <ul class="lb-list" id="lb-end"></ul>
+  </div>
+</div>
+
+<script>
+  const QUIZ_TYPE = 'czech-sweep';
+  const DB_URL = 'https://kids-games-3a167-default-rtdb.europe-west1.firebasedatabase.app';
+  let finalMs = 0;
+
+  const CATEGORIES = [
+    { icon: '🐶', name: 'Zvířata',   words: ['pes','kočka','kráva','žába','slon','lev','ryba','myš','tygr','medvěd','vlk','zajíc','liška','papoušek','had','krokodýl','žirafa','opice','koník','sova'] },
+    { icon: '🚗', name: 'Doprava',   words: ['auto','vlak','letadlo','loď','kolo','autobus','tramvaj','helikoptéra','traktor','motorka','taxi','skútr','ponorka','trolejbus','přívěs'] },
+    { icon: '🎨', name: 'Barvy',     words: ['červená','modrá','zelená','žlutá','bílá','černá','fialová','oranžová','růžová','hnědá','šedá','tyrkysová','zlatá','stříbrná','béžová'] },
+    { icon: '🍕', name: 'Jídlo',     words: ['chléb','polévka','zmrzlina','dort','sýr','vejce','rýže','pizza','palačinka','čokoláda','knedlík','jogurt','máslo','med','hamburger'] },
+    { icon: '👕', name: 'Oblečení',  words: ['tričko','kalhoty','bota','čepice','rukavice','sukně','kabát','šála','ponožky','šaty','svetr','pásek','sandál','plavky','pyžamo'] },
+    { icon: '🧸', name: 'Hračky',    words: ['míč','panenka','kostky','autíčko','puzzle','lego','medvídek','frisbee','jo-jo','pexeso','bublifuk','skákadlo','stavebnice','plyšák','drak'] },
+    { icon: '🌳', name: 'Příroda',   words: ['strom','květ','hora','řeka','moře','les','kámen','tráva','slunce','déšť','sníh','oblak','jezero','potok','louka'] },
+    { icon: '📚', name: 'Škola',     words: ['tužka','sešit','pravítko','guma','nůžky','pastelky','aktovka','kniha','tabule','pero','kružítko','atlas','obálka','lepidlo','papír'] },
+    { icon: '🏠', name: 'Domácnost', words: ['stůl','židle','postel','koberec','lampa','skříň','talíř','lžíce','hrnec','zrcadlo','polštář','deka','vana','kartáček','mýdlo'] },
+    { icon: '⚽', name: 'Sport',     words: ['fotbal','plavání','tenis','lyžování','basketbal','běhání','hokej','cyklistika','volejbal','golf','box','judo','atletika','šplh','skokan'] },
+    { icon: '🎵', name: 'Hudba',     words: ['piano','kytara','buben','flétna','housle','zpěv','trubka','harfa','klávesy','mikrofon','akordeon','xylofon','loutna','tuba','basy'] },
+    { icon: '🍊', name: 'Ovoce',     words: ['jablko','banán','jahoda','pomeranč','hrozny','třešně','meloun','ananas','broskev','kiwi','citron','malina','švestka','mango','fík'] },
+    { icon: '🥦', name: 'Zelenina',  words: ['mrkev','salát','brokolice','cibule','paprika','okurka','brambora','špenát','česnek','ředkvička','celer','pórek','hrách','fazole','dýně'] },
+  ];
+
+  function shuffle(a) {
+    a = [...a];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  /* ─── Firebase ─── */
+  async function getScores() {
+    try {
+      const r = await fetch(DB_URL + '/scores/' + QUIZ_TYPE + '.json');
+      const d = await r.json();
+      return Array.isArray(d) ? d : [];
+    } catch { return []; }
+  }
+
+  async function saveScore() {
+    const nameInput = document.getElementById('player-name');
+    const name = nameInput.value.trim();
+    if (!name) { nameInput.style.outline = '3px solid #ef4444'; nameInput.focus(); return; }
+    nameInput.style.outline = '';
+    const scores = await getScores();
+    scores.push({ name, ms: finalMs, date: new Date().toLocaleDateString('cs-CZ') });
+    scores.sort((a, b) => a.ms - b.ms);
+    const top10 = scores.slice(0, 10);
+    try {
+      await fetch(DB_URL + '/scores/' + QUIZ_TYPE + '.json', {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(top10)
+      });
+    } catch {}
+    renderLeaderboard('lb-end');
+    document.getElementById('name-card').style.display = 'none';
+    nameInput.value = '';
+  }
+
+  async function renderLeaderboard(elId) {
+    const el = document.getElementById(elId);
+    el.innerHTML = '<li class="lb-empty">Načítám…</li>';
+    const scores = await getScores();
+    if (!scores.length) { el.innerHTML = '<li class="lb-empty">Zatím žádné výsledky.</li>'; return; }
+    el.innerHTML = scores.map((s, i) => `
+      <li>
+        <span class="lb-rank">${i + 1}.</span>
+        <span class="lb-name">${esc(s.name)}</span>
+        <span class="lb-time">${fmtTime(s.ms)}</span>
+      </li>`).join('');
+  }
+
+  function fmtTime(ms) {
+    const s = Math.floor(ms / 1000);
+    return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+  }
+  function esc(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  /* ─── Game state ─── */
+  let cats = [], words = [], wordIndex = 0, correctCount = 0;
+  let timerInterval = null, startTime = 0;
+  let blocked = false, isDragging = false, curDX = 0, curDY = 0;
+
+  function startGame() {
+    document.getElementById('name-card').style.display = '';
+    clearInterval(timerInterval);
+    wordIndex = 0; correctCount = 0; blocked = false;
+
+    const shuffledCats = shuffle(CATEGORIES);
+    cats = [shuffledCats[0], shuffledCats[1]];
+
+    const w0 = shuffle(cats[0].words).slice(0, 5).map(w => ({ word: w, cat: 0 }));
+    const w1 = shuffle(cats[1].words).slice(0, 5).map(w => ({ word: w, cat: 1 }));
+    words = shuffle([...w0, ...w1]);
+
+    document.getElementById('cat-icon-0').textContent = cats[0].icon;
+    document.getElementById('cat-name-0').textContent = cats[0].name;
+    document.getElementById('cat-icon-1').textContent = cats[1].icon;
+    document.getElementById('cat-name-1').textContent = cats[1].name;
+
+    showScreen('screen-game');
+    renderCard();
+
+    startTime = Date.now();
+    timerInterval = setInterval(() => {
+      document.getElementById('timer-display').textContent = fmtTime(Date.now() - startTime);
+    }, 500);
+  }
+
+  function showHandHint() {
+    const stage = document.getElementById('word-stage');
+    const old = stage.querySelector('.drag-hand');
+    if (old) old.remove();
+    const hand = document.createElement('div');
+    hand.className = 'drag-hand';
+    hand.textContent = '🫳';
+    stage.appendChild(hand);
+    hand.addEventListener('animationend', () => hand.remove());
+  }
+
+  function renderCard() {
+    document.getElementById('progress-display').textContent = correctCount + ' / 10';
+    if (wordIndex >= words.length) { endGame(); return; }
+
+    const card = document.getElementById('word-card');
+    card.textContent = words[wordIndex].word;
+    card.style.cssText = '';
+    blocked = false;
+
+    if (wordIndex === 0) showHandHint();
+
+    setupDrag(card);
+  }
+
+  function setupDrag(card) {
+    let startX, startY;
+
+    card.onpointerdown = e => {
+      if (blocked) return;
+      isDragging = true;
+      startX = e.clientX; startY = e.clientY;
+      curDX = 0; curDY = 0;
+      card.setPointerCapture(e.pointerId);
+      card.style.transition = 'none';
+      card.style.zIndex = '50';
+      // Remove hand hint on first interaction
+      const hand = document.querySelector('.drag-hand');
+      if (hand) hand.remove();
+    };
+
+    card.onpointermove = e => {
+      if (!isDragging) return;
+      curDX = e.clientX - startX;
+      curDY = e.clientY - startY;
+      card.style.transform = `translate(${curDX}px,${curDY}px) rotate(${curDX * 0.04}deg)`;
+      highlightBasket(e.clientX, e.clientY);
+    };
+
+    card.onpointerup = e => {
+      if (!isDragging) return;
+      isDragging = false;
+      clearHighlights();
+      const side = getBasketAt(e.clientX, e.clientY);
+      if (side !== -1) classify(side);
+      else snapBack(card);
+    };
+
+    card.onpointercancel = () => {
+      isDragging = false;
+      clearHighlights();
+      snapBack(card);
+    };
+  }
+
+  function highlightBasket(x, y) {
+    [0, 1].forEach(i => {
+      const body = document.getElementById('basket-body-' + i);
+      const r = body.getBoundingClientRect();
+      body.classList.toggle('hovered', x >= r.left && x <= r.right && y >= r.top && y <= r.bottom);
+    });
+  }
+
+  function clearHighlights() {
+    [0, 1].forEach(i => document.getElementById('basket-body-' + i).classList.remove('hovered'));
+  }
+
+  function getBasketAt(x, y) {
+    for (let i = 0; i < 2; i++) {
+      const r = document.getElementById('basket-body-' + i).getBoundingClientRect();
+      if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) return i;
+    }
+    return -1;
+  }
+
+  function snapBack(card) {
+    card.style.transition = 'transform 0.35s cubic-bezier(0.34,1.56,0.64,1)';
+    card.style.transform = 'translate(0,0)';
+    card.style.zIndex = '';
+    setTimeout(() => { card.style.transition = ''; }, 360);
+  }
+
+  function classify(side) {
+    if (blocked) return;
+    blocked = true;
+    isDragging = false;
+
+    const card = document.getElementById('word-card');
+    const body = document.getElementById('basket-body-' + side);
+    const correct = words[wordIndex].cat === side;
+
+    if (correct) {
+      const cardRect = card.getBoundingClientRect();
+      const bodyRect = body.getBoundingClientRect();
+      const toX = curDX + (bodyRect.left + bodyRect.width  / 2) - (cardRect.left + cardRect.width  / 2);
+      const toY = curDY + (bodyRect.top  + bodyRect.height / 2) - (cardRect.top  + cardRect.height / 2);
+
+      card.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+      card.style.transform  = `translate(${toX}px,${toY}px) scale(0.12)`;
+      card.style.opacity    = '0';
+      body.classList.add('flash-ok');
+      correctCount++;
+      wordIndex++;
+
+      setTimeout(() => {
+        body.classList.remove('flash-ok');
+        renderCard();
+      }, 330);
+
+    } else {
+      body.classList.add('flash-err');
+      card.style.transition = 'none';
+      card.style.background = '#fee2e2';
+      card.style.transform  = `translate(${curDX + 14}px,${curDY}px)`;
+      setTimeout(() => {
+        card.style.transition = 'transform 0.35s cubic-bezier(0.34,1.56,0.64,1), background 0.3s';
+        card.style.transform  = 'translate(0,0)';
+        card.style.background = '';
+        card.style.zIndex     = '';
+        setTimeout(() => {
+          body.classList.remove('flash-err');
+          card.style.transition = '';
+          blocked = false;
+        }, 370);
+      }, 120);
+    }
+  }
+
+  function endGame() {
+    clearInterval(timerInterval);
+    finalMs = Date.now() - startTime;
+    document.getElementById('result-score').textContent = '✅ Hotovo!';
+    document.getElementById('result-time').textContent  = 'Čas: ' + fmtTime(finalMs);
+    showScreen('screen-result');
+    renderLeaderboard('lb-end');
+  }
+
+  renderLeaderboard('lb-start');
+</script>
+</body>
+</html>

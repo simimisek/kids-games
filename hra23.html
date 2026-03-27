@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-KEF2T80GE0"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-KEF2T80GE0');
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Obchůdek s mincemi | Vzdělávací hry</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #1a237e 0%, #0277bd 100%);
+      min-height: 100vh;
+      color: #fff;
+      overflow-x: hidden;
+    }
+
+    /* ─── SCREENS ─── */
+    .screen { display: none; }
+    .screen.active {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 48px 16px 60px;
+    }
+
+    /* ─── HOME BUTTON ─── */
+    .btn-home-fixed {
+      position: fixed; top: 12px; right: 12px; z-index: 200;
+      background: rgba(0,0,0,0.25); border: none; border-radius: 10px;
+      padding: 7px 14px; color: #fff; font-family: inherit;
+      font-size: 0.85rem; font-weight: 700; text-decoration: none; cursor: pointer;
+    }
+    .btn-home-fixed:hover { background: rgba(0,0,0,0.4); }
+
+    /* ─── START / RESULT SHARED ─── */
+    .start-icon  { font-size: 5rem; margin-bottom: 8px; }
+    .start-title { font-size: 2rem; font-weight: 800; text-align: center; margin-bottom: 10px; }
+    .start-desc  {
+      font-size: 1rem; color: rgba(255,255,255,0.85); text-align: center;
+      max-width: 340px; line-height: 1.6; margin-bottom: 28px;
+    }
+
+    /* ─── BUTTONS ─── */
+    .btn-play {
+      display: block; width: 100%; max-width: 380px; text-align: center;
+      background: linear-gradient(135deg, #FFD600, #FF6B00);
+      border: none; border-radius: 16px; padding: 18px;
+      font-size: 1.3rem; font-weight: 800; color: #fff; cursor: pointer;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.3); font-family: inherit;
+      transition: transform 0.12s, box-shadow 0.12s;
+    }
+    .btn-play:hover  { transform: translateY(-3px); box-shadow: 0 10px 32px rgba(0,0,0,0.35); }
+    .btn-play:active { transform: translateY(0); }
+
+    .back-link {
+      display: block; width: 100%; max-width: 380px; text-align: center;
+      color: rgba(255,255,255,0.9); font-size: 1.3rem; font-weight: 700;
+      padding: 18px; border-radius: 16px; text-decoration: none;
+      border: 2px solid rgba(255,255,255,0.32);
+      margin-top: 12px; margin-bottom: 32px;
+      transition: background 0.15s;
+    }
+    .back-link:hover { background: rgba(255,255,255,0.1); color: #fff; }
+
+    /* ─── LEADERBOARD ─── */
+    .lb-card {
+      width: 100%; max-width: 380px;
+      background: rgba(255,255,255,0.12);
+      border: 2px solid rgba(255,255,255,0.2);
+      border-radius: 16px; padding: 20px; margin-bottom: 20px;
+    }
+    .lb-title { font-size: 1rem; font-weight: 700; color: rgba(255,255,255,0.9); margin-bottom: 12px; text-align: center; }
+    .lb-list  { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+    .lb-list li { display: flex; align-items: center; gap: 10px; color: #fff; font-size: 0.92rem; }
+    .lb-rank  { min-width: 24px; font-weight: 700; color: rgba(255,255,255,0.6); }
+    .lb-name  { flex: 1; }
+    .lb-time  { font-weight: 700; color: #FFD600; white-space: nowrap; }
+    .lb-empty { color: rgba(255,255,255,0.5); font-style: italic; text-align: center; width: 100%; }
+
+    /* ─── GAME SCREEN ─── */
+    #screen-game.active { padding: 52px 16px 36px; }
+
+    .game-header {
+      width: 100%; max-width: 420px;
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 16px; padding-right: 70px;
+    }
+    .round-badge {
+      background: rgba(255,255,255,0.2); border-radius: 8px;
+      padding: 6px 14px; color: #fff; font-size: 0.95rem; font-weight: 700;
+    }
+    .timer-text { color: #FFD600; font-size: 1.1rem; font-weight: 800; }
+
+    /* ─── ITEM CARD ─── */
+    .item-card {
+      width: 100%; max-width: 420px;
+      background: rgba(255,255,255,0.15);
+      border: 2px solid rgba(255,255,255,0.25);
+      border-radius: 20px; padding: 20px 16px;
+      text-align: center; margin-bottom: 16px;
+    }
+    .item-emoji { font-size: 4.5rem; line-height: 1; margin-bottom: 6px; display: block; }
+    .item-name  { font-size: 1.1rem; font-weight: 700; opacity: 0.85; margin-bottom: 4px; }
+    .item-price { font-size: 2.8rem; font-weight: 900; color: #FFD600; }
+
+    /* ─── AMOUNT DISPLAY ─── */
+    .amount-section {
+      width: 100%; max-width: 420px; margin-bottom: 16px;
+    }
+    .amount-bar-outer {
+      height: 14px; background: rgba(255,255,255,0.15);
+      border-radius: 7px; margin-bottom: 10px; overflow: hidden;
+    }
+    .amount-bar-inner {
+      height: 100%; border-radius: 7px;
+      background: linear-gradient(90deg, #4caf50, #8bc34a);
+      transition: width 0.18s ease, background 0.18s;
+      width: 0%;
+    }
+    .amount-bar-inner.over { background: linear-gradient(90deg, #ef4444, #dc2626); }
+    .amount-text {
+      display: flex; align-items: baseline; justify-content: center; gap: 6px;
+      font-size: 1rem; font-weight: 600; color: rgba(255,255,255,0.85);
+    }
+    .amount-num { color: #FFD600; font-size: 2rem; font-weight: 900; }
+    .amount-sep { opacity: 0.5; }
+
+    /* ─── COINS ─── */
+    .coins-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 10px; width: 100%; max-width: 420px; margin-bottom: 12px;
+    }
+    .coin-btn {
+      aspect-ratio: 1; border: none; border-radius: 50%; cursor: pointer;
+      font-family: inherit; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      box-shadow: 0 5px 14px rgba(0,0,0,0.4), inset 0 2px 5px rgba(255,255,255,0.35);
+      transition: transform 0.1s, box-shadow 0.1s;
+      touch-action: manipulation; user-select: none;
+    }
+    .coin-btn:active  { transform: scale(0.9); box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
+    .coin-btn:hover   { transform: translateY(-2px); }
+    .coin-1  { background: radial-gradient(circle at 38% 32%, #e8e8e8, #9e9e9e); }
+    .coin-2  { background: radial-gradient(circle at 38% 32%, #eceff1, #607d8b); }
+    .coin-5  { background: radial-gradient(circle at 38% 32%, #fff59d, #f9a825); }
+    .coin-10 { background: radial-gradient(circle at 38% 32%, #ffd54f, #e65100); }
+    .coin-val   { font-size: 1.6rem; font-weight: 900; line-height: 1; color: #1a237e; }
+    .coin-label { font-size: 0.62rem; font-weight: 700; opacity: 0.65; color: #1a237e; letter-spacing: 0.03em; }
+
+    /* ─── RESET BUTTON ─── */
+    .btn-reset {
+      display: block; width: 100%; max-width: 420px;
+      background: rgba(255,255,255,0.1);
+      border: 2px solid rgba(255,255,255,0.22); border-radius: 12px;
+      padding: 13px; color: #fff; font-family: inherit;
+      font-size: 1rem; font-weight: 700; cursor: pointer;
+      transition: background 0.15s; min-height: 44px;
+    }
+    .btn-reset:hover { background: rgba(255,255,255,0.2); }
+
+    /* ─── FLASH OVERLAY ─── */
+    .flash-overlay { position: fixed; inset: 0; z-index: 300; pointer-events: none; opacity: 0; }
+    .flash-correct { background: rgba(34,197,94,0.32); }
+    .flash-wrong   { background: rgba(239,68,68,0.35); }
+    .flash-show    { animation: flashAnim 0.45s ease-out forwards; }
+    @keyframes flashAnim { 0% { opacity: 1; } 100% { opacity: 0; } }
+
+    /* ─── RESULT SCREEN ─── */
+    .result-icon     { font-size: 4rem; margin-bottom: 14px; }
+    .result-score    { font-size: 2.2rem; font-weight: 900; color: #fff; text-align: center; margin-bottom: 6px; }
+    .result-subtitle { font-size: 1rem; color: rgba(255,255,255,0.7); text-align: center; margin-bottom: 6px; }
+    .result-time     { font-size: 1rem; color: rgba(255,255,255,0.65); text-align: center; margin-bottom: 28px; }
+
+    .name-card {
+      width: 100%; max-width: 380px;
+      background: rgba(255,255,255,0.12);
+      border: 2px solid rgba(255,255,255,0.2);
+      border-radius: 16px; padding: 20px; margin-bottom: 20px;
+    }
+    .name-label { font-size: 0.9rem; color: rgba(255,255,255,0.8); margin-bottom: 8px; }
+    .name-row   { display: flex; gap: 10px; align-items: stretch; }
+    .name-input {
+      flex: 1; min-width: 0; padding: 12px 14px; border-radius: 10px;
+      border: 2px solid rgba(255,255,255,0.3);
+      background: rgba(255,255,255,0.15); color: #fff;
+      font-family: inherit; font-size: 1rem; outline: none;
+    }
+    .name-input::placeholder { color: rgba(255,255,255,0.4); }
+    .name-input:focus { border-color: #FFD600; background: rgba(255,255,255,0.22); }
+    .btn-save {
+      flex-shrink: 0; white-space: nowrap;
+      background: linear-gradient(135deg, #FFD600, #FF6B00);
+      border: none; border-radius: 12px; padding: 12px 18px;
+      font-size: 1rem; font-weight: 800; color: #fff; cursor: pointer;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.25); transition: transform 0.12s;
+      font-family: inherit;
+    }
+    .btn-save:hover { transform: translateY(-2px); }
+
+    .result-btns {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 12px; width: 100%; max-width: 380px; margin-bottom: 32px;
+    }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 400px) {
+      .start-title  { font-size: 1.65rem; }
+      .start-desc   { font-size: 0.9rem; }
+      .btn-play     { font-size: 1.1rem; }
+      .back-link    { font-size: 1.1rem; }
+      .item-emoji   { font-size: 3.8rem; }
+      .item-price   { font-size: 2.2rem; }
+      .coin-val     { font-size: 1.3rem; }
+      .amount-num   { font-size: 1.6rem; }
+      .result-score { font-size: 1.9rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="flash-overlay" id="flash-overlay"></div>
+
+<!-- ═══════════════ START SCREEN ═══════════════ -->
+<div id="screen-start" class="screen active">
+
+  <div class="start-icon">🪙</div>
+  <div class="start-title">Obchůdek s mincemi</div>
+  <div class="start-desc">
+    Nakup 5 věcí v obchůdku!<br>
+    Klikej na mince a dej přesnou částku.<br>
+    Napočítáš-li víc, zmáčkni ↩ Smazat vše a zkus znovu.
+  </div>
+
+  <button class="btn-play" onclick="startGame()">▶ Hrát</button>
+  <a href="index.html" class="back-link">← Zpět na výběr her</a>
+
+  <div class="lb-card">
+    <div class="lb-title">🏆 Nejlepší časy</div>
+    <ol class="lb-list" id="lb-start"><li class="lb-empty">Načítám…</li></ol>
+  </div>
+</div>
+
+<!-- ═══════════════ GAME SCREEN ═══════════════ -->
+<div id="screen-game" class="screen">
+  <a href="index.html" class="btn-home-fixed">🏠 Domů</a>
+
+  <div class="game-header">
+    <div class="round-badge" id="round-badge">Nákup 1 / 5</div>
+    <div class="timer-text"  id="timer-text">0:00</div>
+  </div>
+
+  <div class="item-card">
+    <span class="item-emoji" id="item-emoji">🍭</span>
+    <div class="item-name"   id="item-name">Lízátko</div>
+    <div class="item-price"  id="item-price">8 Kč</div>
+  </div>
+
+  <div class="amount-section">
+    <div class="amount-bar-outer">
+      <div class="amount-bar-inner" id="amount-bar"></div>
+    </div>
+    <div class="amount-text">
+      Vloženo:&nbsp;<span class="amount-num" id="amount-num">0</span>&nbsp;<span class="amount-sep">Kč</span>
+    </div>
+  </div>
+
+  <div class="coins-grid">
+    <button class="coin-btn coin-1"  onclick="addCoin(1)">
+      <span class="coin-val">1</span><span class="coin-label">Kč</span>
+    </button>
+    <button class="coin-btn coin-2"  onclick="addCoin(2)">
+      <span class="coin-val">2</span><span class="coin-label">Kč</span>
+    </button>
+    <button class="coin-btn coin-5"  onclick="addCoin(5)">
+      <span class="coin-val">5</span><span class="coin-label">Kč</span>
+    </button>
+    <button class="coin-btn coin-10" onclick="addCoin(10)">
+      <span class="coin-val">10</span><span class="coin-label">Kč</span>
+    </button>
+  </div>
+
+  <button class="btn-reset" onclick="resetCoins()">↩ Smazat vše</button>
+</div>
+
+<!-- ═══════════════ RESULT SCREEN ═══════════════ -->
+<div id="screen-result" class="screen">
+
+  <div class="result-icon"     id="result-icon">⭐</div>
+  <div class="result-score"    id="result-score">Nakoupeno: 5 / 5</div>
+  <div class="result-subtitle" id="result-subtitle"></div>
+  <div class="result-time"     id="result-time">Čas: 0:00</div>
+
+  <div class="name-card" id="name-card">
+    <div class="name-label">Zadej jméno a ulož výsledek:</div>
+    <div class="name-row">
+      <input type="text" class="name-input" id="player-name"
+             placeholder="Tvoje jméno…" maxlength="30" />
+      <button class="btn-save" onclick="saveScore()">Uložit</button>
+    </div>
+  </div>
+
+  <div class="result-btns">
+    <button class="btn-play" onclick="startGame()">▶ Hrát znovu</button>
+    <a href="index.html" class="back-link" style="margin:0">← Zpět na výběr her</a>
+  </div>
+
+  <div class="lb-card">
+    <div class="lb-title">🏆 Nejlepší časy</div>
+    <ol class="lb-list" id="lb-end"><li class="lb-empty">Načítám…</li></ol>
+  </div>
+</div>
+
+<script>
+// ─── CONFIG ───────────────────────────────────────────────────────────────────
+const QUIZ_TYPE = 'math-shop';
+const DB_URL    = 'https://kids-games-3a167-default-rtdb.europe-west1.firebasedatabase.app';
+
+const SHOP_ROUNDS = [
+  { min:  6, max: 10, items: [['🍭','Lízátko'],['🧁','Muffin'],['🍎','Jablko'],['🎈','Balónek'],['🍬','Bonbón']] },
+  { min: 11, max: 20, items: [['🍦','Zmrzlina'],['🧸','Medvídek'],['✏️','Tužka'],['🍕','Pizza'],['🎨','Pastelky']] },
+  { min: 21, max: 30, items: [['🚂','Vláček'],['🪆','Panenka'],['🍰','Dortík'],['🪀','Jojo'],['🎭','Maska']] },
+  { min: 31, max: 40, items: [['🎮','Hra'],['🎯','Terč'],['🎺','Trubka'],['🚁','Vrtulník'],['🎸','Kytara']] },
+  { min: 41, max: 50, items: [['🚀','Raketa'],['🦄','Jednorožec'],['🎠','Kolotoč'],['🏆','Trofej'],['🎪','Cirkus']] },
+];
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let roundIndex    = 0;
+let currentAmount = 0;
+let targetPrice   = 0;
+let bought        = 0;
+let phase         = 'idle';
+let timerInterval = null;
+let startMs       = 0;
+let finalMs       = 0;
+
+// ─── FIREBASE / LEADERBOARD ───────────────────────────────────────────────────
+async function getScores() {
+  try {
+    const r = await fetch(DB_URL + '/scores/' + QUIZ_TYPE + '.json');
+    const d = await r.json();
+    return Array.isArray(d) ? d : [];
+  } catch { return []; }
+}
+
+async function saveScore() {
+  const inp  = document.getElementById('player-name');
+  const name = inp.value.trim();
+  if (!name) { inp.style.outline = '3px solid #ef4444'; inp.focus(); return; }
+  inp.style.outline = '';
+  const scores = await getScores();
+  scores.push({ name, ms: finalMs, date: new Date().toLocaleDateString('cs-CZ') });
+  scores.sort((a, b) => a.ms - b.ms);
+  try {
+    await fetch(DB_URL + '/scores/' + QUIZ_TYPE + '.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(scores.slice(0, 10)),
+    });
+  } catch {}
+  renderLeaderboard('lb-end');
+  document.getElementById('name-card').style.display = 'none';
+  inp.value = '';
+}
+
+async function renderLeaderboard(elId) {
+  const el = document.getElementById(elId);
+  el.innerHTML = '<li class="lb-empty">Načítám…</li>';
+  const scores = await getScores();
+  if (!scores.length) { el.innerHTML = '<li class="lb-empty">Zatím žádné výsledky.</li>'; return; }
+  el.innerHTML = scores.map((s, i) => `
+    <li>
+      <span class="lb-rank">${i + 1}.</span>
+      <span class="lb-name">${esc(s.name)}</span>
+      <span class="lb-time">${fmtTime(s.ms)}</span>
+    </li>`).join('');
+}
+
+function esc(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function fmtTime(ms) {
+  const s = Math.floor(ms / 1000);
+  return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+}
+
+// ─── SCREENS ──────────────────────────────────────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ─── TIMER ────────────────────────────────────────────────────────────────────
+function startTimer() {
+  startMs = Date.now();
+  timerInterval = setInterval(() => {
+    document.getElementById('timer-text').textContent = fmtTime(Date.now() - startMs);
+  }, 500);
+}
+function stopTimer() {
+  clearInterval(timerInterval);
+  finalMs = Date.now() - startMs;
+}
+
+// ─── GAME FLOW ────────────────────────────────────────────────────────────────
+function startGame() {
+  document.getElementById('name-card').style.display = '';
+  roundIndex    = 0;
+  bought        = 0;
+  currentAmount = 0;
+  phase         = 'input';
+  clearInterval(timerInterval);
+  startTimer();
+  showScreen('screen-game');
+  startRound();
+}
+
+function startRound() {
+  currentAmount = 0;
+  phase = 'input';
+
+  const rd   = SHOP_ROUNDS[roundIndex];
+  const item = rd.items[Math.floor(Math.random() * rd.items.length)];
+  targetPrice = rd.min + Math.floor(Math.random() * (rd.max - rd.min + 1));
+
+  document.getElementById('round-badge').textContent = `Nákup ${roundIndex + 1} / 5`;
+  document.getElementById('item-emoji').textContent  = item[0];
+  document.getElementById('item-name').textContent   = item[1];
+  document.getElementById('item-price').textContent  = targetPrice + ' Kč';
+
+  updateDisplay();
+}
+
+function endGame() {
+  stopTimer();
+  phase = 'idle';
+
+  document.getElementById('result-icon').textContent     = '🏆';
+  document.getElementById('result-score').textContent    = 'Nakoupeno: 5 / 5';
+  document.getElementById('result-subtitle').textContent = 'Výborně, nakoupil jsi vše!';
+  document.getElementById('result-time').textContent     = 'Čas: ' + fmtTime(finalMs);
+  document.getElementById('name-card').style.display     = '';
+
+  showScreen('screen-result');
+  renderLeaderboard('lb-end');
+}
+
+// ─── COIN LOGIC ───────────────────────────────────────────────────────────────
+function addCoin(value) {
+  if (phase !== 'input') return;
+  currentAmount += value;
+  updateDisplay();
+  playSound('coin');
+
+  if (currentAmount === targetPrice) {
+    phase = 'checking';
+    flash('correct');
+    playSound('win');
+    bought++;
+    roundIndex++;
+    setTimeout(() => {
+      if (roundIndex >= 5) endGame();
+      else startRound();
+    }, 700);
+  } else if (currentAmount > targetPrice) {
+    flash('wrong');
+    playSound('wrong');
+    // Příliš mnoho — hráč může smazat vše a zkusit znovu
+  }
+}
+
+function resetCoins() {
+  if (phase !== 'input') return;
+  currentAmount = 0;
+  updateDisplay();
+}
+
+function updateDisplay() {
+  document.getElementById('amount-num').textContent = currentAmount;
+  const pct = targetPrice > 0 ? Math.min(currentAmount / targetPrice * 100, 100) : 0;
+  const bar = document.getElementById('amount-bar');
+  bar.style.width = pct + '%';
+  bar.classList.toggle('over', currentAmount > targetPrice);
+}
+
+// ─── FLASH ────────────────────────────────────────────────────────────────────
+function flash(type) {
+  const el = document.getElementById('flash-overlay');
+  el.className = 'flash-overlay flash-' + type;
+  void el.offsetWidth;
+  el.classList.add('flash-show');
+}
+
+// ─── SOUND ────────────────────────────────────────────────────────────────────
+let audioCtx = null;
+function getCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+function playSound(type) {
+  try {
+    const ctx = getCtx();
+    if (type === 'coin') {
+      const osc = ctx.createOscillator(), gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(1050, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(820, ctx.currentTime + 0.12);
+      gain.gain.setValueAtTime(0.07, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.18);
+      osc.start(); osc.stop(ctx.currentTime + 0.18);
+    } else if (type === 'win') {
+      [523, 659, 784, 1047].forEach((freq, i) => {
+        const osc = ctx.createOscillator(), gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.type = 'sine'; osc.frequency.value = freq;
+        const t = ctx.currentTime + i * 0.1;
+        gain.gain.setValueAtTime(0.18, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.32);
+        osc.start(t); osc.stop(t + 0.32);
+      });
+    } else if (type === 'wrong') {
+      const osc = ctx.createOscillator(), gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(280, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(140, ctx.currentTime + 0.38);
+      gain.gain.setValueAtTime(0.22, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.42);
+      osc.start(); osc.stop(ctx.currentTime + 0.42);
+    }
+  } catch {}
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+renderLeaderboard('lb-start');
+</script>
+</body>
+</html>
