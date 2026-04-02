@@ -474,7 +474,7 @@ async function getScores() {
     const d = await r.json();
     const scores = Array.isArray(d) ? d : [];
     const ym = new Date().getFullYear() + '-' + String(new Date().getMonth()+1).padStart(2,'0');
-    if (scores.some(s => s.month && s.month !== ym)) return [];
+    if (scores.some(s => !s.month || s.month !== ym)) return [];
     return scores;
   } catch { return []; }
 }

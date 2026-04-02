@@ -348,7 +348,10 @@ async function getScores() {
   try {
     const r = await fetch(DB_URL + '/scores/' + QUIZ_TYPE + '.json');
     const d = await r.json();
-    return Array.isArray(d) ? d : [];
+    const scores = Array.isArray(d) ? d : [];
+    const ym = new Date().getFullYear() + '-' + String(new Date().getMonth()+1).padStart(2,'0');
+    if (scores.some(s => !s.month || s.month !== ym)) return [];
+    return scores;
   } catch { return []; }
 }
 
@@ -358,7 +361,8 @@ async function saveScore() {
   if (!name) { inp.style.outline = '3px solid #ef4444'; inp.focus(); return; }
   inp.style.outline = '';
   const scores = await getScores();
-  scores.push({ name, ms: finalMs, date: new Date().toLocaleDateString('cs-CZ') });
+  const ym = new Date().getFullYear() + '-' + String(new Date().getMonth()+1).padStart(2,'0');
+  scores.push({ name, ms: finalMs, month: ym, date: new Date().toLocaleDateString('cs-CZ') });
   scores.sort((a, b) => a.ms - b.ms);
   try {
     await fetch(DB_URL + '/scores/' + QUIZ_TYPE + '.json', {

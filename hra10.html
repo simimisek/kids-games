@@ -286,7 +286,7 @@
       if (!data) return [];
       const scores = Object.values(data).sort((a, b) => a.ms - b.ms).slice(0, 10);
       const ym = new Date().getFullYear() + '-' + String(new Date().getMonth()+1).padStart(2,'0');
-      if (scores.some(s => s.month && s.month !== ym)) {
+      if (scores.some(s => !s.month || s.month !== ym)) {
         await fetch(DB_URL + '/scores/' + QUIZ_TYPE + '.json', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: 'null' });
         return [];
       }
