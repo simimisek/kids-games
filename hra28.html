@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-KEF2T80GE0"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-KEF2T80GE0');
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Skládej slova | Vzdělávací hry</title>
+  <meta property="og:title" content="Skládej slova" />
+  <meta property="og:image" content="https://simimisek.github.io/kids-games/ogimage.png" />
+  <meta property="og:description" content="Složte slovo z rozsypaných písmen podle obrázku — 5 slov, čas!" />
+  <meta property="og:url" content="https://simimisek.github.io/kids-games/hra28.html" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://simimisek.github.io/kids-games/ogimage.png" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%);
+      min-height: 100vh; color: #fff; overflow-x: hidden;
+      padding: 16px 14px 48px;
+    }
+
+    /* ─── SCREENS ─── */
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    /* ─── MAIN CARD ─── */
+    .main-card { max-width: 480px; margin: 0 auto; text-align: center; }
+    .game-icon  { font-size: 3.5rem; margin-bottom: 8px; }
+    .game-title { font-size: 2.2rem; font-weight: 800; margin-bottom: 6px; }
+    .game-sub   { font-size: 1rem; opacity: 0.85; margin-bottom: 24px; line-height: 1.55; }
+
+    /* ─── BUTTONS ─── */
+    .btn-primary {
+      display: block; width: 100%; padding: 18px;
+      background: linear-gradient(135deg, #f59e0b, #f97316);
+      color: white; border: none; border-radius: 16px;
+      font-size: 1.2rem; font-weight: 700; cursor: pointer;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+      transition: transform 0.1s; font-family: inherit; text-align: center;
+    }
+    .btn-primary:hover  { transform: translateY(-2px); }
+    .btn-primary:active { transform: translateY(0); }
+    .back-link {
+      display: block; text-align: center;
+      color: rgba(255,255,255,0.9); font-size: 1.1rem; font-weight: 700;
+      padding: 16px; border-radius: 16px; text-decoration: none;
+      border: 2px solid rgba(255,255,255,0.4); margin-top: 12px;
+      transition: background 0.15s;
+    }
+    .back-link:hover { background: rgba(255,255,255,0.1); color: white; }
+    .btn-home-fixed {
+      position: fixed; top: 12px; right: 12px; z-index: 200;
+      background: rgba(0,0,0,0.25); border: none; border-radius: 10px;
+      padding: 7px 14px; color: #fff; font-family: inherit;
+      font-size: 0.85rem; font-weight: 700; text-decoration: none;
+    }
+    .btn-home-fixed:hover { background: rgba(0,0,0,0.4); }
+
+    /* ─── LEADERBOARD ─── */
+    .lb-card  { background: rgba(255,255,255,0.12); border-radius: 16px; padding: 16px 20px; margin: 20px 0; }
+    .lb-title { font-size: 1rem; font-weight: 700; opacity: 0.9; margin-bottom: 12px; }
+    .lb-list  { list-style: none; }
+    .lb-list li { display: flex; align-items: center; gap: 8px; padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 0.95rem; }
+    .lb-list li:last-child { border-bottom: none; }
+    .lb-rank  { font-weight: 800; min-width: 24px; }
+    .lb-name  { flex: 1; text-align: left; }
+    .lb-time  { font-weight: 700; }
+    .lb-empty { opacity: 0.6; font-style: italic; }
+
+    /* ─── END SCREEN ─── */
+    .result-time  { font-size: 3rem; font-weight: 900; margin: 8px 0 4px; color: #fbbf24; }
+    .result-label { opacity: 0.8; margin-bottom: 20px; }
+    .save-row { display: flex; gap: 10px; margin-bottom: 4px; }
+    .save-row input {
+      flex: 1; padding: 14px 16px; border-radius: 12px;
+      border: 2px solid rgba(255,255,255,0.3);
+      background: rgba(255,255,255,0.15); color: white;
+      font-size: 1rem; outline: none; font-family: inherit;
+    }
+    .save-row input::placeholder { color: rgba(255,255,255,0.5); }
+    .save-row input:focus { border-color: #fbbf24; }
+    .save-row button {
+      padding: 14px 20px; background: linear-gradient(135deg, #22c55e, #16a34a);
+      color: white; border: none; border-radius: 12px;
+      font-size: 1rem; font-weight: 700; cursor: pointer; font-family: inherit;
+    }
+
+    /* ─── GAME WRAP ─── */
+    .game-wrap { max-width: 480px; margin: 55px auto 0; text-align: center; }
+    .game-hud {
+      display: flex; justify-content: space-between; align-items: center;
+      background: rgba(255,255,255,0.12); border-radius: 12px; padding: 10px 18px; margin-bottom: 16px;
+    }
+    .hud-round { font-size: 1rem; font-weight: 700; }
+    .hud-timer { font-size: 1.3rem; font-weight: 700; color: #fbbf24; }
+
+    /* ─── PROGRESS DOTS ─── */
+    .progress-dots { display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; }
+    .dot { width: 16px; height: 16px; border-radius: 50%; background: rgba(255,255,255,0.22); transition: background 0.4s; }
+    .dot.done    { background: #66bb6a; }
+    .dot.current { background: #ffd54f; box-shadow: 0 0 8px rgba(255,213,79,0.6); }
+
+    /* ─── IMAGE CARD ─── */
+    .img-card {
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 5rem; margin-bottom: 20px;
+      background: rgba(255,255,255,0.15); border-radius: 24px;
+      width: 120px; height: 120px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+    }
+
+    /* ─── SLOTS ─── */
+    .slots-wrap {
+      display: flex; justify-content: center; gap: 7px;
+      margin-bottom: 28px; flex-wrap: nowrap;
+    }
+    .slot {
+      height: 54px;
+      border: 3px solid rgba(255,255,255,0.35);
+      border-radius: 12px; background: rgba(255,255,255,0.1);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem; font-weight: 900; color: #fff;
+      transition: background 0.25s, border-color 0.25s, box-shadow 0.25s;
+      min-width: 40px;
+    }
+    .slot.current {
+      border-color: #ffd54f;
+      box-shadow: 0 0 10px rgba(255,213,79,0.6);
+      animation: slotPulse 1.2s ease infinite;
+    }
+    .slot.correct {
+      background: #2e7d32; border-color: #81c784; box-shadow: 0 0 10px rgba(129,199,132,0.5);
+      animation: none;
+    }
+    .slot.wrong-flash { animation: slotWrong 0.4s ease; }
+
+    @keyframes slotPulse {
+      0%,100% { box-shadow: 0 0 6px rgba(255,213,79,0.4); }
+      50%     { box-shadow: 0 0 16px rgba(255,213,79,0.85); }
+    }
+    @keyframes slotWrong {
+      0%,100% { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.35); }
+      50%     { background: rgba(239,68,68,0.35); border-color: #ef5350; }
+    }
+
+    /* Word complete */
+    .slots-wrap.celebrate {
+      animation: celebrate 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes celebrate {
+      0%,100% { transform: scale(1); }
+      50%     { transform: scale(1.07); }
+    }
+
+    /* ─── TILES ─── */
+    .tiles-wrap {
+      display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;
+      max-width: 420px; margin: 0 auto;
+    }
+    .tile {
+      width: 58px; height: 58px; border-radius: 14px;
+      font-size: 1.5rem; font-weight: 900; color: #fff;
+      border: none; cursor: pointer; font-family: inherit;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.2);
+      transition: transform 0.12s, opacity 0.3s;
+      position: relative; top: 0;
+    }
+    .tile:hover  { transform: translateY(-3px); }
+    .tile:active { transform: scale(0.9); }
+    .tile.used   { opacity: 0; pointer-events: none; transform: scale(0); transition: transform 0.2s, opacity 0.2s; }
+    .tile.wrong  { animation: tileWrong 0.38s ease; }
+
+    @keyframes tileWrong {
+      0%,100% { transform: translateX(0) rotate(0deg); }
+      20%     { transform: translateX(-7px) rotate(-6deg); }
+      50%     { transform: translateX(7px)  rotate(6deg); }
+      80%     { transform: translateX(-4px) rotate(-3deg); }
+    }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 400px) {
+      body { padding: 12px; }
+      .game-title { font-size: 1.8rem; }
+      .btn-primary { padding: 15px; font-size: 1.05rem; }
+      .tile { width: 50px; height: 50px; font-size: 1.3rem; }
+      .slot { height: 48px; font-size: 1.4rem; min-width: 36px; }
+      .img-card { width: 100px; height: 100px; font-size: 4rem; }
+      .result-time { font-size: 2.4rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════ START ══════════════ -->
+<div class="screen active" id="screen-start">
+  <div class="main-card">
+    <div class="game-icon">🧩</div>
+    <div class="game-title">Skládej slova</div>
+    <div class="game-sub">
+      Podívej se na obrázek a složte slovo<br>
+      z rozsypaných písmen — 5 slov co nejrychleji!
+    </div>
+    <button class="btn-primary" onclick="startGame()">▶ Hrát</button>
+    <a href="index.html" class="back-link">← Zpět na výběr her</a>
+    <div class="lb-card">
+      <div class="lb-title">🏆 Nejlepší časy</div>
+      <p style="font-size:0.75rem;opacity:0.5;margin:0 0 8px;text-align:center;">↺ Resetuje se 1. každého měsíce</p>
+      <ul class="lb-list" id="lb-start"><li><span class="lb-empty">Načítám…</span></li></ul>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ GAME ══════════════ -->
+<div class="screen" id="screen-game">
+  <a href="index.html" class="btn-home-fixed">🏠 Domů</a>
+  <div class="game-wrap">
+    <div class="game-hud">
+      <span class="hud-round" id="hud-round">Slovo 1 / 5</span>
+      <span class="hud-timer" id="hud-timer">0:00</span>
+    </div>
+
+    <div class="progress-dots" id="progress-dots"></div>
+
+    <div class="img-card" id="img-card">🐕</div>
+
+    <div class="slots-wrap" id="slots-wrap"></div>
+
+    <div class="tiles-wrap" id="tiles-wrap"></div>
+  </div>
+</div>
+
+<!-- ══════════════ END ══════════════ -->
+<div class="screen" id="screen-end">
+  <div class="main-card">
+    <div class="game-icon">🧩</div>
+    <div class="game-title">Výborně! 🎉</div>
+    <div class="result-time" id="result-time">—</div>
+    <div class="result-label">Složil/a jsi všech 5 slov!</div>
+    <div class="save-row" id="save-row">
+      <input id="player-name" type="text" placeholder="Tvoje jméno" maxlength="20"
+             onkeydown="if(event.key==='Enter') saveScore()" />
+      <button onclick="saveScore()">Uložit</button>
+    </div>
+    <button class="btn-primary" onclick="startGame()">▶ Hrát znovu</button>
+    <a href="index.html" class="back-link">← Zpět na výběr her</a>
+    <div class="lb-card">
+      <div class="lb-title">🏆 Nejlepší časy</div>
+      <p style="font-size:0.75rem;opacity:0.5;margin:0 0 8px;text-align:center;">↺ Resetuje se 1. každého měsíce</p>
+      <ul class="lb-list" id="lb-end"></ul>
+    </div>
+  </div>
+</div>
+
+<script>
+  const QUIZ_TYPE = 'czech-spell-pic';
+  const DB_URL    = 'https://kids-games-3a167-default-rtdb.europe-west1.firebasedatabase.app';
+
+  // ─── Word pools by length ───
+  const WORD_POOLS = [
+    [ // 3 písmena
+      {word:'NOS', emoji:'👃'}, {word:'PES', emoji:'🐕'}, {word:'LES', emoji:'🌲'},
+      {word:'DŮM', emoji:'🏠'}, {word:'LEV', emoji:'🦁'}, {word:'KŮŇ', emoji:'🐴'},
+    ],
+    [ // 4 písmena
+      {word:'AUTO', emoji:'🚗'}, {word:'KOZA', emoji:'🐐'}, {word:'RYBA', emoji:'🐟'},
+      {word:'KOLO', emoji:'🚲'}, {word:'ŽÁBA', emoji:'🐸'}, {word:'MYŠI', emoji:'🐭'},
+    ],
+    [ // 5 písmen
+      {word:'KOČKA', emoji:'🐱'}, {word:'HOUBY', emoji:'🍄'}, {word:'KNIHA', emoji:'📖'},
+      {word:'MÍČEK', emoji:'⚽'}, {word:'TUŽKA', emoji:'✏️'},
+    ],
+    [ // 6 písmen
+      {word:'JAHODA', emoji:'🍓'}, {word:'ŽIRAFA', emoji:'🦒'}, {word:'PASTEL', emoji:'🖍️'},
+      {word:'RAKETA', emoji:'🚀'}, {word:'OVEČKA', emoji:'🐑'},
+    ],
+    [ // 7 písmen
+      {word:'MAŠINKA', emoji:'🚂'}, {word:'KYTIČKA', emoji:'🌸'}, {word:'MOTÝLEK', emoji:'🦋'},
+    ],
+  ];
+
+
+  // Barvy dlaždic (cyklicky)
+  const TILE_COLORS = ['#ef5350','#42a5f5','#66bb6a','#ffa726','#ab47bc','#f06292','#26c6da','#ffd54f'];
+
+  // ─── State ───
+  let selectedWords  = [];  // 5 slov pro tuto hru
+  let currentWordIdx = 0;
+  let currentWord    = '';
+  let tiles          = [];  // [{id, letter, used}]
+  let nextSlot       = 0;
+  let timerInterval  = null;
+  let startMs        = 0;
+  let finalMs        = 0;
+
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  function shuffleArray(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+  }
+
+  // ─── Start game: pick 5 random words, one from each pool ───
+  function startGame() {
+    selectedWords = WORD_POOLS.map(pool => pool[Math.floor(Math.random() * pool.length)]);
+    currentWordIdx = 0;
+    startMs = Date.now();
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+      document.getElementById('hud-timer').textContent = fmtTime(Date.now() - startMs);
+    }, 500);
+    buildProgressDots();
+    showScreen('screen-game');
+    loadWord();
+  }
+
+  function buildProgressDots() {
+    document.getElementById('progress-dots').innerHTML =
+      selectedWords.map((_, i) => `<div class="dot" id="dot-${i}"></div>`).join('');
+  }
+
+  function updateDots() {
+    selectedWords.forEach((_, i) => {
+      const d = document.getElementById(`dot-${i}`);
+      d.className = 'dot' + (i < currentWordIdx ? ' done' : i === currentWordIdx ? ' current' : '');
+    });
+  }
+
+  // ─── Load current word ───
+  function loadWord() {
+    nextSlot = 0;
+    const {word, emoji} = selectedWords[currentWordIdx];
+    currentWord = word;
+
+    document.getElementById('hud-round').textContent   = `Slovo ${currentWordIdx + 1} / 5`;
+    document.getElementById('img-card').textContent     = emoji;
+    updateDots();
+    renderSlots();
+    renderTiles();
+  }
+
+  function renderSlots() {
+    const wrap = document.getElementById('slots-wrap');
+    const n    = currentWord.length;
+    const slotW = Math.min(56, Math.max(38, Math.floor(320 / n) - 8));
+
+    wrap.innerHTML = currentWord.split('').map((_, i) => `
+      <div class="slot${i === 0 ? ' current' : ''}" id="slot-${i}" style="width:${slotW}px"></div>
+    `).join('');
+    wrap.classList.remove('celebrate');
+  }
+
+  function renderTiles() {
+    const letters = currentWord.split('').map((l, i) => ({id: i, letter: l}));
+    shuffleArray(letters);
+    tiles = letters;
+
+    document.getElementById('tiles-wrap').innerHTML = letters.map((t, i) => `
+      <button class="tile" id="tile-${t.id}"
+              style="background:${TILE_COLORS[i % TILE_COLORS.length]}"
+              onclick="tapTile(${t.id})">${t.letter}</button>
+    `).join('');
+  }
+
+  // ─── Player taps a tile ───
+  function tapTile(tileId) {
+    const tile = tiles.find(t => t.id === tileId);
+    if (!tile || tile.used) return;
+
+    if (tile.letter === currentWord[nextSlot]) {
+      // Correct!
+      tile.used = true;
+      const slotEl = document.getElementById(`slot-${nextSlot}`);
+      const tileEl = document.getElementById(`tile-${tileId}`);
+
+      slotEl.textContent = tile.letter;
+      slotEl.classList.remove('current');
+      slotEl.classList.add('correct');
+      tileEl.classList.add('used');
+
+      nextSlot++;
+
+      if (nextSlot < currentWord.length) {
+        // Highlight next slot
+        document.getElementById(`slot-${nextSlot}`).classList.add('current');
+      } else {
+        // Word complete!
+        wordComplete();
+      }
+    } else {
+      // Wrong — shake tile briefly
+      const tileEl = document.getElementById(`tile-${tileId}`);
+      tileEl.classList.remove('wrong');
+      void tileEl.offsetWidth; // reflow to restart animation
+      tileEl.classList.add('wrong');
+      setTimeout(() => tileEl.classList.remove('wrong'), 400);
+
+      // Flash current slot
+      const slotEl = document.getElementById(`slot-${nextSlot}`);
+      slotEl.classList.add('wrong-flash');
+      setTimeout(() => slotEl.classList.remove('wrong-flash'), 420);
+    }
+  }
+
+  function wordComplete() {
+    const wrap = document.getElementById('slots-wrap');
+    wrap.classList.add('celebrate');
+
+    setTimeout(() => {
+      currentWordIdx++;
+      if (currentWordIdx >= selectedWords.length) {
+        endGame();
+      } else {
+        loadWord();
+      }
+    }, 700);
+  }
+
+  function endGame() {
+    clearInterval(timerInterval);
+    finalMs = Date.now() - startMs;
+    document.getElementById('result-time').textContent = fmtTime(finalMs);
+    document.getElementById('save-row').style.display = 'flex';
+    showScreen('screen-end');
+    renderLeaderboard('lb-end');
+  }
+
+  // ─── Firebase ───
+  async function getScores() {
+    try {
+      const r = await fetch(DB_URL + '/scores/' + QUIZ_TYPE + '.json');
+      const d = await r.json();
+      const scores = Array.isArray(d) ? d : [];
+      const ym = new Date().getFullYear() + '-' + String(new Date().getMonth()+1).padStart(2,'0');
+      if (scores.some(s => !s.month || s.month !== ym)) return [];
+      return scores;
+    } catch { return []; }
+  }
+
+  async function saveScore() {
+    const inp = document.getElementById('player-name');
+    const name = inp.value.trim();
+    if (!name) { inp.style.outline = '3px solid #ef4444'; inp.focus(); return; }
+    inp.style.outline = '';
+    const scores = await getScores();
+    const ym = new Date().getFullYear() + '-' + String(new Date().getMonth()+1).padStart(2,'0');
+    scores.push({ name, ms: finalMs, month: ym, date: new Date().toLocaleDateString('cs-CZ') });
+    scores.sort((a, b) => a.ms - b.ms);
+    try {
+      await fetch(DB_URL + '/scores/' + QUIZ_TYPE + '.json', {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(scores.slice(0, 10))
+      });
+    } catch {}
+    renderLeaderboard('lb-end');
+    document.getElementById('save-row').style.display = 'none';
+    inp.value = '';
+  }
+
+  async function renderLeaderboard(elId) {
+    const el = document.getElementById(elId);
+    el.innerHTML = '<li><span class="lb-empty">Načítám…</span></li>';
+    const scores = await getScores();
+    if (!scores.length) { el.innerHTML = '<li><span class="lb-empty">Zatím žádné výsledky.</span></li>'; return; }
+    el.innerHTML = scores.map((s, i) => `
+      <li>
+        <span class="lb-rank">${i + 1}.</span>
+        <span class="lb-name">${esc(s.name)}</span>
+        <span class="lb-time">${fmtTime(s.ms)}</span>
+      </li>`).join('');
+  }
+
+  function fmtTime(ms) {
+    const s = Math.floor(ms / 1000);
+    return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+  }
+  function esc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  renderLeaderboard('lb-start');
+</script>
+</body>
+</html>
