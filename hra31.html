@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-KEF2T80GE0"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-KEF2T80GE0');
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Na jaké písmeno? | Vzdělávací hry</title>
+  <meta property="og:title" content="Na jaké písmeno?" />
+  <meta property="og:image" content="https://simimisek.github.io/kids-games/ogimage.png" />
+  <meta property="og:description" content="Vyber obrázek, jehož název začíná na dané písmenko — 6 kol!" />
+  <meta property="og:url" content="https://simimisek.github.io/kids-games/hra31.html" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://simimisek.github.io/kids-games/ogimage.png" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%);
+      min-height: 100vh; color: #fff; overflow-x: hidden;
+      padding: 16px 14px 48px;
+    }
+    .screen { display: none; }
+    .screen.active { display: block; }
+    .main-card { max-width: 480px; margin: 0 auto; text-align: center; }
+    .game-icon  { font-size: 3.5rem; margin-bottom: 8px; }
+    .game-title { font-size: 2.2rem; font-weight: 800; margin-bottom: 6px; }
+    .game-sub   { font-size: 1rem; opacity: 0.85; margin-bottom: 24px; line-height: 1.55; }
+
+    .btn-primary {
+      display: block; width: 100%; padding: 18px;
+      background: linear-gradient(135deg, #f59e0b, #f97316);
+      color: white; border: none; border-radius: 16px;
+      font-size: 1.2rem; font-weight: 700; cursor: pointer;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+      transition: transform 0.1s; font-family: inherit; text-align: center;
+    }
+    .btn-primary:hover  { transform: translateY(-2px); }
+    .btn-primary:active { transform: translateY(0); }
+    .back-link {
+      display: block; text-align: center;
+      color: rgba(255,255,255,0.9); font-size: 1.1rem; font-weight: 700;
+      padding: 16px; border-radius: 16px; text-decoration: none;
+      border: 2px solid rgba(255,255,255,0.4); margin-top: 12px;
+      transition: background 0.15s;
+    }
+    .back-link:hover { background: rgba(255,255,255,0.1); color: white; }
+    .btn-home-fixed {
+      position: fixed; top: 12px; right: 12px; z-index: 200;
+      background: rgba(0,0,0,0.25); border: none; border-radius: 10px;
+      padding: 7px 14px; color: #fff; font-family: inherit;
+      font-size: 0.85rem; font-weight: 700; text-decoration: none; cursor: pointer;
+    }
+    .btn-home-fixed:hover { background: rgba(0,0,0,0.4); }
+
+    /* ─── LEADERBOARD ─── */
+    .lb-card  { background: rgba(255,255,255,0.12); border-radius: 16px; padding: 16px 20px; margin: 20px 0; }
+    .lb-title { font-size: 1rem; font-weight: 700; opacity: 0.9; margin-bottom: 12px; }
+    .lb-list  { list-style: none; }
+    .lb-list li { display: flex; align-items: center; gap: 8px; padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 0.95rem; }
+    .lb-list li:last-child { border-bottom: none; }
+    .lb-rank  { font-weight: 800; min-width: 24px; }
+    .lb-name  { flex: 1; text-align: left; }
+    .lb-time  { font-weight: 700; color: #fbbf24; }
+    .lb-empty { opacity: 0.6; font-style: italic; }
+
+    /* ─── END SCREEN ─── */
+    .result-time  { font-size: 3rem; font-weight: 900; margin: 8px 0 4px; color: #fbbf24; }
+    .result-label { opacity: 0.8; margin-bottom: 20px; }
+    .save-row { display: flex; gap: 10px; margin-bottom: 4px; }
+    .save-row input {
+      flex: 1; padding: 14px 16px; border-radius: 12px;
+      border: 2px solid rgba(255,255,255,0.3);
+      background: rgba(255,255,255,0.15); color: white;
+      font-size: 1rem; outline: none; font-family: inherit;
+    }
+    .save-row input::placeholder { color: rgba(255,255,255,0.5); }
+    .save-row input:focus { border-color: #fbbf24; }
+    .save-row button {
+      padding: 14px 20px; background: linear-gradient(135deg, #22c55e, #16a34a);
+      color: white; border: none; border-radius: 12px;
+      font-size: 1rem; font-weight: 700; cursor: pointer; font-family: inherit;
+    }
+
+    /* ─── GAME ─── */
+    .game-wrap { max-width: 480px; margin: 55px auto 0; text-align: center; }
+    .game-hud {
+      display: flex; justify-content: space-between; align-items: center;
+      background: rgba(255,255,255,0.12); border-radius: 12px; padding: 10px 18px; margin-bottom: 14px;
+    }
+    .hud-round { font-size: 1rem; font-weight: 700; }
+    .hud-timer { font-size: 1.3rem; font-weight: 700; color: #fbbf24; }
+
+    /* ─── PROGRESS DOTS ─── */
+    .progress-dots { display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; }
+    .dot { width: 16px; height: 16px; border-radius: 50%; background: rgba(255,255,255,0.22); transition: background 0.4s; }
+    .dot.done    { background: #4ade80; }
+    .dot.current { background: #fbbf24; box-shadow: 0 0 8px rgba(251,191,36,0.7); }
+
+    /* ─── PÍSMENKO ─── */
+    .letter-badge {
+      display: flex; align-items: center; justify-content: center;
+      width: 130px; height: 130px; border-radius: 24px; margin: 0 auto 12px;
+      background: rgba(255,255,255,0.18);
+      border: 3px solid rgba(255,255,255,0.35);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.2);
+    }
+    .letter-badge.pop {
+      animation: letterPop 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+    }
+    @keyframes letterPop {
+      from { transform: scale(0.4) rotate(-8deg); opacity: 0; }
+      to   { transform: scale(1)   rotate(0deg);  opacity: 1; }
+    }
+    .letter-display {
+      font-size: 5.5rem; font-weight: 900; line-height: 1;
+      text-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      font-family: Georgia, 'Times New Roman', serif;
+    }
+    .letter-hint {
+      font-size: 0.9rem; opacity: 0.75; margin-bottom: 16px;
+    }
+
+    /* ─── VOLBY ─── */
+    .options-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 12px; margin-bottom: 12px;
+    }
+    .option-card {
+      background: rgba(255,255,255,0.14);
+      border: 2px solid rgba(255,255,255,0.25);
+      border-radius: 18px; padding: 16px 8px 12px;
+      cursor: pointer; transition: transform 0.15s, background 0.15s;
+      user-select: none; -webkit-user-select: none;
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+    }
+    .option-card:hover  { background: rgba(255,255,255,0.22); transform: translateY(-2px); }
+    .option-card:active { transform: scale(0.96); }
+    .option-emoji { font-size: 3.8rem; line-height: 1; }
+    .option-word  { font-size: 1rem; font-weight: 700; }
+
+    .option-card.correct {
+      background: rgba(74,222,128,0.3);
+      border-color: #4ade80;
+      box-shadow: 0 0 20px rgba(74,222,128,0.5);
+      animation: cardCorrect 0.4s ease;
+    }
+    .option-card.wrong {
+      background: rgba(239,68,68,0.2);
+      border-color: #ef4444;
+      animation: cardWrong 0.4s ease;
+    }
+    .option-card.disabled { pointer-events: none; opacity: 0.45; }
+    @keyframes cardCorrect {
+      0%   { transform: scale(1); }
+      40%  { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+    @keyframes cardWrong {
+      0%,100% { transform: translateX(0); }
+      20%     { transform: translateX(-8px); }
+      40%     { transform: translateX(8px); }
+      60%     { transform: translateX(-6px); }
+      80%     { transform: translateX(6px); }
+    }
+
+    .feedback-msg { min-height: 28px; font-size: 1.05rem; font-weight: 700; }
+    .feedback-msg.wrong   { color: #f87171; }
+    .feedback-msg.correct { color: #4ade80; }
+
+    @media (max-width: 400px) {
+      .game-title   { font-size: 1.8rem; }
+      .result-time  { font-size: 2.4rem; }
+      .letter-badge { width: 110px; height: 110px; }
+      .letter-display { font-size: 4.5rem; }
+      .option-emoji { font-size: 3rem; }
+      .option-word  { font-size: 0.88rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════ START ══════════════ -->
+<div class="screen active" id="screen-start">
+  <div class="main-card">
+    <div class="game-icon">🔤</div>
+    <div class="game-title">Na jaké písmeno?</div>
+    <div class="game-sub">
+      Uvidíš velké písmenko — vyber obrázek,<br>
+      jehož název začíná na to písmenko! 6 kol.
+    </div>
+    <button class="btn-primary" onclick="startGame()">▶ Hrát</button>
+    <a href="index.html" class="back-link">← Zpět na výběr her</a>
+    <div class="lb-card">
+      <div class="lb-title">🏆 Nejlepší časy</div>
+      <p style="font-size:0.75rem;opacity:0.5;margin:0 0 8px;text-align:center;">↺ Resetuje se 1. každého měsíce</p>
+      <ul class="lb-list" id="lb-start"><li><span class="lb-empty">Načítám…</span></li></ul>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ GAME ══════════════ -->
+<div class="screen" id="screen-game">
+  <a href="index.html" class="btn-home-fixed">🏠 Domů</a>
+  <div class="game-wrap">
+    <div class="game-hud">
+      <span class="hud-round" id="hud-round">Kolo 1 / 6</span>
+      <span class="hud-timer" id="hud-timer">0:00</span>
+    </div>
+    <div class="progress-dots" id="progress-dots"></div>
+
+    <div class="letter-badge" id="letter-badge">
+      <span class="letter-display" id="letter-display">A</span>
+    </div>
+    <p class="letter-hint">Vyber obrázek, jehož název začíná na toto písmenko:</p>
+
+    <div class="options-grid" id="options-grid"></div>
+    <div class="feedback-msg" id="feedback-msg"></div>
+  </div>
+</div>
+
+<!-- ══════════════ END ══════════════ -->
+<div class="screen" id="screen-end">
+  <div class="main-card">
+    <div class="game-icon">🏆</div>
+    <div class="game-title">Výborně!</div>
+    <div class="result-time" id="result-time">—</div>
+    <div class="result-label">Prošel/a jsi všech 6 kol!</div>
+    <div class="save-row">
+      <input id="player-name" type="text" placeholder="Tvoje jméno" maxlength="20"
+             onkeydown="if(event.key==='Enter') saveScore()" />
+      <button onclick="saveScore()">Uložit</button>
+    </div>
+    <button class="btn-primary" onclick="startGame()">▶ Hrát znovu</button>
+    <a href="index.html" class="back-link">← Zpět na výběr her</a>
+    <div class="lb-card">
+      <div class="lb-title">🏆 Nejlepší časy</div>
+      <p style="font-size:0.75rem;opacity:0.5;margin:0 0 8px;text-align:center;">↺ Resetuje se 1. každého měsíce</p>
+      <ul class="lb-list" id="lb-end"></ul>
+    </div>
+  </div>
+</div>
+
+<script>
+const QUIZ_TYPE    = 'czech-first-letter';
+const DB_URL       = 'https://kids-games-3a167-default-rtdb.europe-west1.firebasedatabase.app';
+const TOTAL_ROUNDS = 6;
+
+let finalMs = 0, timerInterval = null, startTime = 0;
+let currentRound = 0, rounds = [];
+
+const ALL_WORDS = [
+  { letter: 'A', word: 'Ananas',    emoji: '🍍' },
+  { letter: 'A', word: 'Auto',      emoji: '🚗' },
+  { letter: 'A', word: 'Andílek',   emoji: '👼' },
+  { letter: 'B', word: 'Banán',     emoji: '🍌' },
+  { letter: 'B', word: 'Beruška',   emoji: '🐞' },
+  { letter: 'B', word: 'Balón',     emoji: '🎈' },
+  { letter: 'D', word: 'Dort',      emoji: '🎂' },
+  { letter: 'D', word: 'Drak',      emoji: '🐉' },
+  { letter: 'D', word: 'Delfín',    emoji: '🐬' },
+  { letter: 'H', word: 'Hvězda',    emoji: '⭐' },
+  { letter: 'H', word: 'Had',       emoji: '🐍' },
+  { letter: 'H', word: 'Housenka',  emoji: '🐛' },
+  { letter: 'J', word: 'Jahoda',    emoji: '🍓' },
+  { letter: 'J', word: 'Ježek',     emoji: '🦔' },
+  { letter: 'J', word: 'Jablko',    emoji: '🍎' },
+  { letter: 'K', word: 'Kočka',     emoji: '🐱' },
+  { letter: 'K', word: 'Králík',    emoji: '🐰' },
+  { letter: 'K', word: 'Kůň',       emoji: '🐴' },
+  { letter: 'L', word: 'Lev',       emoji: '🦁' },
+  { letter: 'L', word: 'Liška',     emoji: '🦊' },
+  { letter: 'L', word: 'Letadlo',   emoji: '✈️' },
+  { letter: 'M', word: 'Medvěd',    emoji: '🐻' },
+  { letter: 'M', word: 'Motýl',     emoji: '🦋' },
+  { letter: 'M', word: 'Myš',       emoji: '🐭' },
+  { letter: 'O', word: 'Opice',     emoji: '🐒' },
+  { letter: 'O', word: 'Ovce',      emoji: '🐑' },
+  { letter: 'O', word: 'Orel',      emoji: '🦅' },
+  { letter: 'P', word: 'Pes',       emoji: '🐕' },
+  { letter: 'P', word: 'Panda',     emoji: '🐼' },
+  { letter: 'P', word: 'Pták',      emoji: '🐦' },
+  { letter: 'R', word: 'Raketa',    emoji: '🚀' },
+  { letter: 'R', word: 'Ryba',      emoji: '🐟' },
+  { letter: 'R', word: 'Růže',      emoji: '🌹' },
+  { letter: 'S', word: 'Slon',      emoji: '🐘' },
+  { letter: 'S', word: 'Sova',      emoji: '🦉' },
+  { letter: 'S', word: 'Slunce',    emoji: '☀️' },
+  { letter: 'T', word: 'Tygr',      emoji: '🐯' },
+  { letter: 'T', word: 'Tučňák',    emoji: '🐧' },
+  { letter: 'T', word: 'Traktor',   emoji: '🚜' },
+  { letter: 'V', word: 'Vlk',       emoji: '🐺' },
+  { letter: 'V', word: 'Velryba',   emoji: '🐋' },
+  { letter: 'V', word: 'Veverka',   emoji: '🐿️' },
+  { letter: 'Z', word: 'Zebra',     emoji: '🦓' },
+  { letter: 'Z', word: 'Zmrzlina',  emoji: '🍦' },
+  { letter: 'Z', word: 'Zajíc',     emoji: '🐇' },
+  { letter: 'Ž', word: 'Žirafa',    emoji: '🦒' },
+  { letter: 'Ž', word: 'Žába',      emoji: '🐸' },
+];
+
+function randInt(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a; }
+function shuffle(arr)  { return arr.sort(() => Math.random() - 0.5); }
+
+function buildRounds() {
+  // Seskupení slov podle písmene
+  const byLetter = {};
+  ALL_WORDS.forEach(w => {
+    if (!byLetter[w.letter]) byLetter[w.letter] = [];
+    byLetter[w.letter].push(w);
+  });
+  const letters = shuffle(Object.keys(byLetter)).slice(0, TOTAL_ROUNDS);
+
+  return letters.map(letter => {
+    const pool   = byLetter[letter];
+    const correct = pool[randInt(0, pool.length - 1)];
+
+    // 3 špatné možnosti z jiných písmen (unikátní emoji)
+    const usedEmojis = new Set([correct.emoji]);
+    const otherLetters = shuffle(Object.keys(byLetter).filter(l => l !== letter));
+    const wrongs = [];
+    for (const l of otherLetters) {
+      if (wrongs.length === 3) break;
+      const candidates = byLetter[l].filter(w => !usedEmojis.has(w.emoji));
+      if (!candidates.length) continue;
+      const w = candidates[randInt(0, candidates.length - 1)];
+      usedEmojis.add(w.emoji);
+      wrongs.push(w);
+    }
+
+    return { letter, correct, options: shuffle([correct, ...wrongs]) };
+  });
+}
+
+/* ── screens ── */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+/* ── dots ── */
+function buildDots(done) {
+  const wrap = document.getElementById('progress-dots');
+  wrap.innerHTML = '';
+  for (let i = 0; i < TOTAL_ROUNDS; i++) {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i < done ? ' done' : i === done ? ' current' : '');
+    wrap.appendChild(d);
+  }
+}
+
+/* ── firebase ── */
+async function getScores() {
+  try {
+    const r = await fetch(DB_URL + '/scores/' + QUIZ_TYPE + '.json');
+    const d = await r.json();
+    return Array.isArray(d) ? d : [];
+  } catch { return []; }
+}
+
+async function saveScore() {
+  const inp  = document.getElementById('player-name');
+  const name = inp.value.trim();
+  if (!name) { inp.style.outline = '3px solid #ef4444'; inp.focus(); return; }
+  inp.style.outline = '';
+  const scores = await getScores();
+  scores.push({ name, ms: finalMs, date: new Date().toLocaleDateString('cs-CZ') });
+  scores.sort((a, b) => a.ms - b.ms);
+  try {
+    await fetch(DB_URL + '/scores/' + QUIZ_TYPE + '.json', {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(scores.slice(0, 10))
+    });
+  } catch {}
+  await renderLeaderboard('lb-end');
+  inp.value = '';
+}
+
+async function renderLeaderboard(elId) {
+  const el = document.getElementById(elId);
+  el.innerHTML = '<li><span class="lb-empty">Načítám…</span></li>';
+  const scores = await getScores();
+  if (!scores.length) { el.innerHTML = '<li><span class="lb-empty">Zatím žádné výsledky.</span></li>'; return; }
+  el.innerHTML = scores.slice(0, 5).map((s, i) => `
+    <li>
+      <span class="lb-rank">${i + 1}.</span>
+      <span class="lb-name">${esc(s.name)}</span>
+      <span class="lb-time">${fmtTime(s.ms)}</span>
+    </li>`).join('');
+}
+
+function esc(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function fmtTime(ms) {
+  const s = Math.floor(ms / 1000);
+  return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+}
+
+/* ── hra ── */
+function startGame() {
+  currentRound = 0;
+  rounds = buildRounds();
+  clearInterval(timerInterval);
+  startTime = Date.now();
+  timerInterval = setInterval(() => {
+    const el = document.getElementById('hud-timer');
+    if (el) el.textContent = fmtTime(Date.now() - startTime);
+  }, 500);
+  showScreen('screen-game');
+  loadRound();
+}
+
+function loadRound() {
+  const round = rounds[currentRound];
+  document.getElementById('hud-round').textContent = `Kolo ${currentRound + 1} / ${TOTAL_ROUNDS}`;
+  buildDots(currentRound);
+  document.getElementById('feedback-msg').textContent = '';
+  document.getElementById('feedback-msg').className = 'feedback-msg';
+
+  // Písmenko — animace pop
+  const badge = document.getElementById('letter-badge');
+  badge.classList.remove('pop');
+  badge.offsetHeight; // reflow
+  badge.classList.add('pop');
+  document.getElementById('letter-display').textContent = round.letter;
+
+  // Volby
+  const grid = document.getElementById('options-grid');
+  grid.innerHTML = '';
+  round.options.forEach(opt => {
+    const card = document.createElement('div');
+    card.className = 'option-card';
+    card.innerHTML = `<span class="option-emoji">${opt.emoji}</span>`;
+    card.addEventListener('click', () => handleChoice(card, opt, round.correct));
+    grid.appendChild(card);
+  });
+}
+
+function handleChoice(card, chosen, correct) {
+  // Zablokuj všechny karty
+  document.querySelectorAll('.option-card').forEach(c => c.classList.add('disabled'));
+
+  if (chosen.word === correct.word) {
+    card.classList.add('correct');
+    setFeedback('Správně! 🎉', 'correct');
+    setTimeout(() => {
+      currentRound++;
+      if (currentRound >= TOTAL_ROUNDS) endGame();
+      else loadRound();
+    }, 900);
+  } else {
+    card.classList.add('wrong');
+    setFeedback(`Zkus to znovu! Správně je: ${correct.word} ${correct.emoji}`, 'wrong');
+    // Odblokuj po chvíli, správnou kartu zvýrazni
+    setTimeout(() => {
+      document.querySelectorAll('.option-card').forEach(c => {
+        c.classList.remove('disabled', 'wrong');
+      });
+      // Zvýrazni správnou
+      document.querySelectorAll('.option-card').forEach(c => {
+        const wordEl = c.querySelector('.option-word');
+        if (wordEl && wordEl.textContent === correct.word) {
+          c.classList.add('correct');
+        }
+      });
+      setFeedback('', '');
+      setTimeout(() => {
+        currentRound++;
+        if (currentRound >= TOTAL_ROUNDS) endGame();
+        else loadRound();
+      }, 1000);
+    }, 800);
+  }
+}
+
+function setFeedback(msg, type) {
+  const el = document.getElementById('feedback-msg');
+  el.textContent = msg;
+  el.className = 'feedback-msg' + (type ? ' ' + type : '');
+}
+
+function endGame() {
+  clearInterval(timerInterval);
+  finalMs = Date.now() - startTime;
+  document.getElementById('result-time').textContent = fmtTime(finalMs);
+  buildDots(TOTAL_ROUNDS);
+  showScreen('screen-end');
+  renderLeaderboard('lb-end');
+  document.getElementById('player-name').value = '';
+}
+
+renderLeaderboard('lb-start');
+</script>
+</body>
+</html>
