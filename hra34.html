@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-KEF2T80GE0"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-KEF2T80GE0');
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Seřaď od nejmenšího | Vzdělávací hry</title>
+  <meta property="og:title" content="Seřaď od nejmenšího" />
+  <meta property="og:image" content="https://simimisek.github.io/kids-games/ogimage.png" />
+  <meta property="og:description" content="Tapni kuličky od nejmenší po největší — 6 kol se stále novým tématem!" />
+  <meta property="og:url" content="https://simimisek.github.io/kids-games/hra34.html" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://simimisek.github.io/kids-games/og-preview.png" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #4a148c 0%, #880e4f 100%);
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: flex-start;
+      padding: 16px 16px 40px;
+      overflow-x: hidden;
+    }
+
+    /* ─── PLOVOUCÍ POZADÍ ─── */
+    .bg-float {
+      position: fixed; inset: 0;
+      pointer-events: none; z-index: 0; overflow: hidden;
+    }
+    .bg-float span {
+      position: absolute; font-size: 2.6rem;
+      opacity: 0.13; animation: bgFloat 8s ease-in-out infinite; user-select: none;
+    }
+    .bg-float span:nth-child(1)  { top:  3%; left:  2%; animation-delay: 0s;   font-size: 3rem; }
+    .bg-float span:nth-child(2)  { top:  7%; left: 75%; animation-delay: 1.3s; font-size: 2.4rem; }
+    .bg-float span:nth-child(3)  { top: 19%; left: 88%; animation-delay: 0.7s; font-size: 2.0rem; }
+    .bg-float span:nth-child(4)  { top: 40%; left:  1%; animation-delay: 2.1s; font-size: 3.2rem; }
+    .bg-float span:nth-child(5)  { top: 58%; left: 91%; animation-delay: 0.8s; font-size: 2.6rem; }
+    .bg-float span:nth-child(6)  { top: 72%; left:  8%; animation-delay: 1.9s; font-size: 2.9rem; }
+    .bg-float span:nth-child(7)  { top: 84%; left: 54%; animation-delay: 3.0s; font-size: 2.7rem; }
+    .bg-float span:nth-child(8)  { top: 92%; left: 21%; animation-delay: 0.4s; font-size: 3.1rem; }
+    .bg-float span:nth-child(9)  { top: 49%; left: 47%; animation-delay: 2.5s; font-size: 1.9rem; opacity: 0.08; }
+    .bg-float span:nth-child(10) { top: 14%; left: 38%; animation-delay: 1.0s; font-size: 2.3rem; }
+    .bg-float span:nth-child(11) { top: 64%; left: 66%; animation-delay: 3.7s; font-size: 2.8rem; }
+    .bg-float span:nth-child(12) { top: 32%; left: 25%; animation-delay: 1.8s; font-size: 2.5rem; }
+    @keyframes bgFloat {
+      0%,100% { transform: translateY(0) rotate(-6deg); }
+      50%      { transform: translateY(-18px) rotate(6deg); }
+    }
+
+    /* ─── SCREENS ─── */
+    .screen { position: relative; z-index: 1; display: none; width: 100%; max-width: 480px; }
+    .screen.active { display: flex; flex-direction: column; align-items: center; gap: 16px; padding-top: 16px; }
+
+    /* ─── TITULNÍ ─── */
+    .title {
+      font-size: 2.1rem; color: #fff;
+      text-align: center; text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+    .subtitle {
+      color: rgba(255,255,255,0.85);
+      text-align: center; font-size: 1rem; line-height: 1.7;
+    }
+
+    /* ─── HUD ─── */
+    .hud {
+      width: 100%; display: flex; justify-content: space-between; align-items: center;
+      background: rgba(255,255,255,0.2); border-radius: 14px;
+      padding: 10px 20px; margin-top: 55px;
+      color: #fff; font-size: 1.05rem; font-weight: 600;
+    }
+    .hud-timer { font-variant-numeric: tabular-nums; }
+
+    /* ─── PROGRESS (kolečka kol) ─── */
+    .round-dots {
+      display: flex; gap: 7px; justify-content: center; width: 100%;
+    }
+    .round-dot {
+      width: 26px; height: 8px; border-radius: 99px;
+      background: rgba(255,255,255,0.25); transition: background 0.4s;
+    }
+    .round-dot.done   { background: #fff; }
+    .round-dot.active { background: rgba(255,255,255,0.65); }
+
+    /* ─── HERNÍ KARTA ─── */
+    .game-card {
+      background: #fff; border-radius: 20px;
+      padding: 24px 20px 20px; width: 100%;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+      position: relative; overflow: hidden;
+      display: flex; flex-direction: column; align-items: center; gap: 0;
+    }
+
+    /* ─── INSTRUKCE ─── */
+    .instruction {
+      font-size: 1rem; font-weight: 700; color: #7b1fa2;
+      text-align: center; margin-bottom: 18px;
+      letter-spacing: 0.2px;
+    }
+
+    /* ─── KULIČKA AREA ─── */
+    .circles-wrap {
+      display: flex; align-items: center;
+      justify-content: center; flex-wrap: wrap;
+      gap: 14px;
+      width: 100%; min-height: 150px;
+      padding: 16px 8px;
+    }
+    .ball {
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; flex-shrink: 0;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      transition: transform 0.15s, opacity 0.35s, box-shadow 0.15s;
+      user-select: none; -webkit-tap-highlight-color: transparent;
+      position: relative;
+    }
+    .ball:hover:not(.done) { transform: scale(1.1); box-shadow: 0 8px 22px rgba(0,0,0,0.3); }
+    .ball:active:not(.done) { transform: scale(0.92); }
+    .ball.done {
+      opacity: 0; transform: scale(0.2);
+      pointer-events: none;
+    }
+    .ball.wrong-shake { animation: ballShake 0.42s ease; }
+    @keyframes ballShake {
+      0%,100% { transform: translateX(0) scale(1); }
+      20%  { transform: translateX(-10px) scale(1); }
+      40%  { transform: translateX(10px) scale(1); }
+      60%  { transform: translateX(-6px) scale(1); }
+      80%  { transform: translateX(6px) scale(1); }
+    }
+
+
+    /* ─── LEVEL COMPLETE OVERLAY ─── */
+    .lvl-overlay {
+      position: absolute; inset: 0; border-radius: 20px;
+      background: rgba(255,255,255,0.95);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 8px;
+      z-index: 10; opacity: 0; pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    .lvl-overlay.visible { opacity: 1; pointer-events: all; }
+    .lvl-overlay .big-emoji { font-size: 4.5rem; animation: overlayPop 0.5s ease; }
+    .lvl-overlay .lvl-msg  { font-size: 1.5rem; font-weight: 700; color: #7b1fa2; }
+    @keyframes overlayPop {
+      0%  { transform: scale(0.2) rotate(-15deg); opacity: 0; }
+      60% { transform: scale(1.2) rotate(5deg); }
+      100%{ transform: scale(1) rotate(0); opacity: 1; }
+    }
+
+    /* ─── KONEC HRY ─── */
+    .result-card {
+      background: #fff; border-radius: 20px;
+      padding: 32px 24px; width: 100%;
+      text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    }
+    .result-card h2 { font-size: 1.8rem; color: #333; margin-bottom: 8px; }
+    .result-time { font-size: 3rem; font-weight: 700; color: #7b1fa2; margin: 12px 0; }
+    .result-card p { color: #666; font-size: 0.95rem; }
+
+    /* ─── ULOŽENÍ ─── */
+    .save-row { width: 100%; display: flex; gap: 10px; }
+    .save-row input {
+      flex: 1; padding: 14px 18px; border-radius: 12px; border: none;
+      font-size: 1rem; outline: 2px solid transparent;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.12); transition: outline 0.2s;
+    }
+    .save-row input:focus { outline: 2px solid #7b1fa2; }
+
+    /* ─── ŽEBŘÍČEK ─── */
+    .leaderboard-card {
+      background: #fff; border-radius: 20px; padding: 22px;
+      width: 100%; box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+    .leaderboard-card h3 { text-align: center; color: #333; font-size: 1.1rem; margin-bottom: 14px; }
+    .leaderboard-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .leaderboard-list li {
+      display: grid; grid-template-columns: 28px 1fr auto;
+      gap: 8px; align-items: center; font-size: 0.95rem; color: #444;
+      padding: 6px 0; border-bottom: 1px solid #f0f0f0;
+    }
+    .leaderboard-list li:last-child { border-bottom: none; }
+    .lb-rank { font-weight: 700; color: #7b1fa2; text-align: center; }
+    .lb-name { font-weight: 600; }
+    .lb-time { font-variant-numeric: tabular-nums; color: #7b1fa2; font-weight: 700; }
+    .lb-date { font-size: 0.78rem; color: #aaa; grid-column: 2/4; margin-top: -4px; }
+    .lb-empty { text-align: center; color: #aaa; font-style: italic; font-size: 0.9rem; padding: 8px 0; }
+
+    /* ─── TLAČÍTKA ─── */
+    .btn {
+      width: 100%; padding: 15px; font-size: 1.05rem; font-weight: 700;
+      border: none; border-radius: 14px; cursor: pointer;
+      transition: transform 0.1s; font-family: inherit;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary {
+      background: #7b1fa2; color: #fff;
+      box-shadow: 0 4px 16px rgba(123,31,162,0.35);
+    }
+    .btn-primary:hover { background: #4a148c; }
+    .btn-secondary {
+      background: rgba(123,31,162,0.1); color: #7b1fa2;
+      border: 2px solid rgba(123,31,162,0.25); box-shadow: none;
+    }
+    .btn-secondary:hover { background: rgba(123,31,162,0.18); }
+
+    /* ─── DOMŮ ─── */
+    .btn-home-fixed {
+      position: fixed; top: 12px; right: 12px; z-index: 200;
+      background: rgba(0,0,0,0.25); border: none; border-radius: 10px;
+      padding: 7px 14px; color: #fff; font-family: inherit;
+      font-size: 0.85rem; font-weight: 700; text-decoration: none; cursor: pointer;
+    }
+    .btn-home-fixed:hover { background: rgba(0,0,0,0.4); }
+
+    /* ─── RESPONZIVITA ─── */
+    @media (max-width: 400px) {
+      body { padding: 10px 10px 32px; }
+      .title { font-size: 1.85rem; }
+      .btn { padding: 13px; font-size: 0.98rem; }
+      .instruction { font-size: 0.92rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════ PLOVOUCÍ POZADÍ ═══════════════ -->
+<div class="bg-float" aria-hidden="true">
+  <span>🌸</span><span>⭐</span><span>🎈</span><span>🌙</span>
+  <span>🌸</span><span>⭐</span><span>🎈</span><span>🌙</span>
+  <span>🌸</span><span>⭐</span><span>🎈</span><span>🌙</span>
+</div>
+
+<!-- ═══════════════ START SCREEN ═══════════════ -->
+<div id="screen-start" class="screen active">
+  <div class="title">📏 Seřaď od nejmenšího</div>
+  <p class="subtitle">
+    Tapni kuličky od nejmenší po největší!<br>
+    Každé kolo má nové téma. Zvládneš všech 6?
+  </p>
+  <button class="btn btn-primary" onclick="startGame()">▶ Hrát</button>
+  <a href="index.html" style="width:100%;text-decoration:none;">
+    <button class="btn btn-primary">🏠 Zpět na výběr</button>
+  </a>
+  <div class="leaderboard-card">
+    <h3>🏆 Nejlepší časy</h3>
+    <p style="font-size:0.75rem;opacity:0.5;margin:0 0 8px;text-align:center;">↺ Resetuje se 1. každého měsíce</p>
+    <ul class="leaderboard-list" id="lb-start"></ul>
+  </div>
+</div>
+
+<!-- ═══════════════ GAME SCREEN ═══════════════ -->
+<div id="screen-game" class="screen">
+  <a href="index.html" class="btn-home-fixed">🏠 Domů</a>
+
+  <div class="hud">
+    <span id="hud-round">Kolo 1 / 6</span>
+    <span class="hud-timer" id="hud-timer">0:00</span>
+  </div>
+
+  <div class="round-dots" id="round-dots"></div>
+
+  <div class="game-card">
+
+    <div class="instruction">Tapni od nejmenšího po největší 👆</div>
+
+    <!-- Kuličky -->
+    <div class="circles-wrap" id="circles-wrap"></div>
+
+    <!-- Overlay při splnění kola -->
+    <div class="lvl-overlay" id="lvl-overlay">
+      <div class="big-emoji" id="lvl-emoji">🎉</div>
+      <div class="lvl-msg" id="lvl-msg">Skvělé!</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════ END SCREEN ═══════════════ -->
+<div id="screen-end" class="screen">
+  <div class="result-card">
+    <h2>Výborně! 🎉</h2>
+    <div class="result-time" id="final-time"></div>
+    <p>Seřadil jsi všech 6 kol správně!</p>
+  </div>
+  <div class="save-row" id="save-row">
+    <input type="text" id="player-name" placeholder="Tvoje jméno…" maxlength="20"
+           onkeydown="if(event.key==='Enter') saveScore()" />
+    <button class="btn btn-primary" style="width:auto;padding:14px 20px;font-size:1rem;"
+            onclick="saveScore()">Uložit</button>
+  </div>
+  <button class="btn btn-primary" onclick="startGame()">🔄 Hrát znovu</button>
+  <a href="index.html" style="width:100%;text-decoration:none;">
+    <button class="btn btn-primary">🏠 Zpět na výběr</button>
+  </a>
+  <div class="leaderboard-card">
+    <h3>🏆 Nejlepší časy</h3>
+    <ul class="leaderboard-list" id="lb-end"></ul>
+  </div>
+</div>
+
+<script>
+  // ─── CONFIG ───────────────────────────────────────────────────────────────
+  const QUIZ_TYPE    = 'preschool-sort-size';
+  const DB_URL       = 'https://kids-games-3a167-default-rtdb.europe-west1.firebasedatabase.app';
+  const ROUNDS_TOTAL = 3;
+
+  // 8 velikostí kuliček (průměr v px) — každé kolo přibyde jedna
+  const SIZES = [26, 40, 55, 70, 88];
+
+
+  // Paleta barev — vybíráme 3 náhodné každé kolo
+  const COLOR_POOL = [
+    '#ff5252', '#ff7043', '#ffa726',
+    '#ffca28', '#a5d63f', '#66bb6a',
+    '#26c6da', '#42a5f5', '#7c82e8',
+    '#ab47bc', '#ec407a', '#f06292',
+  ];
+
+  // ─── STATE ────────────────────────────────────────────────────────────────
+  let currentRound  = 0;
+  let nextExpected  = 1;   // 1 = čeká na nejmenší, 3 = čeká na největší
+  let roundLocked   = false;
+  let timerStart    = null, timerInterval = null;
+  let finalMs       = 0;
+
+  // Aktuální kuličky: { rank, size, color }
+  let ballData = [];
+
+  // ─── HELPERS ──────────────────────────────────────────────────────────────
+  function shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  // ─── TIMER ────────────────────────────────────────────────────────────────
+  function startTimer() {
+    timerStart = Date.now();
+    timerInterval = setInterval(() => {
+      document.getElementById('hud-timer').textContent = fmtTime(Date.now() - timerStart);
+    }, 100);
+  }
+  function stopTimer() {
+    clearInterval(timerInterval);
+    finalMs = Date.now() - timerStart;
+  }
+  function fmtTime(ms) {
+    const s = Math.floor(ms / 1000);
+    return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+  }
+
+  // ─── KOLA (dots) ──────────────────────────────────────────────────────────
+  function renderRoundDots() {
+    const el = document.getElementById('round-dots');
+    el.innerHTML = '';
+    for (let i = 0; i < ROUNDS_TOTAL; i++) {
+      const dot = document.createElement('div');
+      dot.className = 'round-dot' +
+        (i < currentRound - 1 ? ' done' : i === currentRound - 1 ? ' active' : '');
+      el.appendChild(dot);
+    }
+  }
+
+  // ─── RENDER KOLA ──────────────────────────────────────────────────────────
+  function renderRound() {
+    roundLocked  = false;
+    nextExpected = 1;
+
+    // Kolo 1 = 3 kuličky, každé kolo +1 → kolo 6 = 8 kuliček
+    const ballCount = 2 + currentRound;
+
+    // Náhodné barvy (tolik kolik kuliček)
+    const colors = shuffle([...COLOR_POOL]).slice(0, ballCount);
+
+    // Data kuliček: rank 1 = nejmenší, rank N = největší
+    // Barvy náhodně promíchány — dítě musí porovnávat VELIKOST, ne barvu
+    const colorOrder = shuffle(Array.from({ length: ballCount }, (_, i) => i));
+    ballData = Array.from({ length: ballCount }, (_, i) => ({
+      rank:  i + 1,
+      size:  SIZES[i],
+      color: colors[colorOrder[i]],
+    }));
+
+    // HUD
+    document.getElementById('hud-round').textContent = `Kolo ${currentRound} / ${ROUNDS_TOTAL}`;
+    renderRoundDots();
+
+    // Kuličky — zobraz v náhodném pořadí
+    const wrap = document.getElementById('circles-wrap');
+    wrap.innerHTML = '';
+    shuffle([...ballData]).forEach(b => {
+      const el = document.createElement('div');
+      el.className = 'ball';
+      el.id = 'ball-' + b.rank;
+      el.style.width      = b.size + 'px';
+      el.style.height     = b.size + 'px';
+      el.style.background = b.color;
+      el.dataset.rank     = b.rank;
+      el.onclick = () => handleTap(el, b.rank);
+      wrap.appendChild(el);
+    });
+
+    // Schovat overlay
+    document.getElementById('lvl-overlay').classList.remove('visible');
+  }
+
+  // ─── TAPNUTÍ KULIČKY ──────────────────────────────────────────────────────
+  function handleTap(el, rank) {
+    if (roundLocked) return;
+    if (el.classList.contains('done')) return;
+
+    if (rank === nextExpected) {
+      // ✅ Správná kulička — zmizí
+      el.classList.add('done');
+      nextExpected++;
+
+      if (nextExpected > ballData.length) {
+        // Kolo hotové!
+        roundLocked = true;
+        setTimeout(() => showRoundComplete(), 350);
+      }
+    } else {
+      // ❌ Špatná kulička — zavibruje
+      el.classList.add('wrong-shake');
+      setTimeout(() => el.classList.remove('wrong-shake'), 500);
+    }
+  }
+
+  // ─── KOLO SPLNĚNO ─────────────────────────────────────────────────────────
+  const ROUND_EMOJIS = ['🎉', '⭐', '🌟', '🏅', '🎊', '🏆'];
+  const ROUND_MSGS   = [
+    'Skvělé!', 'Výborně!', 'Paráda!', 'Super!', 'Úžasné!', 'Nejlepší!'
+  ];
+
+  function showRoundComplete() {
+    const overlay = document.getElementById('lvl-overlay');
+    document.getElementById('lvl-emoji').textContent = ROUND_EMOJIS[currentRound - 1] || '🎉';
+    document.getElementById('lvl-msg').textContent   = ROUND_MSGS[currentRound - 1]   || 'Skvělé!';
+    overlay.classList.add('visible');
+
+    setTimeout(() => {
+      currentRound++;
+      if (currentRound > ROUNDS_TOTAL) {
+        stopTimer();
+        document.getElementById('final-time').textContent = fmtTime(finalMs);
+        document.getElementById('player-name').value = '';
+        showScreen('screen-end');
+        renderLeaderboard('lb-end');
+      } else {
+        renderRound();
+      }
+    }, 1600);
+  }
+
+  // ─── START ────────────────────────────────────────────────────────────────
+  function startGame() {
+    currentRound = 1;
+    finalMs      = 0;
+    roundLocked  = false;
+    clearInterval(timerInterval);
+
+    document.getElementById('save-row').style.display = '';
+    document.getElementById('hud-timer').textContent = '0:00';
+
+    showScreen('screen-game');
+    renderRound();
+    startTimer();
+  }
+
+  // ─── FIREBASE ─────────────────────────────────────────────────────────────
+  async function getScores() {
+    try {
+      const r = await fetch(DB_URL + '/scores/' + QUIZ_TYPE + '.json');
+      const d = await r.json();
+      const scores = Array.isArray(d) ? d : [];
+      const ym = new Date().getFullYear() + '-' + String(new Date().getMonth() + 1).padStart(2, '0');
+      if (scores.some(s => !s.month || s.month !== ym)) return [];
+      return scores;
+    } catch { return []; }
+  }
+
+  async function saveScore() {
+    const nameInput = document.getElementById('player-name');
+    const name = nameInput.value.trim();
+    if (!name) { nameInput.style.outline = '3px solid #ef4444'; nameInput.focus(); return; }
+    nameInput.style.outline = '';
+    const scores = await getScores();
+    const ym = new Date().getFullYear() + '-' + String(new Date().getMonth() + 1).padStart(2, '0');
+    scores.push({ name, ms: finalMs, month: ym, date: new Date().toLocaleDateString('cs-CZ') });
+    scores.sort((a, b) => a.ms - b.ms);
+    const top10 = scores.slice(0, 10);
+    try {
+      await fetch(DB_URL + '/scores/' + QUIZ_TYPE + '.json', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(top10)
+      });
+    } catch {}
+    renderLeaderboard('lb-end');
+    document.getElementById('save-row').style.display = 'none';
+    nameInput.value = '';
+  }
+
+  async function renderLeaderboard(elId) {
+    const el = document.getElementById(elId);
+    el.innerHTML = '<li class="lb-empty">Načítám…</li>';
+    const scores = await getScores();
+    if (!scores.length) { el.innerHTML = '<li class="lb-empty">Zatím žádné výsledky.</li>'; return; }
+    el.innerHTML = scores.map((s, i) => `
+      <li>
+        <span class="lb-rank">${i + 1}.</span>
+        <span class="lb-name">${esc(s.name)}</span>
+        <span class="lb-time">${fmtTime(s.ms)}</span>
+        <span class="lb-date">${esc(s.date || '')}</span>
+      </li>`).join('');
+  }
+
+  function esc(str) {
+    return String(str)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ─── INIT ─────────────────────────────────────────────────────────────────
+  renderLeaderboard('lb-start');
+</script>
+</body>
+</html>
