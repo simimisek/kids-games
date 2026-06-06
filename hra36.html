@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-KEF2T80GE0"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-KEF2T80GE0');
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Slovní spojení | Vzdělávací hry</title>
+  <meta property="og:title" content="Slovní spojení" />
+  <meta property="og:image" content="https://simimisek.github.io/kids-games/ogimage.png" />
+  <meta property="og:description" content="Najdi správné slovní spojení. Zábavná česká hra pro děti." />
+  <meta property="og:url" content="https://simimisek.github.io/kids-games/hra36.html" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://simimisek.github.io/kids-games/og-preview.png" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 16px 16px 40px;
+      overflow-x: hidden;
+    }
+
+    /* ─── FLOATING BG ─── */
+    .leaf-bg {
+      position: fixed; inset: 0;
+      pointer-events: none; z-index: 0; overflow: hidden;
+    }
+    .leaf-bg span {
+      position: absolute;
+      font-size: 2.6rem;
+      opacity: 0.15;
+      animation: leafFloat 8s ease-in-out infinite;
+      user-select: none;
+    }
+    @keyframes leafFloat {
+      0%,100% { transform: translateY(0px) rotate(-5deg); }
+      50%      { transform: translateY(-14px) rotate(5deg); }
+    }
+
+    /* ─── SCREENS ─── */
+    .screen { position: relative; z-index: 1; display: none; width: 100%; max-width: 480px; }
+    .screen.active { display: flex; flex-direction: column; align-items: center; gap: 16px; padding-top: 16px; }
+
+    /* ─── TITLES ─── */
+    .title    { font-size: 2.2rem; color: #fff; text-align: center; text-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+    .subtitle { color: rgba(255,255,255,0.85); text-align: center; font-size: 1rem; line-height: 1.65; }
+
+    /* ─── HUD ─── */
+    .hud {
+      width: 100%; display: flex; justify-content: space-between; align-items: center;
+      background: rgba(255,255,255,0.2); border-radius: 14px;
+      padding: 10px 20px; margin-top: 55px;
+      color: #fff; font-size: 1.1rem; font-weight: 600;
+    }
+    .hud-timer { font-variant-numeric: tabular-nums; }
+
+    /* ─── QUESTION CARD ─── */
+    .question-card {
+      background: #fff; border-radius: 20px;
+      padding: 36px 24px; width: 100%;
+      text-align: center;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+      transition: box-shadow 0.2s;
+    }
+    .q-label {
+      font-size: 0.8rem; font-weight: 700; color: #aaa;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .q-adj {
+      font-size: 3rem; font-weight: 900; color: #1b5e20;
+      line-height: 1.1;
+      transition: color 0.2s;
+    }
+    .q-blank {
+      display: inline-block;
+      font-size: 2.2rem; font-weight: 700; color: #bbb;
+      border-bottom: 4px solid #c8e6c9;
+      padding: 0 16px; margin-top: 8px;
+      min-width: 120px;
+    }
+    .question-card.flash-correct { box-shadow: 0 0 0 4px #22c55e, 0 8px 32px rgba(34,197,94,0.3); }
+    .question-card.flash-correct .q-adj { color: #22c55e; }
+    .question-card.flash-wrong   { box-shadow: 0 0 0 4px #ef4444, 0 8px 32px rgba(239,68,68,0.3); }
+    .question-card.flash-wrong   .q-adj { color: #ef4444; }
+
+    /* ─── ANSWERS ─── */
+    .answers {
+      width: 100%; display: flex; flex-direction: column; gap: 12px;
+    }
+    .btn-answer {
+      width: 100%; padding: 20px;
+      font-size: 1.4rem; font-weight: 700;
+      border: none; border-radius: 16px; cursor: pointer;
+      background: #fff; color: #333;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.13);
+      transition: transform 0.1s, background 0.15s, color 0.15s, box-shadow 0.15s;
+      outline: none; font-family: inherit;
+      text-align: center;
+    }
+    .btn-answer:hover:not(:disabled) { transform: translateY(-3px); background: #f1f8e9; }
+    .btn-answer:active:not(:disabled) { transform: translateY(0); }
+    .btn-answer.correct { background: #22c55e; color: #fff; box-shadow: 0 4px 16px rgba(34,197,94,0.4); }
+    .btn-answer.wrong   { background: #ef4444; color: #fff; box-shadow: 0 4px 16px rgba(239,68,68,0.4); }
+
+    /* ─── RESULT CARD ─── */
+    .result-card {
+      background: #fff; border-radius: 20px;
+      padding: 32px 24px; width: 100%;
+      text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    }
+    .result-card h2 { font-size: 1.8rem; color: #333; margin-bottom: 8px; }
+    .result-time    { font-size: 3rem; font-weight: 700; color: #1b5e20; margin: 12px 0; }
+    .result-card p  { color: #666; font-size: 0.95rem; }
+
+    /* ─── NAME ROW ─── */
+    .name-row { width: 100%; display: flex; gap: 10px; }
+    .name-row input {
+      flex: 1; padding: 14px 18px; border-radius: 12px;
+      border: none; font-size: 1rem; outline: 2px solid transparent;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.12); transition: outline 0.2s;
+    }
+    .name-row input:focus { outline: 2px solid #1b5e20; }
+
+    /* ─── LEADERBOARD ─── */
+    .leaderboard-card {
+      background: #fff; border-radius: 20px;
+      padding: 22px; width: 100%;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+    .leaderboard-card h3 { text-align: center; color: #333; font-size: 1.1rem; margin-bottom: 14px; }
+    .leaderboard-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .leaderboard-list li {
+      display: grid; grid-template-columns: 28px 1fr auto;
+      gap: 8px; align-items: center; font-size: 0.95rem;
+      color: #444; padding: 6px 0; border-bottom: 1px solid #f0f0f0;
+    }
+    .leaderboard-list li:last-child { border-bottom: none; }
+    .lb-rank  { font-weight: 700; color: #1b5e20; text-align: center; }
+    .lb-name  { font-weight: 600; }
+    .lb-time  { font-variant-numeric: tabular-nums; color: #1b5e20; font-weight: 700; }
+    .lb-date  { font-size: 0.78rem; color: #aaa; grid-column: 2 / 4; margin-top: -4px; }
+    .lb-empty { text-align: center; color: #aaa; font-style: italic; font-size: 0.9rem; padding: 8px 0; }
+
+    /* ─── BUTTONS ─── */
+    .btn {
+      width: 100%; padding: 15px;
+      font-size: 1.05rem; font-weight: 700;
+      border: none; border-radius: 14px; cursor: pointer;
+      transition: transform 0.1s; font-family: inherit;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary   { background: #2e7d32; color: #fff; box-shadow: 0 4px 16px rgba(46,125,50,0.35); }
+    .btn-primary:hover { background: #1b5e20; }
+    .btn-secondary { background: rgba(255,255,255,0.15); color: #fff; border: 2px solid rgba(255,255,255,0.35); box-shadow: none; }
+    .btn-secondary:hover { background: rgba(255,255,255,0.25); }
+
+    /* ─── HOME BUTTON ─── */
+    .btn-home-fixed {
+      position: fixed; top: 12px; right: 12px; z-index: 200;
+      background: rgba(0,0,0,0.25); border: none; border-radius: 10px;
+      padding: 7px 14px; color: #fff; font-family: inherit;
+      font-size: 0.85rem; font-weight: 700; text-decoration: none; cursor: pointer;
+    }
+    .btn-home-fixed:hover { background: rgba(0,0,0,0.4); }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 400px) {
+      body { padding: 10px 10px 32px; }
+      .title { font-size: 1.9rem; }
+      .subtitle { font-size: 0.92rem; }
+      .q-adj { font-size: 2.4rem; }
+      .q-blank { font-size: 1.8rem; }
+      .btn-answer { padding: 16px; font-size: 1.2rem; }
+      .btn { padding: 14px; font-size: 1rem; }
+    }
+    @media (orientation: landscape) and (max-height: 500px) {
+      .hud { margin-top: 40px; }
+      .question-card { padding: 22px; }
+      .q-adj { font-size: 2.4rem; }
+      .q-blank { font-size: 1.7rem; }
+      .answers { gap: 8px; }
+      .btn-answer { padding: 14px; font-size: 1.2rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════ PLOVOUCÍ POZADÍ ═══════════ -->
+<div class="leaf-bg" aria-hidden="true">
+  <span style="top:5%;left:3%;animation-delay:0s">📖</span>
+  <span style="top:8%;left:76%;animation-delay:1.3s">✏️</span>
+  <span style="top:22%;left:88%;animation-delay:0.6s;font-size:2.2rem">🌿</span>
+  <span style="top:40%;left:2%;animation-delay:2.2s">📖</span>
+  <span style="top:60%;left:90%;animation-delay:0.9s;font-size:2.4rem">🌱</span>
+  <span style="top:75%;left:8%;animation-delay:1.8s">✏️</span>
+  <span style="top:85%;left:55%;animation-delay:3.1s;font-size:2.3rem">📖</span>
+  <span style="top:90%;left:20%;animation-delay:0.4s">🌿</span>
+  <span style="top:50%;left:50%;animation-delay:2.6s;font-size:2rem;opacity:0.09">✏️</span>
+  <span style="top:15%;left:42%;animation-delay:1.1s">🌱</span>
+  <span style="top:68%;left:70%;animation-delay:3.6s">📖</span>
+  <span style="top:35%;left:25%;animation-delay:2.0s;font-size:2.2rem">✏️</span>
+</div>
+
+<!-- ═══════════ START SCREEN ═══════════ -->
+<div id="screen-start" class="screen active">
+  <div class="title">📖 Slovní spojení</div>
+  <p class="subtitle">K danému slovu najdi správné slovní spojení.<br>Získej 12 správných odpovědí!</p>
+  <button class="btn btn-primary" onclick="startGame()">▶ Hrát</button>
+  <a href="index.html" style="width:100%;text-decoration:none;">
+    <button class="btn btn-secondary">🏠 Zpět na výběr</button>
+  </a>
+  <div class="leaderboard-card">
+    <h3>🏆 Nejlepší časy</h3>
+    <p style="font-size:0.75rem;opacity:0.5;margin:0 0 8px;text-align:center;">↺ Resetuje se 1. každého měsíce</p>
+    <ul class="leaderboard-list" id="lb-start"></ul>
+  </div>
+</div>
+
+<!-- ═══════════ GAME SCREEN ═══════════ -->
+<div id="screen-game" class="screen">
+  <a href="index.html" class="btn-home-fixed">🏠 Domů</a>
+  <div class="hud">
+    <span id="hud-score">Správně: 0 / 12</span>
+    <span class="hud-timer" id="hud-timer">0:00</span>
+  </div>
+  <div class="question-card" id="question-card">
+    <div class="q-label">Ke kterému slovu patří?</div>
+    <div class="q-adj" id="q-adj">—</div>
+    <div class="q-blank">___</div>
+  </div>
+  <div class="answers" id="answers"></div>
+</div>
+
+<!-- ═══════════ END SCREEN ═══════════ -->
+<div id="screen-end" class="screen">
+  <div class="result-card">
+    <h2>Výborně! 🎉</h2>
+    <div class="result-time" id="final-time"></div>
+    <p>To byl tvůj čas na 12 správných odpovědí.</p>
+  </div>
+  <div class="name-row">
+    <input type="text" id="player-name" placeholder="Tvoje jméno…" maxlength="20" />
+    <button class="btn btn-primary" style="width:auto;padding:14px 20px;font-size:1rem;" onclick="saveScore()">Uložit</button>
+  </div>
+  <button class="btn btn-primary" onclick="startGame()">🔄 Hrát znovu</button>
+  <a href="index.html" style="width:100%;text-decoration:none;">
+    <button class="btn btn-secondary">🏠 Zpět na výběr</button>
+  </a>
+  <div class="leaderboard-card">
+    <h3>🏆 Nejlepší časy</h3>
+    <ul class="leaderboard-list" id="lb-end"></ul>
+  </div>
+</div>
+
+<script>
+  const QUIZ_TYPE = 'czech-word-connections';
+  const GOAL = 12;
+
+  const PAIRS = [
+    { adj: 'bílý',         noun: 'sníh' },
+    { adj: 'modré',        noun: 'nebe' },
+    { adj: 'zelená',       noun: 'tráva' },
+    { adj: 'žluté',        noun: 'slunce' },
+    { adj: 'červené',      noun: 'jablko' },
+    { adj: 'velký',        noun: 'dům' },
+    { adj: 'malý',         noun: 'pes' },
+    { adj: 'rychlé',       noun: 'auto' },
+    { adj: 'vysoký',       noun: 'strom' },
+    { adj: 'sladký',       noun: 'bonbon' },
+    { adj: 'studená',      noun: 'voda' },
+    { adj: 'teplý',        noun: 'čaj' },
+    { adj: 'veselý',       noun: 'klaun' },
+    { adj: 'hodná',        noun: 'maminka' },
+    { adj: 'perníková',    noun: 'chaloupka' },
+    { adj: 'plyšový',      noun: 'medvídek' },
+    { adj: 'dětské',       noun: 'hřiště' },
+    { adj: 'barevné',      noun: 'kostky' },
+    { adj: 'pohádková',    noun: 'knížka' },
+    { adj: 'narozeninový', noun: 'dort' },
+    { adj: 'psí',          noun: 'bouda' },
+    { adj: 'včelí',        noun: 'úl' },
+    { adj: 'jahodová',     noun: 'zmrzlina' },
+    { adj: 'letící',       noun: 'pták' },
+  ];
+
+  let score = 0;
+  let timerStart = null;
+  let timerInterval = null;
+  let finalMs = 0;
+  let answering = false;
+  let queue = [];
+  let currentPair = null;
+
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  function startTimer() {
+    timerStart = Date.now();
+    timerInterval = setInterval(() => {
+      document.getElementById('hud-timer').textContent = formatTime(Date.now() - timerStart);
+    }, 100);
+  }
+
+  function stopTimer() {
+    clearInterval(timerInterval);
+    finalMs = Date.now() - timerStart;
+  }
+
+  function formatTime(ms) {
+    const s = Math.floor(ms / 1000);
+    return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+  }
+
+  function shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function refillQueue() {
+    queue = shuffle(PAIRS);
+  }
+
+  function getWrongOptions(correctNoun) {
+    const others = PAIRS.filter(p => p.noun !== correctNoun);
+    return shuffle(others).slice(0, 2).map(p => p.noun);
+  }
+
+  function renderQuestion() {
+    answering = false;
+
+    if (queue.length === 0) refillQueue();
+    currentPair = queue.pop();
+
+    // animate adjective change
+    const adjEl = document.getElementById('q-adj');
+    adjEl.style.opacity = '0';
+    adjEl.style.transform = 'scale(0.85)';
+
+    const card = document.getElementById('question-card');
+    card.classList.remove('flash-correct', 'flash-wrong');
+
+    setTimeout(() => {
+      adjEl.textContent = currentPair.adj;
+      adjEl.style.transition = 'opacity 0.2s, transform 0.2s';
+      adjEl.style.opacity = '1';
+      adjEl.style.transform = 'scale(1)';
+    }, 80);
+
+    // build options: correct + 2 wrong, shuffled
+    const wrongs  = getWrongOptions(currentPair.noun);
+    const options = shuffle([currentPair.noun, ...wrongs]);
+
+    const answersEl = document.getElementById('answers');
+    answersEl.innerHTML = '';
+    options.forEach(opt => {
+      const btn = document.createElement('button');
+      btn.className = 'btn-answer';
+      btn.textContent = opt;
+      btn.onclick = () => handleAnswer(btn, opt);
+      answersEl.appendChild(btn);
+    });
+  }
+
+  function handleAnswer(btn, chosen) {
+    if (answering) return;
+    answering = true;
+
+    const allBtns = document.querySelectorAll('#answers .btn-answer');
+    allBtns.forEach(b => b.disabled = true);
+
+    const card = document.getElementById('question-card');
+    const isCorrect = chosen === currentPair.noun;
+
+    if (isCorrect) {
+      btn.classList.add('correct');
+      card.classList.add('flash-correct');
+      score++;
+      document.getElementById('hud-score').textContent = `Správně: ${score} / ${GOAL}`;
+    } else {
+      btn.classList.add('wrong');
+      card.classList.add('flash-wrong');
+      allBtns.forEach(b => {
+        if (b.textContent === currentPair.noun) b.classList.add('correct');
+      });
+    }
+
+    setTimeout(() => {
+      if (score >= GOAL) endGame();
+      else renderQuestion();
+    }, 600);
+  }
+
+  function startGame() {
+    const nameRow = document.querySelector('.name-row');
+    if (nameRow) nameRow.style.display = '';
+    score = 0;
+    finalMs = 0;
+    clearInterval(timerInterval);
+    refillQueue();
+    document.getElementById('hud-score').textContent = `Správně: 0 / ${GOAL}`;
+    document.getElementById('hud-timer').textContent = '0:00';
+    const adjEl = document.getElementById('q-adj');
+    adjEl.style.transition = 'none';
+    adjEl.style.opacity = '1';
+    adjEl.style.transform = 'scale(1)';
+    showScreen('screen-game');
+    renderQuestion();
+    startTimer();
+  }
+
+  function endGame() {
+    stopTimer();
+    document.getElementById('final-time').textContent = formatTime(finalMs);
+    document.getElementById('player-name').value = '';
+    showScreen('screen-end');
+    renderLeaderboard('lb-end');
+  }
+
+  // ─── FIREBASE ───────────────────────────────────
+  const DB_URL = 'https://kids-games-3a167-default-rtdb.europe-west1.firebasedatabase.app';
+
+  async function getScores() {
+    try {
+      const r = await fetch(DB_URL + '/scores/' + QUIZ_TYPE + '.json');
+      const d = await r.json();
+      const scores = Array.isArray(d) ? d : [];
+      const ym = new Date().getFullYear() + '-' + String(new Date().getMonth()+1).padStart(2,'0');
+      if (scores.some(s => !s.month || s.month !== ym)) return [];
+      return scores;
+    } catch { return []; }
+  }
+
+  async function saveScore() {
+    const nameInput = document.getElementById('player-name');
+    const name = nameInput.value.trim();
+    if (!name) { nameInput.style.outline = '3px solid #ef4444'; nameInput.focus(); return; }
+    nameInput.style.outline = '';
+    const scores = await getScores();
+    const ym = new Date().getFullYear() + '-' + String(new Date().getMonth()+1).padStart(2,'0');
+    scores.push({ name, ms: finalMs, month: ym, date: new Date().toLocaleDateString('cs-CZ') });
+    scores.sort((a, b) => a.ms - b.ms);
+    const top10 = scores.slice(0, 10);
+    try {
+      await fetch(DB_URL + '/scores/' + QUIZ_TYPE + '.json', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(top10)
+      });
+    } catch {}
+    renderLeaderboard('lb-end');
+    document.querySelector('.name-row').style.display = 'none';
+    nameInput.value = '';
+  }
+
+  async function renderLeaderboard(elId) {
+    const el = document.getElementById(elId);
+    el.innerHTML = '<li class="lb-empty">Načítám…</li>';
+    const scores = await getScores();
+    if (!scores.length) { el.innerHTML = '<li class="lb-empty">Zatím žádné výsledky.</li>'; return; }
+    el.innerHTML = scores.map((s, i) => `
+      <li>
+        <span class="lb-rank">${i + 1}.</span>
+        <span class="lb-name">${escHtml(s.name)}</span>
+        <span class="lb-time">${formatTime(s.ms)}</span>
+        <span class="lb-date">${escHtml(s.date || '')}</span>
+      </li>`).join('');
+  }
+
+  function escHtml(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  renderLeaderboard('lb-start');
+</script>
+</body>
+</html>

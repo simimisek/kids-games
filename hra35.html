@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-KEF2T80GE0"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-KEF2T80GE0');
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sudé nebo liché? | Vzdělávací hry</title>
+  <meta property="og:title" content="Sudé nebo liché?" />
+  <meta property="og:image" content="https://simimisek.github.io/kids-games/ogimage.png" />
+  <meta property="og:description" content="Hod kostkou a rozhodni — sudé nebo liché číslo? Hra pro první třídu." />
+  <meta property="og:url" content="https://simimisek.github.io/kids-games/hra35.html" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://simimisek.github.io/kids-games/og-preview.png" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #1a237e 0%, #0277bd 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 16px 16px 40px;
+      overflow-x: hidden;
+    }
+
+    .num-bg { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+    .num-bg span {
+      position: absolute; font-size: 2.6rem; opacity: 0.11;
+      animation: numF 7s ease-in-out infinite; user-select: none;
+      color: white; font-weight: 900;
+    }
+    @keyframes numF {
+      0%,100% { transform: translateY(0) rotate(-3deg); }
+      50%      { transform: translateY(-15px) rotate(3deg); }
+    }
+
+    .screen { position: relative; z-index: 1; display: none; width: 100%; max-width: 480px; }
+    .screen.active { display: flex; flex-direction: column; align-items: center; gap: 16px; padding-top: 16px; }
+
+    .title    { font-size: 2.2rem; color: #fff; text-align: center; text-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+    .subtitle { color: rgba(255,255,255,0.85); text-align: center; font-size: 1rem; line-height: 1.65; }
+
+    .hud {
+      width: 100%; display: flex; justify-content: space-between; align-items: center;
+      background: rgba(255,255,255,0.2); border-radius: 14px;
+      padding: 10px 20px; margin-top: 55px;
+      color: #fff; font-size: 1.1rem; font-weight: 600;
+    }
+    .hud-timer { font-variant-numeric: tabular-nums; }
+
+    /* ─── DICE CARD ─── */
+    .dice-card {
+      background: #fff; border-radius: 20px;
+      padding: 32px 24px; width: 100%;
+      text-align: center;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+      display: flex; flex-direction: column; align-items: center; gap: 16px;
+      transition: box-shadow 0.2s;
+    }
+    .dice-card.flash-correct { box-shadow: 0 0 0 4px #22c55e, 0 8px 32px rgba(34,197,94,0.3); }
+    .dice-card.flash-wrong   { box-shadow: 0 0 0 4px #ef4444, 0 8px 32px rgba(239,68,68,0.3); }
+
+    .dice-label {
+      font-size: 0.85rem; color: #aaa; font-weight: 600;
+      letter-spacing: 0.06em; text-transform: uppercase;
+    }
+
+    /* SVG dice */
+    .dice-svg-wrap {
+      width: 160px; height: 160px;
+      transition: transform 0.15s;
+    }
+    .dice-svg-wrap.rolling {
+      animation: diceRoll 0.35s ease-out;
+    }
+    @keyframes diceRoll {
+      0%   { transform: rotate(0deg) scale(0.8); opacity: 0.3; }
+      40%  { transform: rotate(-15deg) scale(1.08); opacity: 1; }
+      70%  { transform: rotate(8deg) scale(1.03); }
+      100% { transform: rotate(0deg) scale(1); }
+    }
+
+    /* ─── ANSWER BUTTONS ─── */
+    .answer-row { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .btn-answer {
+      padding: 26px 16px;
+      font-size: 1.6rem; font-weight: 800;
+      border: none; border-radius: 16px; cursor: pointer;
+      background: #fff; color: #333;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+      transition: transform 0.1s, background 0.15s, color 0.15s, box-shadow 0.15s;
+      outline: none; font-family: inherit;
+    }
+    .btn-answer:hover:not(:disabled) { transform: translateY(-3px); background: #e8f0fe; }
+    .btn-answer:active:not(:disabled) { transform: translateY(0); }
+    .btn-answer.correct { background: #22c55e; color: #fff; box-shadow: 0 4px 16px rgba(34,197,94,0.4); }
+    .btn-answer.wrong   { background: #ef4444; color: #fff; box-shadow: 0 4px 16px rgba(239,68,68,0.4); }
+
+    /* ─── RESULT ─── */
+    .result-card {
+      background: #fff; border-radius: 20px;
+      padding: 32px 24px; width: 100%;
+      text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    }
+    .result-card h2 { font-size: 1.8rem; color: #333; margin-bottom: 8px; }
+    .result-time    { font-size: 3rem; font-weight: 700; color: #1a237e; margin: 12px 0; }
+    .result-card p  { color: #666; font-size: 0.95rem; }
+
+    .name-row { width: 100%; display: flex; gap: 10px; }
+    .name-row input {
+      flex: 1; padding: 14px 18px; border-radius: 12px;
+      border: none; font-size: 1rem; outline: 2px solid transparent;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.12); transition: outline 0.2s;
+    }
+    .name-row input:focus { outline: 2px solid #1a237e; }
+
+    /* ─── LEADERBOARD ─── */
+    .leaderboard-card {
+      background: #fff; border-radius: 20px;
+      padding: 22px; width: 100%;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+    .leaderboard-card h3 { text-align: center; color: #333; font-size: 1.1rem; margin-bottom: 14px; }
+    .leaderboard-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .leaderboard-list li {
+      display: grid; grid-template-columns: 28px 1fr auto;
+      gap: 8px; align-items: center; font-size: 0.95rem;
+      color: #444; padding: 6px 0; border-bottom: 1px solid #f0f0f0;
+    }
+    .leaderboard-list li:last-child { border-bottom: none; }
+    .lb-rank  { font-weight: 700; color: #1a237e; text-align: center; }
+    .lb-name  { font-weight: 600; }
+    .lb-time  { font-variant-numeric: tabular-nums; color: #1a237e; font-weight: 700; }
+    .lb-date  { font-size: 0.78rem; color: #aaa; grid-column: 2 / 4; margin-top: -4px; }
+    .lb-empty { text-align: center; color: #aaa; font-style: italic; font-size: 0.9rem; padding: 8px 0; }
+
+    /* ─── BUTTONS ─── */
+    .btn {
+      width: 100%; padding: 15px;
+      font-size: 1.05rem; font-weight: 700;
+      border: none; border-radius: 14px; cursor: pointer;
+      transition: transform 0.1s; font-family: inherit;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary   { background: #1565c0; color: #fff; box-shadow: 0 4px 16px rgba(21,101,192,0.35); }
+    .btn-primary:hover { background: #0d47a1; }
+    .btn-secondary { background: rgba(255,255,255,0.15); color: #fff; border: 2px solid rgba(255,255,255,0.35); box-shadow: none; }
+    .btn-secondary:hover { background: rgba(255,255,255,0.25); }
+
+    .btn-home-fixed {
+      position: fixed; top: 12px; right: 12px; z-index: 200;
+      background: rgba(0,0,0,0.25); border: none; border-radius: 10px;
+      padding: 7px 14px; color: #fff; font-family: inherit;
+      font-size: 0.85rem; font-weight: 700; text-decoration: none; cursor: pointer;
+    }
+    .btn-home-fixed:hover { background: rgba(0,0,0,0.4); }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 400px) {
+      body { padding: 10px 10px 32px; }
+      .title { font-size: 1.9rem; }
+      .dice-svg-wrap { width: 130px; height: 130px; }
+      .btn-answer { padding: 20px 12px; font-size: 1.35rem; }
+      .btn { padding: 14px; font-size: 1rem; }
+    }
+    @media (orientation: landscape) and (max-height: 500px) {
+      .hud { margin-top: 40px; }
+      .dice-svg-wrap { width: 110px; height: 110px; }
+      .dice-card { padding: 20px; flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="num-bg" aria-hidden="true">
+  <span style="top:5%;left:4%;animation-delay:0s">2</span>
+  <span style="top:8%;left:76%;animation-delay:1.2s">4</span>
+  <span style="top:22%;left:88%;animation-delay:0.5s;font-size:2.2rem">6</span>
+  <span style="top:42%;left:2%;animation-delay:2.1s">1</span>
+  <span style="top:62%;left:90%;animation-delay:0.9s;font-size:2.4rem">3</span>
+  <span style="top:76%;left:8%;animation-delay:1.7s">5</span>
+  <span style="top:86%;left:56%;animation-delay:3.1s;font-size:2.2rem">2</span>
+  <span style="top:91%;left:22%;animation-delay:0.4s">6</span>
+  <span style="top:16%;left:43%;animation-delay:1.0s">4</span>
+  <span style="top:50%;left:50%;animation-delay:2.5s;font-size:1.9rem;opacity:0.07">1</span>
+</div>
+
+<!-- ═══════════ START SCREEN ═══════════ -->
+<div id="screen-start" class="screen active">
+  <div class="title">🎲 Sudé nebo liché?</div>
+  <p class="subtitle">Hod kostkou a poznáš — je číslo sudé nebo liché?<br>10 hodů, co nejrychleji!</p>
+  <button class="btn btn-primary" onclick="startGame()">▶ Hrát</button>
+  <a href="index.html" style="width:100%;text-decoration:none;">
+    <button class="btn btn-secondary">🏠 Zpět na výběr</button>
+  </a>
+  <div class="leaderboard-card">
+    <h3>🏆 Nejlepší časy</h3>
+    <p style="font-size:0.75rem;opacity:0.5;margin:0 0 8px;text-align:center;">↺ Resetuje se 1. každého měsíce</p>
+    <ul class="leaderboard-list" id="lb-start"></ul>
+  </div>
+</div>
+
+<!-- ═══════════ GAME SCREEN ═══════════ -->
+<div id="screen-game" class="screen">
+  <a href="index.html" class="btn-home-fixed">🏠 Domů</a>
+  <div class="hud">
+    <span id="hud-score">Hod: 0 / 5</span>
+    <span class="hud-timer" id="hud-timer">0:00</span>
+  </div>
+  <div class="dice-card" id="dice-card">
+    <div class="dice-label">Jaké číslo padlo?</div>
+    <div class="dice-svg-wrap" id="dice-svg-wrap">
+      <!-- SVG dice inserted here by JS -->
+    </div>
+  </div>
+  <div class="answer-row">
+    <button class="btn-answer" id="btn-even" onclick="handleAnswer(this,'even')">Sudé</button>
+    <button class="btn-answer" id="btn-odd"  onclick="handleAnswer(this,'odd')">Liché</button>
+  </div>
+</div>
+
+<!-- ═══════════ END SCREEN ═══════════ -->
+<div id="screen-end" class="screen">
+  <div class="result-card">
+    <h2>Skvělá práce! 🎉</h2>
+    <div class="result-time" id="final-time"></div>
+    <p>To byl tvůj čas na 10 správných hodů.</p>
+  </div>
+  <div class="name-row">
+    <input type="text" id="player-name" placeholder="Tvoje jméno…" maxlength="20" />
+    <button class="btn btn-primary" style="width:auto;padding:14px 20px;font-size:1rem;" onclick="saveScore()">Uložit</button>
+  </div>
+  <button class="btn btn-primary" onclick="startGame()">🔄 Hrát znovu</button>
+  <a href="index.html" style="width:100%;text-decoration:none;">
+    <button class="btn btn-secondary">🏠 Zpět na výběr</button>
+  </a>
+  <div class="leaderboard-card">
+    <h3>🏆 Nejlepší časy</h3>
+    <ul class="leaderboard-list" id="lb-end"></ul>
+  </div>
+</div>
+
+<script>
+  const QUIZ_TYPE = 'math-even-odd';
+  const GOAL = 10;
+
+  // Dot positions for each face of a standard die
+  // Each dot: [cx%, cy%] within the die face
+  const DICE_DOTS = {
+    1: [[50, 50]],
+    2: [[25, 25], [75, 75]],
+    3: [[25, 25], [50, 50], [75, 75]],
+    4: [[25, 25], [75, 25], [25, 75], [75, 75]],
+    5: [[25, 25], [75, 25], [50, 50], [25, 75], [75, 75]],
+    6: [[25, 22], [75, 22], [25, 50], [75, 50], [25, 78], [75, 78]],
+  };
+
+  function makeDiceSVG(n, highlight) {
+    const dots = DICE_DOTS[n];
+    const dotColor = highlight === 'correct' ? '#22c55e'
+                   : highlight === 'wrong'   ? '#ef4444'
+                   : '#1a237e';
+    const dotsSVG = dots.map(([cx, cy]) =>
+      `<circle cx="${cx}" cy="${cy}" r="8" fill="${dotColor}"/>`
+    ).join('');
+    return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <rect x="2" y="2" width="96" height="96" rx="18" ry="18"
+        fill="white" stroke="#e2e8f0" stroke-width="2"
+        filter="url(#dshadow)"/>
+      <defs>
+        <filter id="dshadow" x="-5%" y="-5%" width="110%" height="110%">
+          <feDropShadow dx="0" dy="3" stdDeviation="4" flood-opacity="0.12"/>
+        </filter>
+      </defs>
+      ${dotsSVG}
+    </svg>`;
+  }
+
+  let score = 0, timerStart = null, timerInterval = null, finalMs = 0;
+  let currentNumber = null, answering = false, recentNums = [];
+
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  function startTimer() {
+    timerStart = Date.now();
+    timerInterval = setInterval(() => {
+      document.getElementById('hud-timer').textContent = formatTime(Date.now() - timerStart);
+    }, 100);
+  }
+
+  function stopTimer() {
+    clearInterval(timerInterval);
+    finalMs = Date.now() - timerStart;
+  }
+
+  function formatTime(ms) {
+    const s = Math.floor(ms / 1000);
+    return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+  }
+
+  function rollDice() {
+    let n, attempts = 0;
+    do {
+      n = Math.floor(Math.random() * 6) + 1;
+      attempts++;
+    } while (recentNums.slice(-2).includes(n) && attempts < 20);
+    recentNums.push(n);
+    if (recentNums.length > 4) recentNums.shift();
+    return n;
+  }
+
+  function renderQuestion() {
+    answering = false;
+    currentNumber = rollDice();
+
+    const wrap = document.getElementById('dice-svg-wrap');
+    wrap.classList.remove('rolling');
+    void wrap.offsetWidth; // reflow to restart animation
+    wrap.classList.add('rolling');
+    wrap.innerHTML = makeDiceSVG(currentNumber, null);
+
+    const card = document.getElementById('dice-card');
+    card.classList.remove('flash-correct', 'flash-wrong');
+
+    ['btn-even', 'btn-odd'].forEach(id => {
+      const b = document.getElementById(id);
+      b.disabled = false;
+      b.classList.remove('correct', 'wrong');
+    });
+  }
+
+  function handleAnswer(btn, type) {
+    if (answering) return;
+    answering = true;
+
+    const btnEven = document.getElementById('btn-even');
+    const btnOdd  = document.getElementById('btn-odd');
+    btnEven.disabled = true;
+    btnOdd.disabled  = true;
+
+    const card = document.getElementById('dice-card');
+    const wrap = document.getElementById('dice-svg-wrap');
+    const isEven = currentNumber % 2 === 0;
+    const isCorrect = (type === 'even' && isEven) || (type === 'odd' && !isEven);
+
+    if (isCorrect) {
+      btn.classList.add('correct');
+      card.classList.add('flash-correct');
+      wrap.innerHTML = makeDiceSVG(currentNumber, 'correct');
+      score++;
+      document.getElementById('hud-score').textContent = `Hod: ${score} / ${GOAL}`;
+    } else {
+      btn.classList.add('wrong');
+      card.classList.add('flash-wrong');
+      wrap.innerHTML = makeDiceSVG(currentNumber, 'wrong');
+      const correctBtn = isEven ? btnEven : btnOdd;
+      correctBtn.classList.add('correct');
+    }
+
+    setTimeout(() => {
+      if (score >= GOAL) endGame();
+      else renderQuestion();
+    }, 600);
+  }
+
+  function startGame() {
+    const nameRow = document.querySelector('.name-row');
+    if (nameRow) nameRow.style.display = '';
+    score = 0; finalMs = 0; recentNums = [];
+    clearInterval(timerInterval);
+    document.getElementById('hud-score').textContent = `Hod: 0 / ${GOAL}`;
+    document.getElementById('hud-timer').textContent = '0:00';
+    showScreen('screen-game');
+    renderQuestion();
+    startTimer();
+  }
+
+  function endGame() {
+    stopTimer();
+    document.getElementById('final-time').textContent = formatTime(finalMs);
+    document.getElementById('player-name').value = '';
+    showScreen('screen-end');
+    renderLeaderboard('lb-end');
+  }
+
+  // ─── FIREBASE ───────────────────────────────────────────
+  const DB_URL = 'https://kids-games-3a167-default-rtdb.europe-west1.firebasedatabase.app';
+
+  async function getScores() {
+    try {
+      const r = await fetch(DB_URL + '/scores/' + QUIZ_TYPE + '.json');
+      const d = await r.json();
+      const scores = Array.isArray(d) ? d : [];
+      const ym = new Date().getFullYear() + '-' + String(new Date().getMonth()+1).padStart(2,'0');
+      if (scores.some(s => !s.month || s.month !== ym)) return [];
+      return scores;
+    } catch { return []; }
+  }
+
+  async function saveScore() {
+    const nameInput = document.getElementById('player-name');
+    const name = nameInput.value.trim();
+    if (!name) { nameInput.style.outline = '3px solid #ef4444'; nameInput.focus(); return; }
+    nameInput.style.outline = '';
+    const scores = await getScores();
+    const ym = new Date().getFullYear() + '-' + String(new Date().getMonth()+1).padStart(2,'0');
+    scores.push({ name, ms: finalMs, month: ym, date: new Date().toLocaleDateString('cs-CZ') });
+    scores.sort((a, b) => a.ms - b.ms);
+    const top10 = scores.slice(0, 10);
+    try {
+      await fetch(DB_URL + '/scores/' + QUIZ_TYPE + '.json', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(top10)
+      });
+    } catch {}
+    renderLeaderboard('lb-end');
+    document.querySelector('.name-row').style.display = 'none';
+    nameInput.value = '';
+  }
+
+  async function renderLeaderboard(elId) {
+    const el = document.getElementById(elId);
+    el.innerHTML = '<li class="lb-empty">Načítám…</li>';
+    const scores = await getScores();
+    if (!scores.length) { el.innerHTML = '<li class="lb-empty">Zatím žádné výsledky.</li>'; return; }
+    el.innerHTML = scores.map((s, i) => `
+      <li>
+        <span class="lb-rank">${i + 1}.</span>
+        <span class="lb-name">${escHtml(s.name)}</span>
+        <span class="lb-time">${formatTime(s.ms)}</span>
+        <span class="lb-date">${escHtml(s.date || '')}</span>
+      </li>`).join('');
+  }
+
+  function escHtml(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  renderLeaderboard('lb-start');
+</script>
+</body>
+</html>

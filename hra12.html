@@ -282,6 +282,34 @@
       .task-bignum  { font-size: 3.2rem; }
       .objects-area { gap: 7px; }
     }
+
+    /* ─── TABLET LANDSCAPE ─── */
+    @media (orientation: landscape) and (max-height: 520px) {
+      body          { padding: 8px 12px 20px; }
+      .game-header  { max-width: 700px; margin-top: 38px; margin-bottom: 8px; }
+      .top-area     { max-width: 700px; margin-bottom: 8px; padding: 10px 14px; gap: 12px; }
+      .monster-wrap { width: 62px; }
+      .m-hair       { gap: 3px; padding: 0 6px; }
+      .m-spike      { width: 11px; height: 18px; }
+      .m-spike:nth-child(2) { height: 24px; width: 13px; }
+      .m-body       { width: 62px; height: 68px; border-radius: 31px 31px 26px 26px; }
+      .m-eyes       { padding: 10px 6px 0; }
+      .m-eye        { width: 18px; height: 18px; }
+      .m-pupil      { width: 9px; height: 9px; }
+      .m-cheek      { width: 14px; height: 8px; }
+      .m-mouth      { width: 32px; height: 12px; }
+      .m-mouth.eating { height: 22px; }
+      .m-tooth      { width: 6px; height: 8px; }
+      .m-feet       { gap: 4px; }
+      .m-foot       { width: 18px; height: 10px; }
+      .task-bignum  { font-size: 2.8rem; }
+      .task-dot     { width: 14px; height: 14px; }
+      .objects-area { max-width: 700px; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+      .main-card    { max-width: 700px; }
+      .game-title   { font-size: 1.8rem; }
+      .game-icon    { font-size: 3.5rem; margin-bottom: 6px; }
+      .game-sub     { margin-bottom: 16px; }
+    }
   </style>
 </head>
 <body>

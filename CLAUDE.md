@@ -182,8 +182,11 @@ renderLeaderboard('lb-start');
 | hra32.html | Piš, co vidíš! | Čeština | `czech-spell-word` |
 | hra33.html | Housenka násobilek | Matematika | `math-caterpillar` |
 | hra34.html | Seřaď od nejmenšího | Hrátky pro nejmenší | `preschool-sort-size` |
+| hra35.html | Sudé nebo liché? | Matematika | `math-even-odd` |
+| hra36.html | Slovní spojení | Čeština | `czech-word-connections` |
+| hra37.html | Pexeso zvířátek | Hrátky pro nejmenší | `preschool-pexeso` |
 
 ## Sekce v index.html
-- 🔢 **Matematika** — hra.html, hra2.html, hra8.html, hra16.html, hra18.html, hra19.html, hra23.html, hra26.html, hra30.html, hra33.html
-- 📖 **Čeština** — hra3.html, hra4.html, hra5.html, hra13.html, hra14.html, hra15.html, hra21.html, hra24.html, hra28.html, hra31.html, hra32.html
-- 🌈 **Hrátky pro nejmenší** — hra6.html, hra7.html, hra10.html, hra11.html, hra12.html, hra17.html, hra20.html, hra22.html, hra25.html, hra27.html, hra29.html, hra34.html
+- 🔢 **Matematika** — hra.html, hra2.html, hra8.html, hra16.html, hra18.html, hra19.html, hra23.html, hra26.html, hra30.html, hra33.html, hra35.html
+- 📖 **Čeština** — hra3.html, hra4.html, hra5.html, hra13.html, hra14.html, hra15.html, hra21.html, hra24.html, hra28.html, hra31.html, hra32.html, hra36.html
+- 🌈 **Hrátky pro nejmenší** — hra6.html, hra7.html, hra10.html, hra11.html, hra12.html, hra17.html, hra20.html, hra22.html, hra25.html, hra27.html, hra29.html, hra34.html, hra37.html
