@@ -93,17 +93,21 @@
       box-shadow: none;
     }
     .stone-dots {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 2.5px;
-      max-width: 40px;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      grid-template-rows: repeat(2, 1fr);
+      gap: 3px;
+      width: 38px;
     }
     .stone-dots span {
       width: 6px; height: 6px;
       border-radius: 50%;
-      background: #374151;
       display: inline-block;
+    }
+    .stone-dots span.filled { background: #374151; }
+    .stone-dots span.empty {
+      background: transparent;
+      border: 1.2px solid rgba(55,65,81,0.4);
     }
     .stone .frog {
       position: absolute; top: -34px; font-size: 1.9rem;
@@ -204,7 +208,7 @@
       .title { font-size: 1.9rem; }
       .subtitle { font-size: 0.92rem; }
       .stone { height: 64px; font-size: 1.05rem; }
-      .stone-dots { max-width: 32px; }
+      .stone-dots { width: 30px; gap: 2px; }
       .stone-dots span { width: 5px; height: 5px; }
       .btn-answer { padding: 16px 6px; font-size: 1.5rem; }
       .btn { padding: 14px; font-size: 1rem; }
@@ -326,7 +330,9 @@
         stone.appendChild(num);
         const dots = document.createElement('div');
         dots.className = 'stone-dots';
-        dots.innerHTML = '<span></span>'.repeat(n);
+        dots.innerHTML = Array.from({ length: TARGET }, (_, i) =>
+          `<span class="${i < n ? 'filled' : 'empty'}"></span>`
+        ).join('');
         stone.appendChild(dots);
         if (n === current) {
           const frog = document.createElement('span');
