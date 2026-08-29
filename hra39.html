@@ -13,7 +13,7 @@
   <title>Skoky po číslech | Vzdělávací hry</title>
   <meta property="og:title" content="Skoky po číslech" />
   <meta property="og:image" content="https://simimisek.github.io/kids-games/ogimage.png" />
-  <meta property="og:description" content="Žabka skáče po kamenech s čísly — jeden kámen chybí. Doplň správné číslo! 10 správně na čas." />
+  <meta property="og:description" content="Postav žabce cestu z kamenů od 1 do 10 — vyber vždy správné další číslo!" />
   <meta property="og:url" content="https://simimisek.github.io/kids-games/hra39.html" />
   <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary_large_image" />
@@ -73,26 +73,24 @@
       margin-bottom: 18px;
     }
     .stones-row {
-      display: flex;
-      justify-content: center;
-      align-items: flex-end;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
       gap: 8px;
-      flex-wrap: wrap;
     }
     .stone {
       position: relative;
-      width: 66px; height: 82px;
-      border-radius: 20px;
+      height: 78px;
+      border-radius: 18px;
       background: radial-gradient(circle at 35% 25%, #d1d5db, #9ca3af 75%);
       box-shadow: 0 4px 10px rgba(0,0,0,0.2), inset 0 -4px 6px rgba(0,0,0,0.15);
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      gap: 4px;
-      font-size: 1.5rem; font-weight: 800; color: #374151;
+      gap: 3px;
+      font-size: 1.3rem; font-weight: 800; color: #374151;
     }
-    .stone.blank {
-      background: radial-gradient(circle at 35% 25%, #fde68a, #f59e0b 75%);
-      color: #78350f;
-      font-size: 2rem;
+    .stone.empty {
+      background: transparent;
+      border: 3px dashed rgba(255,255,255,0.4);
+      box-shadow: none;
     }
     .stone-dots {
       display: flex;
@@ -205,15 +203,14 @@
       body { padding: 10px 10px 32px; }
       .title { font-size: 1.9rem; }
       .subtitle { font-size: 0.92rem; }
-      .stone { width: 54px; height: 70px; font-size: 1.15rem; }
-      .stone.blank { font-size: 1.6rem; }
+      .stone { height: 64px; font-size: 1.05rem; }
       .stone-dots { max-width: 32px; }
       .stone-dots span { width: 5px; height: 5px; }
       .btn-answer { padding: 16px 6px; font-size: 1.5rem; }
       .btn { padding: 14px; font-size: 1rem; }
     }
     @media (max-width: 360px) {
-      .stone { width: 46px; height: 62px; font-size: 1rem; }
+      .stone { height: 56px; font-size: 0.95rem; }
       .stones-row { gap: 6px; }
       .hud { padding: 8px 14px; font-size: 1rem; }
     }
@@ -242,7 +239,7 @@
 <!-- ═══════════ START SCREEN ═══════════ -->
 <div id="screen-start" class="screen active">
   <div class="title">🐸 Skoky po číslech</div>
-  <p class="subtitle">Žabka skáče po kamenech s čísly — jeden kámen chybí.<br>Doplň správné číslo! 10 správně na čas.</p>
+  <p class="subtitle">Postav žabce cestu z kamenů — začíná se u čísla 1.<br>Vyber vždy správné další číslo až do 10!</p>
   <button class="btn btn-primary" onclick="startGame()">▶ Hrát</button>
   <a href="index.html" style="width:100%;text-decoration:none;">
     <button class="btn btn-secondary">🏠 Zpět na výběr</button>
@@ -258,11 +255,11 @@
 <div id="screen-game" class="screen">
   <a href="index.html" class="btn-home-fixed">🏠 Domů</a>
   <div class="hud">
-    <span id="hud-score">Správně: 0 / 10</span>
+    <span id="hud-score">Řada: 1 / 10</span>
     <span class="hud-timer" id="hud-timer">0:00</span>
   </div>
   <div class="pond-box">
-    <div class="pond-hint">Jaké číslo tam chybí?</div>
+    <div class="pond-hint">Jaké je další číslo?</div>
     <div class="stones-row" id="stones-row"></div>
   </div>
   <div class="answers" id="answers"></div>
@@ -273,7 +270,7 @@
   <div class="result-card">
     <h2>Žabka je hrdá! 🐸🎉</h2>
     <div class="result-time" id="final-time"></div>
-    <p>To byl tvůj čas na 10 správných skoků.</p>
+    <p>Postavil jsi celou řadu čísel od 1 do 10!</p>
   </div>
   <div class="name-row">
     <input type="text" id="player-name" placeholder="Tvoje jméno…" maxlength="20" />
@@ -291,11 +288,9 @@
 
 <script>
   const QUIZ_TYPE = 'preschool-numbers';
-  const GOAL = 10;
-  const MAX_NUM = 5;
-  const SEQ_LEN = MAX_NUM;
+  const TARGET = 10;
 
-  let score = 0, currentAnswer = null, answering = false;
+  let current = 1, answering = false;
   let timerStart, timerInterval, finalMs = 0;
 
   function showScreen(id) {
@@ -319,21 +314,13 @@
     return a;
   }
 
-  function renderQuestion() {
-    answering = false;
-    const seq = Array.from({ length: SEQ_LEN }, (_, i) => i + 1);
-    const blankIdx = randInt(0, SEQ_LEN - 1);
-    currentAnswer = seq[blankIdx];
-    const frogIdx = randInt(0, SEQ_LEN - 1);
-
+  function buildStones() {
     const row = document.getElementById('stones-row');
     row.innerHTML = '';
-    seq.forEach((n, i) => {
+    for (let n = 1; n <= TARGET; n++) {
       const stone = document.createElement('div');
-      stone.className = 'stone' + (i === blankIdx ? ' blank' : '');
-      if (i === blankIdx) {
-        stone.textContent = '?';
-      } else {
+      if (n <= current) {
+        stone.className = 'stone';
         const num = document.createElement('div');
         num.textContent = n;
         stone.appendChild(num);
@@ -341,20 +328,33 @@
         dots.className = 'stone-dots';
         dots.innerHTML = '<span></span>'.repeat(n);
         stone.appendChild(dots);
-      }
-      if (i === frogIdx) {
-        const frog = document.createElement('span');
-        frog.className = 'frog';
-        frog.textContent = '🐸';
-        stone.appendChild(frog);
+        if (n === current) {
+          const frog = document.createElement('span');
+          frog.className = 'frog';
+          frog.textContent = '🐸';
+          stone.appendChild(frog);
+        }
+      } else {
+        stone.className = 'stone empty';
       }
       row.appendChild(stone);
-    });
+    }
+  }
 
-    const wrongPool = shuffle(
-      Array.from({ length: MAX_NUM }, (_, i) => i + 1).filter(n => n !== currentAnswer)
+  function renderQuestion() {
+    answering = false;
+    const correct = current + 1;
+
+    let wrongPool = shuffle(
+      Array.from({ length: TARGET }, (_, i) => i + 1).filter(n => n > current && n !== correct)
     ).slice(0, 2);
-    const options = shuffle([currentAnswer, ...wrongPool]);
+    if (wrongPool.length < 2) {
+      const fallback = shuffle(
+        Array.from({ length: TARGET }, (_, i) => i + 1).filter(n => n !== correct && !wrongPool.includes(n))
+      ).slice(0, 2 - wrongPool.length);
+      wrongPool = wrongPool.concat(fallback);
+    }
+    const options = shuffle([correct, ...wrongPool]);
 
     const answersEl = document.getElementById('answers');
     answersEl.innerHTML = '';
@@ -362,22 +362,25 @@
       const btn = document.createElement('button');
       btn.className = 'btn-answer';
       btn.textContent = opt;
-      btn.onclick = () => handleAnswer(btn, opt);
+      btn.onclick = () => handleAnswer(btn, opt, correct);
       answersEl.appendChild(btn);
     });
   }
 
-  function handleAnswer(btn, chosen) {
+  function handleAnswer(btn, chosen, correct) {
     if (answering) return;
     answering = true;
     const allBtns = document.querySelectorAll('.btn-answer');
     allBtns.forEach(b => b.disabled = true);
 
-    if (chosen === currentAnswer) {
+    if (chosen === correct) {
       btn.classList.add('correct');
-      score++;
-      document.getElementById('hud-score').textContent = `Správně: ${score} / ${GOAL}`;
-      setTimeout(() => { if (score >= GOAL) endGame(); else renderQuestion(); }, 350);
+      current++;
+      document.getElementById('hud-score').textContent = `Řada: ${current} / ${TARGET}`;
+      setTimeout(() => {
+        if (current >= TARGET) { buildStones(); endGame(); }
+        else { buildStones(); renderQuestion(); }
+      }, 400);
     } else {
       btn.classList.add('wrong');
       setTimeout(() => { renderQuestion(); }, 500);
@@ -387,11 +390,12 @@
   function startGame() {
     const nameRow = document.querySelector('.name-row');
     if (nameRow) nameRow.style.display = '';
-    score = 0; finalMs = 0;
+    current = 1; finalMs = 0;
     clearInterval(timerInterval);
-    document.getElementById('hud-score').textContent = `Správně: 0 / ${GOAL}`;
+    document.getElementById('hud-score').textContent = `Řada: ${current} / ${TARGET}`;
     document.getElementById('hud-timer').textContent = '0:00';
     showScreen('screen-game');
+    buildStones();
     renderQuestion();
     timerStart = Date.now();
     timerInterval = setInterval(() => {
