@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-KEF2T80GE0"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-KEF2T80GE0');
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jaké je to barvy? | Vzdělávací hry</title>
+  <meta property="og:title" content="Jaké je to barvy?" />
+  <meta property="og:image" content="https://simimisek.github.io/kids-games/ogimage.png" />
+  <meta property="og:description" content="Obrázek je černobílý — poznáš, jakou barvu má doopravdy? 10 správných na čas!" />
+  <meta property="og:url" content="https://simimisek.github.io/kids-games/hra38.html" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://simimisek.github.io/kids-games/og-preview.png" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #4a148c 0%, #880e4f 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 16px 16px 40px;
+      overflow-x: hidden;
+    }
+
+    .star-bg { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+    .star-bg span {
+      position: absolute; font-size: 2rem; opacity: 0.12;
+      animation: starF 9s ease-in-out infinite; user-select: none;
+    }
+    @keyframes starF {
+      0%,100% { transform: translateY(0) rotate(-5deg); }
+      50%      { transform: translateY(-16px) rotate(5deg); }
+    }
+
+    .screen { position: relative; z-index: 1; display: none; width: 100%; max-width: 480px; }
+    .screen.active { display: flex; flex-direction: column; align-items: center; gap: 16px; padding-top: 16px; }
+
+    .title    { font-size: 2.2rem; color: #fff; text-align: center; text-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+    .subtitle { color: rgba(255,255,255,0.85); text-align: center; font-size: 1rem; line-height: 1.65; }
+
+    .hud {
+      width: 100%; display: flex; justify-content: space-between; align-items: center;
+      background: rgba(255,255,255,0.2); border-radius: 14px;
+      padding: 10px 20px; margin-top: 55px;
+      color: #fff; font-size: 1.1rem; font-weight: 600;
+    }
+    .hud-timer { font-variant-numeric: tabular-nums; }
+
+    /* ─── QUESTION BOX ─── */
+    .question-box {
+      background: #fff;
+      border-radius: 20px;
+      padding: 28px 24px 24px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    }
+    .question-hint {
+      font-size: 0.95rem;
+      color: #888;
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+    .question-icon {
+      width: 150px;
+      height: 150px;
+      margin: 0 auto;
+      filter: grayscale(100%);
+    }
+    .question-icon svg { width: 100%; height: 100%; display: block; }
+
+    /* ─── COLOR OPTIONS ─── */
+    .color-options {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+    .color-btn {
+      aspect-ratio: 1;
+      border-radius: 50%;
+      border: 4px solid rgba(255,255,255,0.65);
+      box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+      cursor: pointer;
+      transition: transform 0.12s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .color-btn:hover:not(:disabled) { transform: scale(1.08); }
+    .color-btn:active:not(:disabled) { transform: scale(0.95); }
+    .color-btn.white { border-color: #cbd5e1; }
+    .color-btn.wrong-flash {
+      animation: shakeFlash 0.5s;
+    }
+    @keyframes shakeFlash {
+      0%, 100% { transform: translateX(0); }
+      20%      { transform: translateX(-6px); }
+      40%      { transform: translateX(6px); }
+      60%      { transform: translateX(-4px); }
+      80%      { transform: translateX(4px); }
+    }
+    .color-btn.correct-pop {
+      animation: correctPop 0.4s ease-out;
+      box-shadow: 0 0 0 6px rgba(34,197,94,0.45), 0 4px 14px rgba(0,0,0,0.25);
+    }
+    @keyframes correctPop {
+      0%   { transform: scale(1); }
+      50%  { transform: scale(1.18); }
+      100% { transform: scale(1); }
+    }
+
+    /* ─── RESULT ─── */
+    .result-card {
+      background: #fff; border-radius: 20px;
+      padding: 32px 24px; width: 100%;
+      text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    }
+    .result-card h2 { font-size: 1.8rem; color: #333; margin-bottom: 8px; }
+    .result-time    { font-size: 3rem; font-weight: 700; color: #7c3aed; margin: 12px 0; }
+    .result-card p  { color: #666; font-size: 0.95rem; }
+
+    .name-row { width: 100%; display: flex; gap: 10px; }
+    .name-row input {
+      flex: 1; padding: 14px 18px; border-radius: 12px;
+      border: none; font-size: 1rem; outline: 2px solid transparent;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.12); transition: outline 0.2s;
+    }
+    .name-row input:focus { outline: 2px solid #7c3aed; }
+
+    /* ─── LEADERBOARD ─── */
+    .leaderboard-card {
+      background: #fff; border-radius: 20px;
+      padding: 22px; width: 100%;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+    .leaderboard-card h3 { text-align: center; color: #333; font-size: 1.1rem; margin-bottom: 14px; }
+    .leaderboard-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .leaderboard-list li {
+      display: grid; grid-template-columns: 28px 1fr auto;
+      gap: 8px; align-items: center; font-size: 0.95rem;
+      color: #444; padding: 6px 0; border-bottom: 1px solid #f0f0f0;
+    }
+    .leaderboard-list li:last-child { border-bottom: none; }
+    .lb-rank { font-weight: 700; color: #7c3aed; text-align: center; }
+    .lb-name { font-weight: 600; }
+    .lb-time { font-variant-numeric: tabular-nums; color: #7c3aed; font-weight: 700; }
+    .lb-date { font-size: 0.78rem; color: #aaa; grid-column: 2 / 4; margin-top: -4px; }
+    .lb-empty { text-align: center; color: #aaa; font-style: italic; font-size: 0.9rem; padding: 8px 0; }
+
+    /* ─── BUTTONS ─── */
+    .btn {
+      width: 100%; padding: 15px;
+      font-size: 1.05rem; font-weight: 700;
+      border: none; border-radius: 14px; cursor: pointer;
+      transition: transform 0.1s; font-family: inherit;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary   { background: #7c3aed; color: #fff; box-shadow: 0 4px 16px rgba(124,58,237,0.35); }
+    .btn-primary:hover { background: #6d28d9; }
+    .btn-secondary { background: rgba(255,255,255,0.15); color: #fff; border: 2px solid rgba(255,255,255,0.35); box-shadow: none; }
+    .btn-secondary:hover { background: rgba(255,255,255,0.25); }
+
+    .btn-home-fixed {
+      position: fixed; top: 12px; right: 12px; z-index: 200;
+      background: rgba(0,0,0,0.25); border: none; border-radius: 10px;
+      padding: 7px 14px; color: #fff; font-family: inherit;
+      font-size: 0.85rem; font-weight: 700; text-decoration: none; cursor: pointer;
+    }
+    .btn-home-fixed:hover { background: rgba(0,0,0,0.4); }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 400px) {
+      body { padding: 10px 10px 32px; }
+      .title { font-size: 1.9rem; }
+      .subtitle { font-size: 0.92rem; }
+      .question-icon { width: 120px; height: 120px; }
+      .color-options { gap: 10px; }
+      .btn { padding: 14px; font-size: 1rem; }
+    }
+    @media (max-width: 360px) {
+      .question-icon { width: 105px; height: 105px; }
+      .hud { padding: 8px 14px; font-size: 1rem; }
+    }
+    @media (orientation: landscape) and (max-height: 520px) {
+      body { padding: 6px 12px 16px; }
+      .screen.active { gap: 10px; padding-top: 6px; }
+      .hud { margin-top: 38px; padding: 7px 16px; font-size: 1rem; }
+      .question-icon { width: 90px; height: 90px; }
+      .title { font-size: 1.7rem; }
+      .subtitle { font-size: 0.88rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="star-bg" aria-hidden="true">
+  <span style="top:4%;left:6%;animation-delay:0s">⭐</span>
+  <span style="top:10%;left:80%;animation-delay:1.5s">🌟</span>
+  <span style="top:28%;left:91%;animation-delay:0.7s;font-size:1.7rem">✨</span>
+  <span style="top:52%;left:3%;animation-delay:2.3s">⭐</span>
+  <span style="top:66%;left:88%;animation-delay:1.1s;font-size:1.8rem">🌟</span>
+  <span style="top:82%;left:11%;animation-delay:1.9s">✨</span>
+  <span style="top:89%;left:62%;animation-delay:3.2s;font-size:1.6rem">⭐</span>
+  <span style="top:16%;left:46%;animation-delay:1.3s;font-size:1.5rem">🌟</span>
+</div>
+
+<!-- ═══════════ START SCREEN ═══════════ -->
+<div id="screen-start" class="screen active">
+  <div class="title">🎨 Jaké je to barvy?</div>
+  <p class="subtitle">Obrázek je černobílý — poznáš, jakou barvu má doopravdy?<br>Vyber správný barevný kroužek. 10 správně na čas!</p>
+  <button class="btn btn-primary" onclick="startGame()">▶ Hrát</button>
+  <a href="index.html" style="width:100%;text-decoration:none;">
+    <button class="btn btn-secondary">🏠 Zpět na výběr</button>
+  </a>
+  <div class="leaderboard-card">
+    <h3>🏆 Nejlepší časy</h3>
+    <p style="font-size:0.75rem;opacity:0.5;margin:0 0 8px;text-align:center;">↺ Resetuje se 1. každého měsíce</p>
+    <ul class="leaderboard-list" id="lb-start"></ul>
+  </div>
+</div>
+
+<!-- ═══════════ GAME SCREEN ═══════════ -->
+<div id="screen-game" class="screen">
+  <a href="index.html" class="btn-home-fixed">🏠 Domů</a>
+  <div class="hud">
+    <span id="hud-score">Správně: 0 / 10</span>
+    <span class="hud-timer" id="hud-timer">0:00</span>
+  </div>
+  <div class="question-box">
+    <div class="question-hint">Jakou barvu to má doopravdy?</div>
+    <div class="question-icon" id="question-icon"></div>
+  </div>
+  <div class="color-options" id="color-options"></div>
+</div>
+
+<!-- ═══════════ END SCREEN ═══════════ -->
+<div id="screen-end" class="screen">
+  <div class="result-card">
+    <h2>Bravo, malý malíři! 🎉</h2>
+    <div class="result-time" id="final-time"></div>
+    <p>To byl tvůj čas na 10 správných barev.</p>
+  </div>
+  <div class="name-row">
+    <input type="text" id="player-name" placeholder="Tvoje jméno…" maxlength="20" />
+    <button class="btn btn-primary" style="width:auto;padding:14px 20px;font-size:1rem;" onclick="saveScore()">Uložit</button>
+  </div>
+  <button class="btn btn-primary" onclick="startGame()">🔄 Hrát znovu</button>
+  <a href="index.html" style="width:100%;text-decoration:none;">
+    <button class="btn btn-secondary">🏠 Zpět na výběr</button>
+  </a>
+  <div class="leaderboard-card">
+    <h3>🏆 Nejlepší časy</h3>
+    <ul class="leaderboard-list" id="lb-end"></ul>
+  </div>
+</div>
+
+<script>
+  const QUIZ_TYPE = 'preschool-colors';
+  const GOAL = 10;
+
+  // ─── OBJECTS (silhouette drawn in neutral greys, real color kept only in data) ───
+  const OBJECTS = [
+    { name: 'banán', color: 'yellow', svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <path d="M 30 82 C 20 78 16 65 20 50 C 24 34 36 20 46 16 C 50 14.5 53 17 51 20 C 43 32 35 44 33 58 C 31 70 34 76 42 78 C 40 82 34 84 30 82 Z" fill="#d1d5db" stroke="#6b7280" stroke-width="2"/>
+      <path d="M 46 16 C 49 13 54 13 55 17 C 56 20 53 22 50 21" fill="#9ca3af" stroke="#6b7280" stroke-width="1.5"/>
+      <path d="M 26 74 C 30 68 34 56 36 46" stroke="#9ca3af" stroke-width="1.5" fill="none"/>
+    </svg>` },
+    { name: 'jahoda', color: 'red', svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <path d="M 50 30 C 30 30 18 46 20 62 C 22 78 36 88 50 88 C 64 88 78 78 80 62 C 82 46 70 30 50 30 Z" fill="#d1d5db" stroke="#6b7280" stroke-width="2"/>
+      <circle cx="36" cy="52" r="2.4" fill="#4b5563"/><circle cx="50" cy="46" r="2.4" fill="#4b5563"/><circle cx="64" cy="52" r="2.4" fill="#4b5563"/>
+      <circle cx="30" cy="66" r="2.4" fill="#4b5563"/><circle cx="45" cy="62" r="2.4" fill="#4b5563"/><circle cx="58" cy="64" r="2.4" fill="#4b5563"/><circle cx="70" cy="66" r="2.4" fill="#4b5563"/>
+      <circle cx="38" cy="78" r="2.4" fill="#4b5563"/><circle cx="52" cy="76" r="2.4" fill="#4b5563"/><circle cx="64" cy="78" r="2.4" fill="#4b5563"/>
+      <path d="M 34 30 L 44 18 L 50 28 L 56 18 L 66 30 Z" fill="#9ca3af" stroke="#6b7280" stroke-width="1.5"/>
+    </svg>` },
+    { name: 'list', color: 'green', svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <path d="M 50 12 C 78 22 84 52 66 76 C 58 87 50 90 50 90 C 50 90 42 87 34 76 C 16 52 22 22 50 12 Z" fill="#d1d5db" stroke="#6b7280" stroke-width="2"/>
+      <path d="M 50 18 L 50 88" stroke="#6b7280" stroke-width="2"/>
+      <path d="M 50 32 L 34 26 M 50 46 L 30 42 M 50 60 L 32 60 M 50 32 L 66 26 M 50 46 L 70 42 M 50 60 L 68 60" stroke="#9ca3af" stroke-width="1.5"/>
+    </svg>` },
+    { name: 'mrkev', color: 'orange', svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <path d="M 40 22 L 60 22 L 52 84 C 51 90 49 90 48 84 Z" fill="#d1d5db" stroke="#6b7280" stroke-width="2"/>
+      <path d="M 43 32 L 57 32 M 44 42 L 56 42 M 45 52 L 55 52 M 46 62 L 54 62" stroke="#9ca3af" stroke-width="1.5"/>
+      <path d="M 50 22 L 44 8 M 50 22 L 50 6 M 50 22 L 56 8" stroke="#6b7280" stroke-width="3" stroke-linecap="round"/>
+    </svg>` },
+    { name: 'kapka vody', color: 'blue', svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <path d="M 50 10 C 62 34 78 50 78 66 C 78 82 65 92 50 92 C 35 92 22 82 22 66 C 22 50 38 34 50 10 Z" fill="#d1d5db" stroke="#6b7280" stroke-width="2"/>
+      <ellipse cx="40" cy="60" rx="7" ry="12" fill="#f3f4f6" opacity="0.8"/>
+    </svg>` },
+    { name: 'hrozny', color: 'purple', svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <path d="M 50 14 L 50 26" stroke="#6b7280" stroke-width="2.5"/>
+      <path d="M 50 14 Q 40 8 34 14" stroke="#6b7280" stroke-width="2" fill="none"/>
+      <circle cx="50" cy="34" r="9" fill="#d1d5db" stroke="#6b7280" stroke-width="1.5"/>
+      <circle cx="38" cy="44" r="9" fill="#d1d5db" stroke="#6b7280" stroke-width="1.5"/>
+      <circle cx="62" cy="44" r="9" fill="#d1d5db" stroke="#6b7280" stroke-width="1.5"/>
+      <circle cx="30" cy="58" r="9" fill="#d1d5db" stroke="#6b7280" stroke-width="1.5"/>
+      <circle cx="50" cy="58" r="9" fill="#d1d5db" stroke="#6b7280" stroke-width="1.5"/>
+      <circle cx="70" cy="58" r="9" fill="#d1d5db" stroke="#6b7280" stroke-width="1.5"/>
+      <circle cx="40" cy="72" r="9" fill="#d1d5db" stroke="#6b7280" stroke-width="1.5"/>
+      <circle cx="60" cy="72" r="9" fill="#d1d5db" stroke="#6b7280" stroke-width="1.5"/>
+      <circle cx="50" cy="84" r="9" fill="#d1d5db" stroke="#6b7280" stroke-width="1.5"/>
+    </svg>` },
+    { name: 'čokoláda', color: 'brown', svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <rect x="14" y="30" width="72" height="46" rx="4" fill="#d1d5db" stroke="#6b7280" stroke-width="2"/>
+      <line x1="14" y1="53" x2="86" y2="53" stroke="#6b7280" stroke-width="2"/>
+      <line x1="32" y1="30" x2="32" y2="76" stroke="#6b7280" stroke-width="2"/>
+      <line x1="50" y1="30" x2="50" y2="76" stroke="#6b7280" stroke-width="2"/>
+      <line x1="68" y1="30" x2="68" y2="76" stroke="#6b7280" stroke-width="2"/>
+    </svg>` },
+    { name: 'prasátko', color: 'pink', svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="50" cy="56" rx="34" ry="28" fill="#d1d5db" stroke="#6b7280" stroke-width="2"/>
+      <ellipse cx="27" cy="34" rx="9" ry="10" fill="#d1d5db" stroke="#6b7280" stroke-width="2"/>
+      <ellipse cx="73" cy="34" rx="9" ry="10" fill="#d1d5db" stroke="#6b7280" stroke-width="2"/>
+      <ellipse cx="50" cy="60" rx="14" ry="10" fill="#9ca3af" stroke="#6b7280" stroke-width="1.5"/>
+      <circle cx="45" cy="60" r="2" fill="#4b5563"/><circle cx="55" cy="60" r="2" fill="#4b5563"/>
+      <circle cx="36" cy="48" r="3" fill="#4b5563"/><circle cx="64" cy="48" r="3" fill="#4b5563"/>
+    </svg>` },
+    { name: 'slon', color: 'grey', svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="46" cy="52" rx="28" ry="24" fill="#d1d5db" stroke="#6b7280" stroke-width="2"/>
+      <path d="M 70 50 C 82 50 86 62 80 74 C 76 82 68 82 66 76 C 72 72 74 62 66 56 Z" fill="#d1d5db" stroke="#6b7280" stroke-width="2"/>
+      <ellipse cx="24" cy="40" rx="12" ry="14" fill="#d1d5db" stroke="#6b7280" stroke-width="2"/>
+      <circle cx="38" cy="46" r="3" fill="#4b5563"/>
+    </svg>` },
+    { name: 'sněhová vločka', color: 'white', svg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <g stroke="#9ca3af" stroke-width="3" stroke-linecap="round">
+        <line x1="50" y1="10" x2="50" y2="90"/>
+        <line x1="10" y1="50" x2="90" y2="50"/>
+        <line x1="22" y1="22" x2="78" y2="78"/>
+        <line x1="22" y1="78" x2="78" y2="22"/>
+      </g>
+      <g stroke="#9ca3af" stroke-width="2.5" stroke-linecap="round">
+        <line x1="50" y1="24" x2="40" y2="16"/><line x1="50" y1="24" x2="60" y2="16"/>
+        <line x1="50" y1="76" x2="40" y2="84"/><line x1="50" y1="76" x2="60" y2="84"/>
+      </g>
+      <circle cx="50" cy="50" r="7" fill="#e5e7eb" stroke="#9ca3af" stroke-width="2"/>
+    </svg>` }
+  ];
+
+  const COLOR_HEX = {
+    yellow: '#fbbf24', red: '#ef4444', green: '#22c55e', orange: '#f97316',
+    blue: '#3b82f6', purple: '#a855f7', brown: '#92400e', pink: '#f472b6',
+    grey: '#9ca3af', white: '#f8fafc', black: '#1f2937'
+  };
+  const ALL_COLORS = Object.keys(COLOR_HEX);
+
+  // ─── STATE ───────────────────────────────────────────────
+  let score = 0, currentColor = null, answering = false;
+  let timerStart, timerInterval, finalMs = 0;
+
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  function formatTime(ms) {
+    const s = Math.floor(ms / 1000);
+    return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+  }
+
+  function shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function renderQuestion() {
+    answering = false;
+    const obj = OBJECTS[Math.floor(Math.random() * OBJECTS.length)];
+    currentColor = obj.color;
+
+    document.getElementById('question-icon').innerHTML = obj.svg;
+
+    const wrongPool = shuffle(ALL_COLORS.filter(c => c !== currentColor)).slice(0, 3);
+    const options = shuffle([currentColor, ...wrongPool]);
+
+    const wrap = document.getElementById('color-options');
+    wrap.innerHTML = '';
+    options.forEach(c => {
+      const btn = document.createElement('button');
+      btn.className = 'color-btn' + (c === 'white' ? ' white' : '');
+      btn.style.background = COLOR_HEX[c];
+      btn.setAttribute('aria-label', c);
+      btn.onclick = () => handleAnswer(btn, c);
+      wrap.appendChild(btn);
+    });
+  }
+
+  function handleAnswer(btn, chosen) {
+    if (answering) return;
+    answering = true;
+    const allBtns = document.querySelectorAll('.color-btn');
+
+    if (chosen === currentColor) {
+      allBtns.forEach(b => b.disabled = true);
+      btn.classList.add('correct-pop');
+      score++;
+      document.getElementById('hud-score').textContent = `Správně: ${score} / ${GOAL}`;
+      setTimeout(() => {
+        if (score >= GOAL) endGame(); else renderQuestion();
+      }, 380);
+    } else {
+      btn.classList.add('wrong-flash');
+      setTimeout(() => {
+        btn.classList.remove('wrong-flash');
+        answering = false;
+      }, 500);
+    }
+  }
+
+  function startGame() {
+    const nameRow = document.querySelector('.name-row');
+    if (nameRow) nameRow.style.display = '';
+    score = 0; finalMs = 0;
+    clearInterval(timerInterval);
+    document.getElementById('hud-score').textContent = `Správně: 0 / ${GOAL}`;
+    document.getElementById('hud-timer').textContent = '0:00';
+    showScreen('screen-game');
+    renderQuestion();
+    timerStart = Date.now();
+    timerInterval = setInterval(() => {
+      document.getElementById('hud-timer').textContent = formatTime(Date.now() - timerStart);
+    }, 200);
+  }
+
+  function endGame() {
+    clearInterval(timerInterval);
+    finalMs = Date.now() - timerStart;
+    document.getElementById('final-time').textContent = formatTime(finalMs);
+    document.getElementById('player-name').value = '';
+    showScreen('screen-end');
+    renderLeaderboard('lb-end');
+  }
+
+  // ─── FIREBASE (monthly leaderboard) ───────────────────────
+  const DB_URL = 'https://kids-games-3a167-default-rtdb.europe-west1.firebasedatabase.app';
+
+  async function getScores() {
+    try {
+      const r = await fetch(DB_URL + '/scores/' + QUIZ_TYPE + '.json');
+      const d = await r.json();
+      const scores = Array.isArray(d) ? d : [];
+      const ym = new Date().getFullYear() + '-' + String(new Date().getMonth()+1).padStart(2,'0');
+      if (scores.some(s => !s.month || s.month !== ym)) return [];
+      return scores;
+    } catch { return []; }
+  }
+
+  async function saveScore() {
+    const nameInput = document.getElementById('player-name');
+    const name = nameInput.value.trim();
+    if (!name) { nameInput.style.outline = '3px solid #ef4444'; nameInput.focus(); return; }
+    nameInput.style.outline = '';
+    const scores = await getScores();
+    const ym = new Date().getFullYear() + '-' + String(new Date().getMonth()+1).padStart(2,'0');
+    scores.push({ name, ms: finalMs, month: ym, date: new Date().toLocaleDateString('cs-CZ') });
+    scores.sort((a, b) => a.ms - b.ms);
+    const top10 = scores.slice(0, 10);
+    try {
+      await fetch(DB_URL + '/scores/' + QUIZ_TYPE + '.json', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(top10)
+      });
+    } catch {}
+    renderLeaderboard('lb-end');
+    document.querySelector('.name-row').style.display = 'none';
+    nameInput.value = '';
+  }
+
+  async function renderLeaderboard(elId) {
+    const el = document.getElementById(elId);
+    el.innerHTML = '<li class="lb-empty">Načítám…</li>';
+    const scores = await getScores();
+    if (!scores.length) { el.innerHTML = '<li class="lb-empty">Zatím žádné výsledky.</li>'; return; }
+    el.innerHTML = scores.map((s, i) => `
+      <li>
+        <span class="lb-rank">${i + 1}.</span>
+        <span class="lb-name">${esc(s.name)}</span>
+        <span class="lb-time">${formatTime(s.ms)}</span>
+        <span class="lb-date">${esc(s.date || '')}</span>
+      </li>`).join('');
+  }
+
+  function esc(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  renderLeaderboard('lb-start');
+</script>
+</body>
+</html>
