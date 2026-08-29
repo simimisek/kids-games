@@ -243,7 +243,7 @@
 <!-- ═══════════ START SCREEN ═══════════ -->
 <div id="screen-start" class="screen active">
   <div class="title">🐸 Skoky po číslech</div>
-  <p class="subtitle">Postav žabce cestu z kamenů — začíná se u čísla 1.<br>Vyber vždy správné další číslo až do 10!</p>
+  <p class="subtitle">Postav zvířátku cestu z kamenů — začíná se u čísla 1.<br>Vyber vždy správné další číslo až do 10!<br><em>Pokaždé skáče jiné zvířátko!</em></p>
   <button class="btn btn-primary" onclick="startGame()">▶ Hrát</button>
   <a href="index.html" style="width:100%;text-decoration:none;">
     <button class="btn btn-secondary">🏠 Zpět na výběr</button>
@@ -272,7 +272,7 @@
 <!-- ═══════════ END SCREEN ═══════════ -->
 <div id="screen-end" class="screen">
   <div class="result-card">
-    <h2>Žabka je hrdá! 🐸🎉</h2>
+    <h2>Skvělá práce! 🎉</h2>
     <div class="result-time" id="final-time"></div>
     <p>Postavil jsi celou řadu čísel od 1 do 10!</p>
   </div>
@@ -293,9 +293,11 @@
 <script>
   const QUIZ_TYPE = 'preschool-numbers';
   const TARGET = 10;
+  const JUMPERS = ['🐸', '🐰', '🐝', '🦗', '🐞', '🐿️'];
 
   let current = 1, answering = false;
   let timerStart, timerInterval, finalMs = 0;
+  let jumperEmoji = JUMPERS[0];
 
   function showScreen(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -337,7 +339,7 @@
         if (n === current) {
           const frog = document.createElement('span');
           frog.className = 'frog';
-          frog.textContent = '🐸';
+          frog.textContent = jumperEmoji;
           stone.appendChild(frog);
         }
       } else {
@@ -397,6 +399,7 @@
     const nameRow = document.querySelector('.name-row');
     if (nameRow) nameRow.style.display = '';
     current = 1; finalMs = 0;
+    jumperEmoji = JUMPERS[randInt(0, JUMPERS.length - 1)];
     clearInterval(timerInterval);
     document.getElementById('hud-score').textContent = `Řada: ${current} / ${TARGET}`;
     document.getElementById('hud-timer').textContent = '0:00';
