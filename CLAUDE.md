@@ -188,8 +188,10 @@ renderLeaderboard('lb-start');
 | hra38.html | Jaké je to barvy? | Hrátky pro nejmenší | `preschool-colors` |
 | hra39.html | Skoky po číslech | Hrátky pro nejmenší | `preschool-numbers` |
 | hra40.html | Kde je moje písmenko? | Hrátky pro nejmenší | `preschool-letters` |
+| hra41.html | Kde je moje číslo? | Hrátky pro nejmenší | `preschool-find-number` |
+| hra42.html | Kde je moje barva? | Hrátky pro nejmenší | `preschool-find-color` |
 
 ## Sekce v index.html
 - 🔢 **Matematika** — hra.html, hra2.html, hra8.html, hra16.html, hra18.html, hra19.html, hra23.html, hra26.html, hra30.html, hra33.html, hra35.html
 - 📖 **Čeština** — hra3.html, hra4.html, hra5.html, hra13.html, hra14.html, hra15.html, hra21.html, hra24.html, hra28.html, hra31.html, hra32.html, hra36.html
-- 🌈 **Hrátky pro nejmenší** — hra6.html, hra7.html, hra10.html, hra11.html, hra12.html, hra17.html, hra20.html, hra22.html, hra25.html, hra27.html, hra29.html, hra34.html, hra37.html, hra38.html, hra39.html, hra40.html
+- 🌈 **Hrátky pro nejmenší** — hra6.html, hra7.html, hra10.html, hra11.html, hra12.html, hra17.html, hra20.html, hra22.html, hra25.html, hra27.html, hra29.html, hra34.html, hra37.html, hra38.html, hra39.html, hra40.html, hra41.html, hra42.html

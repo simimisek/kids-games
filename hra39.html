@@ -81,17 +81,31 @@
     }
     .stone {
       position: relative;
-      width: 62px; height: 62px;
-      border-radius: 50%;
-      background: radial-gradient(circle at 35% 30%, #d1d5db, #9ca3af 70%);
+      width: 66px; height: 82px;
+      border-radius: 20px;
+      background: radial-gradient(circle at 35% 25%, #d1d5db, #9ca3af 75%);
       box-shadow: 0 4px 10px rgba(0,0,0,0.2), inset 0 -4px 6px rgba(0,0,0,0.15);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.6rem; font-weight: 800; color: #374151;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 4px;
+      font-size: 1.5rem; font-weight: 800; color: #374151;
     }
     .stone.blank {
-      background: radial-gradient(circle at 35% 30%, #fde68a, #f59e0b 75%);
+      background: radial-gradient(circle at 35% 25%, #fde68a, #f59e0b 75%);
       color: #78350f;
-      font-size: 1.8rem;
+      font-size: 2rem;
+    }
+    .stone-dots {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 2.5px;
+      max-width: 40px;
+    }
+    .stone-dots span {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: #374151;
+      display: inline-block;
     }
     .stone .frog {
       position: absolute; top: -34px; font-size: 1.9rem;
@@ -191,13 +205,15 @@
       body { padding: 10px 10px 32px; }
       .title { font-size: 1.9rem; }
       .subtitle { font-size: 0.92rem; }
-      .stone { width: 50px; height: 50px; font-size: 1.3rem; }
-      .stone.blank { font-size: 1.5rem; }
+      .stone { width: 54px; height: 70px; font-size: 1.15rem; }
+      .stone.blank { font-size: 1.6rem; }
+      .stone-dots { max-width: 32px; }
+      .stone-dots span { width: 5px; height: 5px; }
       .btn-answer { padding: 16px 6px; font-size: 1.5rem; }
       .btn { padding: 14px; font-size: 1rem; }
     }
     @media (max-width: 360px) {
-      .stone { width: 42px; height: 42px; font-size: 1.1rem; }
+      .stone { width: 46px; height: 62px; font-size: 1rem; }
       .stones-row { gap: 6px; }
       .hud { padding: 8px 14px; font-size: 1rem; }
     }
@@ -276,8 +292,8 @@
 <script>
   const QUIZ_TYPE = 'preschool-numbers';
   const GOAL = 10;
-  const SEQ_LEN = 4;
-  const MAX_NUM = 10;
+  const MAX_NUM = 5;
+  const SEQ_LEN = MAX_NUM;
 
   let score = 0, currentAnswer = null, answering = false;
   let timerStart, timerInterval, finalMs = 0;
@@ -305,8 +321,7 @@
 
   function renderQuestion() {
     answering = false;
-    const start = randInt(1, MAX_NUM - SEQ_LEN + 1);
-    const seq = Array.from({ length: SEQ_LEN }, (_, i) => start + i);
+    const seq = Array.from({ length: SEQ_LEN }, (_, i) => i + 1);
     const blankIdx = randInt(0, SEQ_LEN - 1);
     currentAnswer = seq[blankIdx];
     const frogIdx = randInt(0, SEQ_LEN - 1);
@@ -316,7 +331,17 @@
     seq.forEach((n, i) => {
       const stone = document.createElement('div');
       stone.className = 'stone' + (i === blankIdx ? ' blank' : '');
-      stone.textContent = i === blankIdx ? '?' : n;
+      if (i === blankIdx) {
+        stone.textContent = '?';
+      } else {
+        const num = document.createElement('div');
+        num.textContent = n;
+        stone.appendChild(num);
+        const dots = document.createElement('div');
+        dots.className = 'stone-dots';
+        dots.innerHTML = '<span></span>'.repeat(n);
+        stone.appendChild(dots);
+      }
       if (i === frogIdx) {
         const frog = document.createElement('span');
         frog.className = 'frog';
@@ -326,12 +351,9 @@
       row.appendChild(stone);
     });
 
-    const wrongPool = new Set();
-    while (wrongPool.size < 2) {
-      const delta = randInt(1, 3) * (Math.random() < 0.5 ? 1 : -1);
-      const cand = currentAnswer + delta;
-      if (cand >= 1 && cand <= MAX_NUM && cand !== currentAnswer) wrongPool.add(cand);
-    }
+    const wrongPool = shuffle(
+      Array.from({ length: MAX_NUM }, (_, i) => i + 1).filter(n => n !== currentAnswer)
+    ).slice(0, 2);
     const options = shuffle([currentAnswer, ...wrongPool]);
 
     const answersEl = document.getElementById('answers');
