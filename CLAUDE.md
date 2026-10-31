@@ -60,6 +60,7 @@ background: linear-gradient(135deg, #4a148c 0%, #880e4f 100%); /* fialová */
 - **Úvod**: ikona, název, popis, [žebříček], tlačítko Hrát
 - **Hra**: progress indikátor, časomíra, herní obsah, **tlačítko Domů** (fixed vpravo nahoře)
 - **Konec**: výsledek, pole pro jméno + uložení, žebříček, tlačítko Hrát znovu
+- Tlačítko „Zpět na výběr“ vede na **stránku sekce** hry, ne na index.html (viz Struktura webu níže)
 
 ### 8. Tlačítko Domů na herní obrazovce
 Každá hra musí mít na herní obrazovce (`screen-game`) tlačítko pro návrat na hlavní stránku:
@@ -157,6 +158,7 @@ renderLeaderboard('lb-start');
 | hra6.html | Kde je víc bonbonků? | Hrátky pro nejmenší | `preschool-candies` |
 | hra7.html | Počítej se zvířátky | Hrátky pro nejmenší | `preschool-animals` |
 | hra8.html | Pyramida čísel | Matematika | `math-pyramid` |
+| hra9.html | Had čísel | Matematika | `snake-math` |
 | hra16.html | Vymysli příklad | Matematika | `math-invent` |
 | hra10.html | Spoj tečky | Hrátky pro nejmenší | `preschool-dots` |
 | hra11.html | Spoj kostičky s čísly | Hrátky pro nejmenší | `preschool-blocks` |
@@ -190,8 +192,43 @@ renderLeaderboard('lb-start');
 | hra40.html | Kde je moje písmenko? | Hrátky pro nejmenší | `preschool-letters` |
 | hra41.html | Kde je moje číslo? | Hrátky pro nejmenší | `preschool-find-number` |
 | hra42.html | Kde je moje barva? | Hrátky pro nejmenší | `preschool-find-color` |
+| hra43.html | Kolik je hodin? | Matematika | `math-clock` |
+| hra44.html | Čí je to stín? | Hrátky pro nejmenší | `preschool-shadows` |
+| hra45.html | Abecední had | Čeština | `czech-alphabet-snake` |
 
-## Sekce v index.html
-- 🔢 **Matematika** — hra.html, hra2.html, hra8.html, hra16.html, hra18.html, hra19.html, hra23.html, hra26.html, hra30.html, hra33.html, hra35.html
-- 📖 **Čeština** — hra3.html, hra4.html, hra5.html, hra13.html, hra14.html, hra15.html, hra21.html, hra24.html, hra28.html, hra31.html, hra32.html, hra36.html
-- 🌈 **Hrátky pro nejmenší** — hra6.html, hra7.html, hra10.html, hra11.html, hra12.html, hra17.html, hra20.html, hra22.html, hra25.html, hra27.html, hra29.html, hra34.html, hra37.html, hra38.html, hra39.html, hra40.html, hra41.html, hra42.html
+## Struktura webu (od 2026-10-31)
+
+```
+index.html  →  ✨ Nově přidáno (poslední 3 hry, se štítkem „Sekce · ročník“)
+            →  3 dlaždice: matematika.html · cestina.html · nejmensi.html
+            →  Navrhněte hru, O stránce, patička
+```
+
+- **Stránky sekcí** mají filtr (chips) a hry rozdělené do skupin `<section class="group" data-group="…">`.
+  - Matematika a Čeština: podle ročníku (`1-trida`, `2-trida`, případně přidat `3-trida`).
+  - Hrátky pro nejmenší: podle tématu (`cisla`, `barvy`, `pismenka`, `postreh`).
+  - Při přidání nové skupiny přidat i chip `<button class="chip" data-filter="…">` a upravit počty v chipech.
+- Počet her v dlaždici na index.html („13 her · …“) a v chipu „Vše“ **ručně aktualizovat**.
+- Karta na stránce sekce **nemá** odznak „K dispozici“ — jen případně `badge-new` / `badge-vitek`.
+
+### Odkazy ve hře
+- Tlačítko **🏠 Domů** (`btn-home-fixed`) → `index.html`
+- Tlačítko **Zpět na výběr** (úvod i konec hry) → **stránka sekce hry** (`matematika.html` / `cestina.html` / `nejmensi.html`)
+
+### Přidání nové dávky her
+1. Na index.html v „Nově přidáno“ nahradit staré karty novými (se štítkem `<div class="game-card-tag">Sekce · ročník</div>`).
+2. Na stránce sekce přidat kartu do správné skupiny s `badge-new`; u předchozí dávky `badge-new` odebrat.
+3. Aktualizovat počty her (dlaždice + chipy).
+
+## Rozdělení her do sekcí a skupin
+- 🔢 **Matematika** (`matematika.html`)
+  - 1. třída — hra.html, hra2.html, hra8.html, hra16.html, hra9.html, hra18.html, hra19.html, hra30.html, hra26.html
+  - 2. třída — hra23.html, hra33.html, hra35.html, hra43.html
+- 📖 **Čeština** (`cestina.html`)
+  - 1. třída — hra3.html, hra5.html, hra13.html, hra28.html, hra14.html, hra15.html, hra31.html, hra32.html, hra21.html
+  - 2. třída — hra45.html, hra36.html, hra24.html, hra4.html
+- 🌈 **Hrátky pro nejmenší** (`nejmensi.html`)
+  - Čísla a počítání — hra6, hra7, hra10, hra11, hra17, hra29, hra39, hra41
+  - Barvy a tvary — hra12, hra27, hra38, hra42, hra25
+  - Písmenka — hra40
+  - Postřeh a paměť — hra20, hra22, hra34, hra37, hra44

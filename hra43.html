@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-KEF2T80GE0"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-KEF2T80GE0');
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kolik je hodin? | Vzdělávací hry</title>
+  <meta property="og:title" content="Kolik je hodin?" />
+  <meta property="og:image" content="https://simimisek.github.io/kids-games/ogimage.png" />
+  <meta property="og:description" content="Nauč se číst čas na ručičkových hodinách — celé hodiny, půl, čtvrt a tři čtvrtě." />
+  <meta property="og:url" content="https://simimisek.github.io/kids-games/hra43.html" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://simimisek.github.io/kids-games/ogimage.png" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #1a237e 0%, #0277bd 100%);
+      min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+      padding: 16px 16px 40px;
+      overflow-x: hidden;
+    }
+
+    .bg-deco { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+    .bg-deco span {
+      position: absolute; font-size: 2.6rem; opacity: 0.12;
+      animation: decoF 7s ease-in-out infinite; user-select: none;
+    }
+    @keyframes decoF {
+      0%,100% { transform: translateY(0) rotate(-4deg); }
+      50%      { transform: translateY(-14px) rotate(4deg); }
+    }
+
+    .screen { position: relative; z-index: 1; display: none; width: 100%; max-width: 480px; }
+    .screen.active { display: flex; flex-direction: column; align-items: center; gap: 16px; padding-top: 16px; }
+
+    .title    { font-size: 2.2rem; color: #fff; text-align: center; text-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+    .subtitle { color: rgba(255,255,255,0.85); text-align: center; font-size: 1rem; line-height: 1.65; }
+
+    .hud {
+      width: 100%; display: flex; justify-content: space-between; align-items: center;
+      background: rgba(255,255,255,0.2); border-radius: 14px;
+      padding: 10px 20px; margin-top: 55px;
+      color: #fff; font-size: 1.1rem; font-weight: 600;
+    }
+    .hud-timer { font-variant-numeric: tabular-nums; }
+
+    /* ─── CLOCK CARD ─── */
+    .clock-card {
+      background: #fff; border-radius: 20px;
+      padding: 22px 20px 18px; width: 100%;
+      text-align: center;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+      display: flex; flex-direction: column; align-items: center; gap: 10px;
+      transition: box-shadow 0.2s;
+    }
+    .clock-card.flash-correct { box-shadow: 0 0 0 4px #22c55e, 0 8px 32px rgba(34,197,94,0.3); }
+    .clock-card.flash-wrong   { box-shadow: 0 0 0 4px #ef4444, 0 8px 32px rgba(239,68,68,0.3); }
+    .clock-label {
+      font-size: 0.85rem; color: #999; font-weight: 600;
+      letter-spacing: 0.06em; text-transform: uppercase;
+    }
+    .clock-wrap { width: 230px; height: 230px; }
+    .clock-wrap svg { width: 100%; height: 100%; display: block; }
+    .hand { transition: transform 0.5s cubic-bezier(.4,1.4,.6,1); transform-origin: 100px 100px; }
+    .clock-phrase {
+      min-height: 1.6em; font-size: 1.15rem; font-weight: 700; color: #1a7f3c;
+      opacity: 0; transition: opacity 0.2s;
+    }
+    .clock-phrase.show { opacity: 1; }
+
+    /* ─── ANSWERS ─── */
+    .answers { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .btn-answer {
+      padding: 22px 12px; min-height: 64px;
+      font-size: 1.9rem; font-weight: 800; font-variant-numeric: tabular-nums;
+      border: none; border-radius: 16px; cursor: pointer;
+      background: #fff; color: #333;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+      transition: transform 0.1s, background 0.15s, color 0.15s;
+      outline: none; font-family: inherit;
+    }
+    .btn-answer:hover:not(:disabled) { transform: translateY(-3px); background: #e8f0fe; }
+    .btn-answer:active:not(:disabled) { transform: translateY(0); }
+    .btn-answer.correct { background: #22c55e; color: #fff; }
+    .btn-answer.wrong   { background: #ef4444; color: #fff; }
+
+    /* ─── RESULT ─── */
+    .result-card {
+      background: #fff; border-radius: 20px;
+      padding: 32px 24px; width: 100%;
+      text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    }
+    .result-card h2 { font-size: 1.8rem; color: #333; margin-bottom: 8px; }
+    .result-time    { font-size: 3rem; font-weight: 700; color: #1a237e; margin: 12px 0; }
+    .result-card p  { color: #666; font-size: 0.95rem; }
+
+    .name-row { width: 100%; display: flex; gap: 10px; }
+    .name-row input {
+      flex: 1; min-width: 0; padding: 14px 18px; border-radius: 12px;
+      border: none; font-size: 1rem; outline: 2px solid transparent;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.12); transition: outline 0.2s;
+    }
+    .name-row input:focus { outline: 2px solid #1a237e; }
+
+    /* ─── LEADERBOARD ─── */
+    .leaderboard-card {
+      background: #fff; border-radius: 20px;
+      padding: 22px; width: 100%;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+    .leaderboard-card h3 { text-align: center; color: #333; font-size: 1.1rem; margin-bottom: 14px; }
+    .leaderboard-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .leaderboard-list li {
+      display: grid; grid-template-columns: 28px 1fr auto;
+      gap: 8px; align-items: center; font-size: 0.95rem;
+      color: #444; padding: 6px 0; border-bottom: 1px solid #f0f0f0;
+    }
+    .leaderboard-list li:last-child { border-bottom: none; }
+    .lb-rank  { font-weight: 700; color: #1a237e; text-align: center; }
+    .lb-name  { font-weight: 600; }
+    .lb-time  { font-variant-numeric: tabular-nums; color: #1a237e; font-weight: 700; }
+    .lb-date  { font-size: 0.78rem; color: #aaa; grid-column: 2 / 4; margin-top: -4px; }
+    .lb-empty { text-align: center; color: #aaa; font-style: italic; font-size: 0.9rem; padding: 8px 0; display: block !important; }
+
+    /* ─── BUTTONS ─── */
+    .btn {
+      width: 100%; padding: 15px;
+      font-size: 1.05rem; font-weight: 700;
+      border: none; border-radius: 14px; cursor: pointer;
+      transition: transform 0.1s; font-family: inherit;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary   { background: #1565c0; color: #fff; box-shadow: 0 4px 16px rgba(21,101,192,0.35); }
+    .btn-primary:hover { background: #0d47a1; }
+    .btn-secondary { background: rgba(255,255,255,0.15); color: #fff; border: 2px solid rgba(255,255,255,0.35); box-shadow: none; }
+    .btn-secondary:hover { background: rgba(255,255,255,0.25); }
+
+    .btn-home-fixed {
+      position: fixed; top: 12px; right: 12px; z-index: 200;
+      background: rgba(0,0,0,0.25); border: none; border-radius: 10px;
+      padding: 7px 14px; color: #fff; font-family: inherit;
+      font-size: 0.85rem; font-weight: 700; text-decoration: none; cursor: pointer;
+    }
+    .btn-home-fixed:hover { background: rgba(0,0,0,0.4); }
+
+    @media (max-width: 400px) {
+      body { padding: 10px 10px 32px; }
+      .title { font-size: 1.9rem; }
+      .clock-wrap { width: 190px; height: 190px; }
+      .btn-answer { padding: 18px 10px; font-size: 1.6rem; }
+      .btn { padding: 14px; font-size: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="bg-deco" aria-hidden="true">
+  <span style="top:5%;left:4%;animation-delay:0s">🕐</span>
+  <span style="top:8%;left:78%;animation-delay:1.2s">⏰</span>
+  <span style="top:24%;left:88%;animation-delay:0.5s">🕒</span>
+  <span style="top:42%;left:2%;animation-delay:2.1s">🕧</span>
+  <span style="top:62%;left:90%;animation-delay:0.9s">🕘</span>
+  <span style="top:77%;left:8%;animation-delay:1.7s">⏰</span>
+  <span style="top:88%;left:56%;animation-delay:3.1s">🕓</span>
+  <span style="top:16%;left:43%;animation-delay:1.0s">🕡</span>
+</div>
+
+<!-- ═══════════ START SCREEN ═══════════ -->
+<div id="screen-start" class="screen active">
+  <div class="title">🕒 Kolik je hodin?</div>
+  <p class="subtitle">Podívej se na ručičky a vyber správný čas.<br>Celé hodiny, půl, čtvrt i tři čtvrtě — 10 správně na čas!</p>
+  <button class="btn btn-primary" onclick="startGame()">▶ Hrát</button>
+  <a href="matematika.html" style="width:100%;text-decoration:none;">
+    <button class="btn btn-secondary">🏠 Zpět na výběr</button>
+  </a>
+  <div class="leaderboard-card">
+    <h3>🏆 Nejlepší časy</h3>
+    <p style="font-size:0.75rem;opacity:0.5;margin:0 0 8px;text-align:center;">↺ Resetuje se 1. každého měsíce</p>
+    <ul class="leaderboard-list" id="lb-start"></ul>
+  </div>
+</div>
+
+<!-- ═══════════ GAME SCREEN ═══════════ -->
+<div id="screen-game" class="screen">
+  <a href="index.html" class="btn-home-fixed">🏠 Domů</a>
+  <div class="hud">
+    <span id="hud-score">Správně: 0 / 10</span>
+    <span class="hud-timer" id="hud-timer">0:00</span>
+  </div>
+  <div class="clock-card" id="clock-card">
+    <div class="clock-label">Kolik ukazují hodiny?</div>
+    <div class="clock-wrap" id="clock-wrap"></div>
+    <div class="clock-phrase" id="clock-phrase">&nbsp;</div>
+  </div>
+  <div class="answers" id="answers"></div>
+</div>
+
+<!-- ═══════════ END SCREEN ═══════════ -->
+<div id="screen-end" class="screen">
+  <div class="result-card">
+    <h2>Skvělá práce! 🎉</h2>
+    <div class="result-time" id="final-time"></div>
+    <p>To byl tvůj čas na 10 správně přečtených hodin.</p>
+  </div>
+  <div class="name-row">
+    <input type="text" id="player-name" placeholder="Tvoje jméno…" maxlength="20" />
+    <button class="btn btn-primary" style="width:auto;padding:14px 20px;font-size:1rem;" onclick="saveScore()">Uložit</button>
+  </div>
+  <button class="btn btn-primary" onclick="startGame()">🔄 Hrát znovu</button>
+  <a href="matematika.html" style="width:100%;text-decoration:none;">
+    <button class="btn btn-secondary">🏠 Zpět na výběr</button>
+  </a>
+  <div class="leaderboard-card">
+    <h3>🏆 Nejlepší časy</h3>
+    <ul class="leaderboard-list" id="lb-end"></ul>
+  </div>
+</div>
+
+<script>
+  // ─── CONFIG ───────────────────────────────────────────────
+  const QUIZ_TYPE = 'math-clock';
+  const DB_URL    = 'https://kids-games-3a167-default-rtdb.europe-west1.firebasedatabase.app';
+  const GOAL      = 10;
+
+  // ─── STATE ────────────────────────────────────────────────
+  let score = 0, timerStart = null, timerInterval = null, finalMs = 0;
+  let current = null, answering = false, lastKey = '';
+
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo(0, 0);
+  }
+  function randInt(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a; }
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) { const j = randInt(0, i); [arr[i], arr[j]] = [arr[j], arr[i]]; }
+    return arr;
+  }
+
+  // ─── TIMER ────────────────────────────────────────────────
+  function startTimer() {
+    timerStart = Date.now();
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+      document.getElementById('hud-timer').textContent = fmtTime(Date.now() - timerStart);
+    }, 200);
+  }
+  function stopTimer() { clearInterval(timerInterval); finalMs = Date.now() - timerStart; }
+
+  // ─── CLOCK SVG ────────────────────────────────────────────
+  function buildClock() {
+    let s = '<svg viewBox="0 0 200 200" aria-hidden="true">';
+    s += '<circle cx="100" cy="100" r="96" fill="#1565c0"/>';
+    s += '<circle cx="100" cy="100" r="88" fill="#fdfdfd"/>';
+    for (let i = 0; i < 60; i++) {
+      const a = i * 6 * Math.PI / 180;
+      const big = i % 5 === 0;
+      const r1 = big ? 76 : 80, r2 = 85;
+      s += `<line x1="${100 + r1 * Math.sin(a)}" y1="${100 - r1 * Math.cos(a)}" x2="${100 + r2 * Math.sin(a)}" y2="${100 - r2 * Math.cos(a)}" stroke="${big ? '#455a64' : '#b0bec5'}" stroke-width="${big ? 3 : 1.2}" stroke-linecap="round"/>`;
+    }
+    for (let n = 1; n <= 12; n++) {
+      const a = n * 30 * Math.PI / 180;
+      s += `<text x="${100 + 63 * Math.sin(a)}" y="${100 - 63 * Math.cos(a)}" text-anchor="middle" dominant-baseline="central" font-size="17" font-weight="700" fill="#263238" font-family="Segoe UI, sans-serif">${n}</text>`;
+    }
+    // hodinová (krátká, tlustá) a minutová (dlouhá) ručička
+    s += '<g class="hand" id="hand-h"><line x1="100" y1="108" x2="100" y2="54" stroke="#263238" stroke-width="8" stroke-linecap="round"/></g>';
+    s += '<g class="hand" id="hand-m"><line x1="100" y1="112" x2="100" y2="26" stroke="#e53935" stroke-width="4.5" stroke-linecap="round"/></g>';
+    s += '<circle cx="100" cy="100" r="6" fill="#263238"/>';
+    s += '</svg>';
+    document.getElementById('clock-wrap').innerHTML = s;
+  }
+
+  function setClock(h, m) {
+    const hDeg = (h % 12) * 30 + m * 0.5;
+    const mDeg = m * 6;
+    document.getElementById('hand-h').style.transform = `rotate(${hDeg}deg)`;
+    document.getElementById('hand-m').style.transform = `rotate(${mDeg}deg)`;
+  }
+
+  // ─── ČESKÉ VYJÁDŘENÍ ČASU ─────────────────────────────────
+  const NOM  = ['', 'jedna', 'dvě', 'tři', 'čtyři', 'pět', 'šest', 'sedm', 'osm', 'devět', 'deset', 'jedenáct', 'dvanáct'];
+  const ACC  = ['', 'jednu', 'dvě', 'tři', 'čtyři', 'pět', 'šest', 'sedm', 'osm', 'devět', 'deset', 'jedenáct', 'dvanáct'];
+  const GEN  = ['', 'jedné', 'druhé', 'třetí', 'čtvrté', 'páté', 'šesté', 'sedmé', 'osmé', 'deváté', 'desáté', 'jedenácté', 'dvanácté'];
+  function nextH(h) { return h === 12 ? 1 : h + 1; }
+  function phrase(h, m) {
+    if (m === 0) {
+      if (h === 1) return 'Je jedna hodina.';
+      if (h >= 2 && h <= 4) return 'Jsou ' + NOM[h] + ' hodiny.';
+      return 'Je ' + NOM[h] + ' hodin.';
+    }
+    if (m === 15) return 'Je čtvrt na ' + ACC[nextH(h)] + '.';
+    if (m === 30) return 'Je půl ' + GEN[nextH(h)] + '.';
+    return 'Jsou tři čtvrtě na ' + ACC[nextH(h)] + '.';
+  }
+  function fmtClock(h, m) { return h + ':' + String(m).padStart(2, '0'); }
+
+  // ─── OTÁZKY ───────────────────────────────────────────────
+  // 1.–3. celé hodiny, 4.–6. celé + půl, 7.–10. vše včetně čtvrtí
+  function minutesPool() {
+    if (score < 3) return [0];
+    if (score < 6) return [0, 30, 30];
+    return [0, 15, 30, 45, 15, 45];
+  }
+
+  function newQuestion() {
+    let h, m, key;
+    do {
+      const pool = minutesPool();
+      h = randInt(1, 12);
+      m = pool[randInt(0, pool.length - 1)];
+      key = h + ':' + m;
+    } while (key === lastKey);
+    lastKey = key;
+    current = { h, m };
+
+    // Chybné možnosti — typické záměny
+    const opts = new Map();
+    const add = (hh, mm) => {
+      hh = ((hh - 1 + 12) % 12) + 1;
+      const k = fmtClock(hh, mm);
+      if (!opts.has(k)) opts.set(k, { h: hh, m: mm });
+    };
+    add(h, m);
+    // prohozené ručičky (minutová ukazuje na číslo → hodina)
+    const swapH = m === 0 ? 12 : m / 5;
+    const swapM = (h % 12) * 5;
+    if (!(swapH === h && swapM === m) && minutesPool().includes(swapM)) add(swapH, swapM);
+    // o hodinu vedle (častá chyba u půl/čtvrt)
+    add(h + 1, m);
+    add(h - 1, m);
+    // stejná hodina, jiné minuty
+    const ms = score < 3 ? [30] : [0, 15, 30, 45];
+    shuffle(ms.slice()).forEach(mm => { if (mm !== m) add(h, mm); });
+    while (opts.size < 4) add(randInt(1, 12), [0, 30][randInt(0, 1)]);
+
+    const all = [...opts.entries()];
+    const correctEntry = all[0];
+    const wrongs = shuffle(all.slice(1)).slice(0, 3);
+    const choices = shuffle([correctEntry, ...wrongs]);
+
+    setClock(h, m);
+    const ph = document.getElementById('clock-phrase');
+    ph.classList.remove('show');
+    ph.innerHTML = '&nbsp;';
+
+    const box = document.getElementById('answers');
+    box.innerHTML = '';
+    choices.forEach(([label, val]) => {
+      const b = document.createElement('button');
+      b.className = 'btn-answer';
+      b.textContent = label;
+      b.onclick = () => handleAnswer(b, val);
+      box.appendChild(b);
+    });
+    answering = false;
+  }
+
+  function handleAnswer(btn, val) {
+    if (answering) return;
+    answering = true;
+    document.querySelectorAll('.btn-answer').forEach(b => b.disabled = true);
+    const card = document.getElementById('clock-card');
+    const ok = val.h === current.h && val.m === current.m;
+
+    if (ok) {
+      btn.classList.add('correct');
+      card.classList.add('flash-correct');
+      score++;
+      document.getElementById('hud-score').textContent = `Správně: ${score} / ${GOAL}`;
+      const ph = document.getElementById('clock-phrase');
+      ph.textContent = phrase(current.h, current.m);
+      ph.classList.add('show');
+      setTimeout(() => {
+        card.classList.remove('flash-correct');
+        if (score >= GOAL) endGame(); else newQuestion();
+      }, 1100);
+    } else {
+      // Chyba se nepočítá — krátký červený záblesk a nový příklad
+      btn.classList.add('wrong');
+      card.classList.add('flash-wrong');
+      setTimeout(() => {
+        card.classList.remove('flash-wrong');
+        newQuestion();
+      }, 500);
+    }
+  }
+
+  // ─── GAME FLOW ────────────────────────────────────────────
+  function startGame() {
+    const nr = document.querySelector('.name-row'); if (nr) nr.style.display = '';
+    score = 0; finalMs = 0; lastKey = '';
+    document.getElementById('hud-score').textContent = `Správně: 0 / ${GOAL}`;
+    document.getElementById('hud-timer').textContent = '0:00';
+    showScreen('screen-game');
+    buildClock();
+    newQuestion();
+    startTimer();
+  }
+
+  function endGame() {
+    stopTimer();
+    document.getElementById('final-time').textContent = fmtTime(finalMs);
+    document.getElementById('player-name').value = '';
+    showScreen('screen-end');
+    renderLeaderboard('lb-end');
+  }
+
+  // ─── LEADERBOARD ──────────────────────────────────────────
+  function curMonth() {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+  }
+
+  async function getScores() {
+    try {
+      const r = await fetch(DB_URL + '/scores/' + QUIZ_TYPE + '.json');
+      const d = await r.json();
+      const scores = Array.isArray(d) ? d : [];
+      const ym = curMonth();
+      if (scores.some(s => !s.month || s.month !== ym)) return [];
+      return scores;
+    } catch { return []; }
+  }
+
+  async function saveScore() {
+    const nameInput = document.getElementById('player-name');
+    const name = nameInput.value.trim();
+    if (!name) { nameInput.style.outline = '3px solid #ef4444'; nameInput.focus(); return; }
+    nameInput.style.outline = '';
+    const scores = await getScores();
+    scores.push({ name, ms: finalMs, month: curMonth(), date: new Date().toLocaleDateString('cs-CZ') });
+    scores.sort((a, b) => a.ms - b.ms);
+    const top10 = scores.slice(0, 10);
+    try {
+      await fetch(DB_URL + '/scores/' + QUIZ_TYPE + '.json', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(top10)
+      });
+    } catch {}
+    renderLeaderboard('lb-end');
+    const nr = document.querySelector('.name-row'); if (nr) nr.style.display = 'none';
+    nameInput.value = '';
+  }
+
+  async function renderLeaderboard(elId) {
+    const el = document.getElementById(elId);
+    el.innerHTML = '<li class="lb-empty">Načítám…</li>';
+    const scores = await getScores();
+    if (!scores.length) { el.innerHTML = '<li class="lb-empty">Zatím žádné výsledky.</li>'; return; }
+    el.innerHTML = scores.map((s, i) => `
+      <li>
+        <span class="lb-rank">${i + 1}.</span>
+        <span class="lb-name">${esc(s.name)}</span>
+        <span class="lb-time">${fmtTime(s.ms)}</span>
+        <span class="lb-date">${esc(s.date || '')}</span>
+      </li>`).join('');
+  }
+
+  function esc(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function fmtTime(ms) {
+    const s = Math.floor(ms / 1000);
+    return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+  }
+
+  renderLeaderboard('lb-start');
+</script>
+</body>
+</html>

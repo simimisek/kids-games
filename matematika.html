@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-KEF2T80GE0"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-KEF2T80GE0');
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Matematika | Vzdělávací hry</title>
+  <meta property="og:title" content="Matematika — Vzdělávací hry pro děti" />
+  <meta property="og:image" content="https://simimisek.github.io/kids-games/ogimage.png" />
+  <meta property="og:description" content="Sčítání, odčítání, násobilka, peníze i hodiny. Zábavné hry zdarma a bez reklam." />
+  <meta property="og:url" content="https://simimisek.github.io/kids-games/matematika.html" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://simimisek.github.io/kids-games/ogimage.png" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #1a237e 0%, #0277bd 100%);
+      min-height: 100vh;
+      padding: 20px 16px 48px;
+      overflow-x: hidden;
+    }
+    .wrap { max-width: 760px; margin: 0 auto; }
+
+    /* ─── HORNÍ LIŠTA ─── */
+    .topbar { display: flex; justify-content: flex-start; margin-bottom: 18px; }
+    .back-home {
+      display: inline-flex; align-items: center; gap: 6px;
+      min-height: 44px; padding: 10px 16px;
+      background: rgba(0,0,0,0.22); color: #fff; text-decoration: none;
+      border-radius: 12px; font-weight: 700; font-size: 0.95rem;
+      transition: background 0.15s;
+    }
+    .back-home:hover { background: rgba(0,0,0,0.35); }
+
+    header { text-align: center; margin-bottom: 22px; color: #fff; }
+    .page-icon { font-size: 3.2rem; line-height: 1; }
+    header h1 { font-size: 2.3rem; margin-top: 6px; text-shadow: 0 2px 10px rgba(0,0,0,0.25); }
+    header p { color: rgba(255,255,255,0.82); margin-top: 6px; font-size: 1rem; }
+
+    /* ─── FILTR ─── */
+    .filter {
+      position: sticky; top: 8px; z-index: 10;
+      margin: 0 0 28px; padding: 10px 12px 12px;
+      border-radius: 18px;
+      background: rgba(26,35,126,0.72);
+      border: 1px solid rgba(255,255,255,0.18);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+      backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    }
+    .filter-label {
+      color: rgba(255,255,255,0.7); font-size: 0.78rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; text-align: center;
+    }
+    .chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+    .chip {
+      min-height: 44px; padding: 8px 16px;
+      border: 2px solid rgba(255,255,255,0.45); border-radius: 22px;
+      background: rgba(255,255,255,0.1); color: #fff;
+      font-family: inherit; font-size: 0.98rem; font-weight: 700; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 8px;
+      transition: background 0.15s, color 0.15s;
+    }
+    .chip:hover { background: rgba(255,255,255,0.22); }
+    .chip.active { background: #fff; color: #1565c0; border-color: #fff; }
+    .chip-count {
+      font-size: 0.78rem; background: rgba(0,0,0,0.15); border-radius: 10px; padding: 1px 7px;
+    }
+    .chip.active .chip-count { background: rgba(0,0,0,0.08); }
+
+    /* ─── SKUPINY ─── */
+    .group { margin-bottom: 36px; }
+    .group.hidden { display: none; }
+    .group-header { display: flex; align-items: center; gap: 12px; }
+    .group-title { font-size: 1.4rem; font-weight: 700; color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,0.2); }
+    .group-line { flex: 1; height: 2px; background: rgba(255,255,255,0.3); border-radius: 2px; }
+    .group-desc { color: rgba(255,255,255,0.75); font-size: 0.9rem; margin: 4px 0 14px; }
+
+    /* ─── GAME GRID ─── */
+    .game-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+    }
+    .game-card {
+      background: #fff; border-radius: 20px;
+      padding: 24px 20px 20px;
+      text-decoration: none; color: inherit;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.18);
+      transition: transform 0.15s, box-shadow 0.15s;
+      display: flex; flex-direction: column; align-items: center;
+      gap: 10px; text-align: center; cursor: pointer;
+    }
+    .game-card:hover { transform: translateY(-5px); box-shadow: 0 12px 32px rgba(0,0,0,0.25); }
+    .game-card:active { transform: translateY(-2px); }
+    .game-card-icon { font-size: 2.8rem; line-height: 1; }
+    .game-card-name { font-size: 1rem; font-weight: 700; color: #333; line-height: 1.3; }
+    .game-card-desc { font-size: 0.85rem; color: #888; line-height: 1.4; }
+    .game-card-badge {
+      margin-top: 4px; background: #f0eaff; color: #764ba2;
+      font-size: 0.75rem; font-weight: 700; padding: 3px 10px; border-radius: 20px;
+    }
+    .game-card-badge.badge-new {
+      background: #fff8e1; color: #e65100;
+      animation: badgePulse 2.2s ease-in-out infinite;
+    }
+    @keyframes badgePulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(230,81,0,0); }
+      50%       { box-shadow: 0 0 0 4px rgba(230,81,0,0.18); }
+    }
+    .game-card-badge.badge-vitek { background: #dbeafe; color: #1d4ed8; margin-top: -2px; }
+
+    footer { text-align: center; padding: 16px 0 0; }
+    footer a { color: rgba(255,255,255,0.75); font-weight: 600; display: inline-block; padding: 12px 8px; }
+
+    @media (max-width: 400px) {
+      body { padding: 14px 12px 36px; }
+      header h1 { font-size: 1.9rem; }
+      .filter { margin: 0 0 22px; padding: 8px 10px 10px; border-radius: 16px; }
+      .chips { flex-wrap: nowrap; overflow-x: auto; justify-content: flex-start; scrollbar-width: none; padding-bottom: 2px; }
+      .chips::-webkit-scrollbar { display: none; }
+      .chip { padding: 8px 12px; font-size: 0.92rem; flex-shrink: 0; }
+      .group-title { font-size: 1.2rem; }
+      .game-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+      .game-card { padding: 18px 14px 16px; }
+      .game-card-icon { font-size: 2.3rem; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <a href="index.html" class="back-home">← Všechny hry</a>
+  </div>
+
+  <header>
+    <div class="page-icon">🔢</div>
+    <h1>Matematika</h1>
+    <p>Sčítání, odčítání, násobilka, peníze i hodiny</p>
+  </header>
+
+  <!-- ═══════════════ FILTR ═══════════════ -->
+  <nav class="filter" aria-label="Filtr her">
+    <div class="filter-label">Ročník</div>
+    <div class="chips">
+      <button class="chip active" data-filter="all">Vše <span class="chip-count">13</span></button>
+      <button class="chip" data-filter="1-trida">1. třída <span class="chip-count">9</span></button>
+      <button class="chip" data-filter="2-trida">2. třída <span class="chip-count">4</span></button>
+    </div>
+  </nav>
+
+  <section class="group" data-group="1-trida">
+    <div class="group-header">
+      <span class="group-title">1. třída</span>
+      <div class="group-line"></div>
+    </div>
+    <p class="group-desc">Sčítání a odčítání do 20, porovnávání čísel</p>
+    <div class="game-grid">
+
+      <a class="game-card" href="hra.html">
+        <div class="game-card-icon">➕</div>
+        <div class="game-card-name">Sčítání a odčítání do 20</div>
+        <div class="game-card-desc">Klasické příklady i chybějící čísla</div>
+      </a>
+
+      <a class="game-card" href="hra2.html">
+        <div class="game-card-icon">🔍</div>
+        <div class="game-card-name">Vyber správný výsledek do 30</div>
+        <div class="game-card-desc">Najdi správně vypočítaný příklad ze tří možností</div>
+      </a>
+
+      <a class="game-card" href="hra8.html">
+        <div class="game-card-icon">🔺</div>
+        <div class="game-card-name">Pyramida čísel</div>
+        <div class="game-card-desc">Sečti spodní čísla a postav celou pyramidu</div>
+      </a>
+
+      <a class="game-card" href="hra16.html">
+        <div class="game-card-icon">🧮</div>
+        <div class="game-card-name">Vymysli příklad</div>
+        <div class="game-card-desc">Dostaneš výsledek — ty vymysli příklad, každé číslo jen jednou!</div>
+      </a>
+
+      <a class="game-card" href="hra9.html">
+        <div class="game-card-icon">🐍</div>
+        <div class="game-card-name">Had čísel</div>
+        <div class="game-card-desc">Řetěz příkladů — výsledek jednoho je začátkem dalšího</div>
+      </a>
+
+      <a class="game-card" href="hra18.html">
+        <div class="game-card-icon">🚗</div>
+        <div class="game-card-name">Závodní auto</div>
+        <div class="game-card-desc">Vyber větší číslo a posuň auto k cíli — 3 kola, 5 sekund na každou odpověď</div>
+      </a>
+
+      <a class="game-card" href="hra19.html">
+        <div class="game-card-icon">🐱</div>
+        <div class="game-card-name">Kočka a myši</div>
+        <div class="game-card-desc">Najdi správný výsledek na myšce — příklady se ztěžují, špatná odpověď = konec!</div>
+      </a>
+
+      <a class="game-card" href="hra30.html">
+        <div class="game-card-icon">☄️</div>
+        <div class="game-card-name">Zachraň planetu!</div>
+        <div class="game-card-desc">Meteor letí na planetu — spočítej odčítání a zachraň ji! 10 příkladů.</div>
+      </a>
+
+      <a class="game-card" href="hra26.html">
+        <div class="game-card-icon">🚂</div>
+        <div class="game-card-name">Vláček paměti</div>
+        <div class="game-card-desc">Zapamatuj si čísla na vagónech a zopakuj je ve správném pořadí!</div>
+      </a>
+
+    </div>
+  </section>
+  <section class="group" data-group="2-trida">
+    <div class="group-header">
+      <span class="group-title">2. třída</span>
+      <div class="group-line"></div>
+    </div>
+    <p class="group-desc">Násobilka, peníze, sudá a lichá čísla, hodiny</p>
+    <div class="game-grid">
+
+      <a class="game-card" href="hra23.html">
+        <div class="game-card-icon">🪙</div>
+        <div class="game-card-name">Obchůdek s mincemi</div>
+        <div class="game-card-desc">Zaplaťte správnou částku mincemi — 5 kol s rostoucí cenou</div>
+      </a>
+
+      <a class="game-card" href="hra33.html">
+        <div class="game-card-icon">🐛</div>
+        <div class="game-card-name">Housenka násobilek</div>
+        <div class="game-card-desc">Doplňuj násobilku článek po článku — od ×2 až k ×10. Čím vyšší level, tím lepší skóre!</div>
+      </a>
+
+      <a class="game-card" href="hra35.html">
+        <div class="game-card-icon">🎲</div>
+        <div class="game-card-name">Sudé nebo liché?</div>
+        <div class="game-card-desc">Hod kostkou a rozhodni — je číslo sudé nebo liché? 10 hodů na čas!</div>
+      </a>
+
+      <a class="game-card" href="hra43.html">
+        <div class="game-card-icon">🕒</div>
+        <div class="game-card-name">Kolik je hodin?</div>
+        <div class="game-card-desc">Přečti čas na ručičkových hodinách — celé, půl, čtvrt i tři čtvrtě. 10 správně na čas!</div>
+        <div class="game-card-badge badge-new">Nové</div>
+      </a>
+
+    </div>
+  </section>
+
+  <footer><a href="index.html">← Zpět na všechny hry</a></footer>
+</div>
+
+<script>
+  // Filtr skupin — poslední volba se pamatuje (jen v tomto prohlížeči)
+  const STORE_KEY = 'filter-matematika';
+  const chips  = document.querySelectorAll('.chip');
+  const groups = document.querySelectorAll('.group');
+
+  function applyFilter(f) {
+    if (f !== 'all' && ![...groups].some(g => g.dataset.group === f)) f = 'all';
+    chips.forEach(c => c.classList.toggle('active', c.dataset.filter === f));
+    groups.forEach(g => g.classList.toggle('hidden', f !== 'all' && g.dataset.group !== f));
+    try { localStorage.setItem(STORE_KEY, f); } catch (e) {}
+  }
+
+  chips.forEach(c => c.addEventListener('click', () => applyFilter(c.dataset.filter)));
+
+  let initial = 'all';
+  if (location.hash.length > 1) {
+    try { initial = decodeURIComponent(location.hash.slice(1)); } catch (e) {}
+    history.replaceState(null, '', location.pathname);
+  }
+  else { try { initial = localStorage.getItem(STORE_KEY) || 'all'; } catch (e) {} }
+  applyFilter(initial);
+</script>
+</body>
+</html>

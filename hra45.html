@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-KEF2T80GE0"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-KEF2T80GE0');
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Abecední had | Vzdělávací hry</title>
+  <meta property="og:title" content="Abecední had" />
+  <meta property="og:image" content="https://simimisek.github.io/kids-games/ogimage.png" />
+  <meta property="og:description" content="Řiď hada a sbírej písmenka české abecedy popořadě — A, B, C, Č, D, Ď…" />
+  <meta property="og:url" content="https://simimisek.github.io/kids-games/hra45.html" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://simimisek.github.io/kids-games/ogimage.png" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%);
+      min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+      padding: 16px 16px 40px;
+      overflow-x: hidden;
+    }
+
+    .bg-deco { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+    .bg-deco span {
+      position: absolute; font-size: 2.6rem; opacity: 0.11; color: #fff; font-weight: 900;
+      animation: decoF 7s ease-in-out infinite; user-select: none;
+    }
+    @keyframes decoF {
+      0%,100% { transform: translateY(0) rotate(-4deg); }
+      50%      { transform: translateY(-14px) rotate(4deg); }
+    }
+
+    .screen { position: relative; z-index: 1; display: none; width: 100%; max-width: 480px; }
+    .screen.active { display: flex; flex-direction: column; align-items: center; gap: 16px; padding-top: 16px; }
+    #screen-game.active { gap: 10px; }
+
+    .title    { font-size: 2.2rem; color: #fff; text-align: center; text-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+    .subtitle { color: rgba(255,255,255,0.85); text-align: center; font-size: 1rem; line-height: 1.65; }
+
+    .hud {
+      width: 100%; display: flex; justify-content: space-between; align-items: center;
+      background: rgba(255,255,255,0.2); border-radius: 14px;
+      padding: 10px 20px; margin-top: 44px;
+      color: #fff; font-size: 1.1rem; font-weight: 600;
+    }
+    .hud-timer { font-variant-numeric: tabular-nums; }
+
+    /* ─── SEBRANÁ PÍSMENA ─── */
+    .strip {
+      width: 100%; display: flex; justify-content: center; align-items: center; gap: 6px;
+      min-height: 40px; flex-wrap: nowrap; overflow: hidden;
+    }
+    .chip {
+      min-width: 34px; height: 34px; padding: 0 6px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 1.1rem;
+      background: rgba(255,255,255,0.92); color: #1b5e20;
+    }
+    .chip.next { background: #ffd54f; color: #5d4037; box-shadow: 0 0 0 3px rgba(255,213,79,0.35); }
+    .chip.more { background: transparent; color: rgba(255,255,255,0.7); min-width: 18px; padding: 0; }
+
+    /* ─── HŘIŠTĚ ─── */
+    .board-wrap {
+      position: relative;
+      border-radius: 16px; overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+      transition: box-shadow 0.2s;
+      line-height: 0;
+    }
+    .board-wrap.flash-correct { box-shadow: 0 0 0 4px #22c55e, 0 8px 32px rgba(34,197,94,0.3); }
+    .board-wrap.flash-wrong   { box-shadow: 0 0 0 4px #ef4444, 0 8px 32px rgba(239,68,68,0.35); }
+    #board { display: block; touch-action: none; }
+    .board-msg {
+      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+      pointer-events: none; line-height: 1.3;
+    }
+    .board-msg.dead span { background: rgba(183,28,28,0.9); }
+    .board-msg span {
+      background: rgba(27,94,32,0.88); color: #fff; font-weight: 700; font-size: 1.1rem;
+      padding: 12px 20px; border-radius: 14px; text-align: center; max-width: 80%;
+    }
+
+    /* ─── OVLÁDÁNÍ ─── */
+    .dpad {
+      display: grid; grid-template-columns: repeat(3, 64px); grid-template-rows: repeat(2, 54px);
+      gap: 8px; justify-content: center; touch-action: none;
+    }
+    .dpad button {
+      border: none; border-radius: 14px; cursor: pointer;
+      background: rgba(255,255,255,0.92); color: #1b5e20;
+      font-size: 1.6rem; font-weight: 900; font-family: inherit;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+      touch-action: none; user-select: none; -webkit-user-select: none;
+      transition: transform 0.08s, background 0.1s;
+    }
+    .dpad button:active, .dpad button.pressed { transform: scale(0.92); background: #c8e6c9; }
+    .dpad .up    { grid-column: 2; grid-row: 1; }
+    .dpad .left  { grid-column: 1; grid-row: 2; }
+    .dpad .down  { grid-column: 2; grid-row: 2; }
+    .dpad .right { grid-column: 3; grid-row: 2; }
+    .ctrl-hint { color: rgba(255,255,255,0.7); font-size: 0.85rem; text-align: center; }
+
+    /* ─── RESULT ─── */
+    .result-card {
+      background: #fff; border-radius: 20px;
+      padding: 32px 24px; width: 100%;
+      text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    }
+    .result-card h2 { font-size: 1.8rem; color: #333; margin-bottom: 8px; }
+    .result-time    { font-size: 3rem; font-weight: 700; color: #1b5e20; margin: 12px 0; }
+    .result-card p  { color: #666; font-size: 0.95rem; }
+    .result-abc {
+      margin-top: 14px; display: flex; flex-wrap: wrap; justify-content: center; gap: 5px;
+    }
+    .result-abc span {
+      min-width: 28px; height: 28px; padding: 0 4px; border-radius: 8px;
+      background: #c8e6c9; color: #1b5e20; font-weight: 800; font-size: 0.95rem;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .result-abc span.miss { background: #f1f1f1; color: #bbb; }
+    .result-abc span.next { background: #ffd54f; color: #5d4037; }
+    .result-reason { margin-top: 10px; font-weight: 700; color: #c62828 !important; font-size: 1.05rem !important; }
+    .result-letters { font-size: 1.15rem !important; color: #333 !important; font-weight: 700; }
+
+    .name-row { width: 100%; display: flex; gap: 10px; }
+    .name-row input {
+      flex: 1; min-width: 0; padding: 14px 18px; border-radius: 12px;
+      border: none; font-size: 1rem; outline: 2px solid transparent;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.12); transition: outline 0.2s;
+    }
+    .name-row input:focus { outline: 2px solid #1b5e20; }
+
+    /* ─── LEADERBOARD ─── */
+    .leaderboard-card {
+      background: #fff; border-radius: 20px;
+      padding: 22px; width: 100%;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+    .leaderboard-card h3 { text-align: center; color: #333; font-size: 1.1rem; margin-bottom: 14px; }
+    .leaderboard-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .leaderboard-list li {
+      display: grid; grid-template-columns: 28px 1fr auto;
+      gap: 8px; align-items: center; font-size: 0.95rem;
+      color: #444; padding: 6px 0; border-bottom: 1px solid #f0f0f0;
+    }
+    .leaderboard-list li:last-child { border-bottom: none; }
+    .lb-rank  { font-weight: 700; color: #1b5e20; text-align: center; }
+    .lb-name  { font-weight: 600; }
+    .lb-time  { font-variant-numeric: tabular-nums; color: #1b5e20; font-weight: 700; white-space: nowrap; }
+    .lb-date  { font-size: 0.78rem; color: #aaa; grid-column: 2 / 4; margin-top: -4px; }
+    .lb-empty { text-align: center; color: #aaa; font-style: italic; font-size: 0.9rem; padding: 8px 0; display: block !important; }
+
+    /* ─── BUTTONS ─── */
+    .btn {
+      width: 100%; padding: 15px;
+      font-size: 1.05rem; font-weight: 700;
+      border: none; border-radius: 14px; cursor: pointer;
+      transition: transform 0.1s; font-family: inherit;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary   { background: #388e3c; color: #fff; box-shadow: 0 4px 16px rgba(56,142,60,0.35); }
+    .btn-primary:hover { background: #2e7d32; }
+    .btn-secondary { background: rgba(255,255,255,0.15); color: #fff; border: 2px solid rgba(255,255,255,0.35); box-shadow: none; }
+    .btn-secondary:hover { background: rgba(255,255,255,0.25); }
+
+    .btn-home-fixed {
+      position: fixed; top: 12px; right: 12px; z-index: 200;
+      background: rgba(0,0,0,0.25); border: none; border-radius: 10px;
+      padding: 7px 14px; color: #fff; font-family: inherit;
+      font-size: 0.85rem; font-weight: 700; text-decoration: none; cursor: pointer;
+    }
+    .btn-home-fixed:hover { background: rgba(0,0,0,0.4); }
+
+    @media (max-width: 400px) {
+      body { padding: 10px 10px 32px; }
+      .title { font-size: 1.9rem; }
+      .hud { padding: 8px 16px; font-size: 1rem; }
+      .chip { min-width: 30px; height: 30px; font-size: 1rem; }
+      .dpad { grid-template-columns: repeat(3, 60px); grid-template-rows: repeat(2, 50px); }
+      .btn { padding: 14px; font-size: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="bg-deco" aria-hidden="true">
+  <span style="top:5%;left:4%;animation-delay:0s">A</span>
+  <span style="top:8%;left:78%;animation-delay:1.2s">Č</span>
+  <span style="top:24%;left:88%;animation-delay:0.5s">Ď</span>
+  <span style="top:42%;left:2%;animation-delay:2.1s">Ř</span>
+  <span style="top:62%;left:90%;animation-delay:0.9s">Š</span>
+  <span style="top:77%;left:8%;animation-delay:1.7s">Ch</span>
+  <span style="top:88%;left:56%;animation-delay:3.1s">Ž</span>
+  <span style="top:16%;left:43%;animation-delay:1.0s">B</span>
+</div>
+
+<!-- ═══════════ START SCREEN ═══════════ -->
+<div id="screen-start" class="screen active">
+  <div class="title">🐍 Abecední had</div>
+  <p class="subtitle">Řiď hada šipkami a sbírej písmenka<br>popořadě podle abecedy: <b>A, B, C, Č, D, Ď, E…</b><br>Pozor! Hra končí, když had narazí do zdi,<br>do sebe nebo sní špatné písmenko.<br>Kdo dojede až k Ž?</p>
+  <button class="btn btn-primary" onclick="startGame()">▶ Hrát</button>
+  <a href="cestina.html" style="width:100%;text-decoration:none;">
+    <button class="btn btn-secondary">🏠 Zpět na výběr</button>
+  </a>
+  <div class="leaderboard-card">
+    <h3>🏆 Nejlepší hadi</h3>
+    <p style="font-size:0.75rem;opacity:0.5;margin:0 0 8px;text-align:center;">↺ Resetuje se 1. každého měsíce</p>
+    <ul class="leaderboard-list" id="lb-start"></ul>
+  </div>
+</div>
+
+<!-- ═══════════ GAME SCREEN ═══════════ -->
+<div id="screen-game" class="screen">
+  <a href="index.html" class="btn-home-fixed">🏠 Domů</a>
+  <div class="hud">
+    <span id="hud-score">Písmenka: 0 / 34</span>
+    <span class="hud-timer" id="hud-timer">0:00</span>
+  </div>
+  <div class="strip" id="strip"></div>
+  <div class="board-wrap" id="board-wrap">
+    <canvas id="board"></canvas>
+    <div class="board-msg" id="board-msg"><span>Ťukni na šipku<br>a had se rozjede! 🐍</span></div>
+  </div>
+  <div class="dpad" id="dpad">
+    <button class="up"    data-dir="up"    aria-label="Nahoru">▲</button>
+    <button class="left"  data-dir="left"  aria-label="Doleva">◀</button>
+    <button class="down"  data-dir="down"  aria-label="Dolů">▼</button>
+    <button class="right" data-dir="right" aria-label="Doprava">▶</button>
+  </div>
+  <div class="ctrl-hint">Můžeš i táhnout prstem po hřišti nebo použít šipky na klávesnici.</div>
+</div>
+
+<!-- ═══════════ END SCREEN ═══════════ -->
+<div id="screen-end" class="screen">
+  <div class="result-card">
+    <h2 id="result-title">Celá abeceda! 🎉</h2>
+    <p class="result-letters" id="result-letters"></p>
+    <div class="result-time" id="final-time"></div>
+    <p id="result-reason" class="result-reason"></p>
+    <div class="result-abc" id="result-abc"></div>
+  </div>
+  <div class="name-row">
+    <input type="text" id="player-name" placeholder="Tvoje jméno…" maxlength="20" />
+    <button class="btn btn-primary" style="width:auto;padding:14px 20px;font-size:1rem;" onclick="saveScore()">Uložit</button>
+  </div>
+  <button class="btn btn-primary" onclick="startGame()">🔄 Hrát znovu</button>
+  <a href="cestina.html" style="width:100%;text-decoration:none;">
+    <button class="btn btn-secondary">🏠 Zpět na výběr</button>
+  </a>
+  <div class="leaderboard-card">
+    <h3>🏆 Nejlepší hadi</h3>
+    <ul class="leaderboard-list" id="lb-end"></ul>
+  </div>
+</div>
+
+<script>
+  // ─── CONFIG ───────────────────────────────────────────────
+  const QUIZ_TYPE = 'czech-alphabet-snake';
+  const DB_URL    = 'https://kids-games-3a167-default-rtdb.europe-west1.firebasedatabase.app';
+
+  // Česká abeceda (tak, jak se učí ve škole — Ch je samostatné písmeno)
+  const ABC = ['A','B','C','Č','D','Ď','E','F','G','H','Ch','I','J','K','L','M','N','Ň',
+               'O','P','Q','R','Ř','S','Š','T','Ť','U','V','W','X','Y','Z','Ž'];
+  const COLS = 12, ROWS = 12;
+  const STEP_MS = 340;          // rychlost hada (klidná, pro děti)
+  const ITEM_COUNT = 3;         // max. 3 písmenka na hřišti
+
+  const DIRS = { up: [0,-1], down: [0,1], left: [-1,0], right: [1,0] };
+  const OPP  = { up: 'down', down: 'up', left: 'right', right: 'left' };
+
+  // ─── STATE ────────────────────────────────────────────────
+  let snake = [], dir = 'right', dirQueue = [], grow = 0;
+  let items = [], idx = 0, dead = false, deathReason = '';
+  let running = false, started = false, loopId = null;
+  let timerStart = null, timerInterval = null, finalMs = 0;
+  let cell = 28, tick = 0;
+
+  const canvas = document.getElementById('board');
+  const ctx = canvas.getContext('2d');
+
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo(0, 0);
+  }
+  function randInt(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a; }
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) { const j = randInt(0, i); [arr[i], arr[j]] = [arr[j], arr[i]]; }
+    return arr;
+  }
+
+  // ─── TIMER ────────────────────────────────────────────────
+  function startTimer() {
+    timerStart = Date.now();
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+      document.getElementById('hud-timer').textContent = fmtTime(Date.now() - timerStart);
+    }, 200);
+  }
+  function stopTimer() { clearInterval(timerInterval); finalMs = Date.now() - timerStart; }
+
+  // ─── VELIKOST HŘIŠTĚ ──────────────────────────────────────
+  function resizeBoard() {
+    const screenW = document.getElementById('screen-game').clientWidth || 360;
+    const maxByHeight = window.innerHeight - 290;   // ať se vejdou i šipky bez scrollování
+    const size = Math.max(228, Math.min(screenW, 440, maxByHeight));
+    cell = Math.floor(size / COLS);
+    const px = cell * COLS;
+    const dpr = window.devicePixelRatio || 1;
+    canvas.style.width = px + 'px';
+    canvas.style.height = px + 'px';
+    canvas.width = Math.round(px * dpr);
+    canvas.height = Math.round(px * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    draw();
+  }
+  window.addEventListener('resize', () => {
+    if (document.getElementById('screen-game').classList.contains('active')) resizeBoard();
+  });
+
+  // ─── PÍSMENKA NA HŘIŠTI ───────────────────────────────────
+  function dist(a, b) { return Math.abs(a.x - b.x) + Math.abs(a.y - b.y); }
+
+  function freeCells() {
+    const head = snake[0];
+    const taken = new Set(snake.map(s => s.x + ',' + s.y));
+    const res = [];
+    for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) {
+      const c = { x, y };
+      if (taken.has(x + ',' + y)) continue;
+      if (dist(c, head) < 3) continue;
+      // ne přímo před hlavou (ať je čas zareagovat)
+      const [hdx, hdy] = DIRS[dir];
+      if ((hdx && c.y === head.y && Math.sign(c.x - head.x) === hdx && Math.abs(c.x - head.x) < 5) ||
+          (hdy && c.x === head.x && Math.sign(c.y - head.y) === hdy && Math.abs(c.y - head.y) < 5)) continue;
+      res.push(c);
+    }
+    return res;
+  }
+
+  function pickDistractors() {
+    // podobná / sousední písmenka (např. u Č → C, D, Ď)
+    const near = [];
+    for (let d = -3; d <= 3; d++) {
+      const j = idx + d;
+      if (d !== 0 && j >= 0 && j < ABC.length) near.push(ABC[j]);
+    }
+    return shuffle(near).slice(0, ITEM_COUNT - 1);
+  }
+
+  function spawnItems() {
+    const letters = shuffle([ABC[idx], ...pickDistractors()]);
+    let cells = shuffle(freeCells());
+    items = [];
+    letters.forEach(ch => {
+      // písmenka nedávat těsně vedle sebe
+      const k = cells.findIndex(c => items.every(it => dist(it, c) >= 2));
+      const c = cells.splice(k >= 0 ? k : 0, 1)[0];
+      if (c) items.push({ x: c.x, y: c.y, ch });
+    });
+  }
+
+  // ─── STRIP SEBRANÝCH ──────────────────────────────────────
+  function renderStrip() {
+    const el = document.getElementById('strip');
+    const SHOW = 5;
+    const from = Math.max(0, idx - SHOW);
+    let html = '';
+    if (from > 0) html += '<span class="chip more">…</span>';
+    for (let i = from; i < idx; i++) html += `<span class="chip">${ABC[i]}</span>`;
+    if (idx < ABC.length) html += '<span class="chip next">?</span>';
+    el.innerHTML = html;
+    document.getElementById('hud-score').textContent = `Písmenka: ${idx} / ${ABC.length}`;
+  }
+
+  // ─── HERNÍ SMYČKA ─────────────────────────────────────────
+  function step() {
+    tick++;
+    if (dirQueue.length) dir = dirQueue.shift();
+    const [dx, dy] = DIRS[dir];
+    const head = snake[0];
+    const nh = { x: head.x + dx, y: head.y + dy };
+
+    // náraz do zdi
+    if (nh.x < 0 || nh.x >= COLS || nh.y < 0 || nh.y >= ROWS) { die('Au! Had narazil do zdi.'); return; }
+    // náraz do sebe (ocas se v tomto kroku posune, pokud had neroste)
+    const body = grow > 0 ? snake : snake.slice(0, -1);
+    if (body.some(q => q.x === nh.x && q.y === nh.y)) { die('Au! Had se kousl do ocásku.'); return; }
+
+    snake.unshift(nh);
+    if (grow > 0) grow--; else snake.pop();
+
+    const hit = items.findIndex(it => it.x === nh.x && it.y === nh.y);
+    if (hit >= 0) {
+      const it = items[hit];
+      if (it.ch === ABC[idx]) eatCorrect();
+      else { items.splice(hit, 1); die('To bylo ' + it.ch + ', ale teď mělo přijít ' + ABC[idx] + '.'); return; }
+    }
+    draw();
+  }
+
+  function flash(cls, ms) {
+    const w = document.getElementById('board-wrap');
+    w.classList.remove('flash-correct', 'flash-wrong');
+    void w.offsetWidth;
+    w.classList.add(cls);
+    setTimeout(() => w.classList.remove(cls), ms);
+  }
+
+  function eatCorrect() {
+    idx++;
+    grow++;
+    renderStrip();
+    flash('flash-correct', 400);
+    if (idx >= ABC.length) { items = []; endGame(); return; }
+    spawnItems();
+  }
+
+  function die(reason) {
+    running = false;
+    dead = true;
+    deathReason = reason;
+    clearInterval(loopId);
+    stopTimer();
+    flash('flash-wrong', 1600);
+    draw();
+    const msg = document.getElementById('board-msg');
+    msg.classList.add('dead');
+    msg.innerHTML = '<span>' + esc(reason) + '</span>';
+    msg.style.display = '';
+    setTimeout(() => showEnd(false), 1900);
+  }
+
+  // ─── KRESLENÍ ─────────────────────────────────────────────
+  function roundRect(x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  function draw() {
+    const W = cell * COLS, H = cell * ROWS;
+    // hřiště — jemná šachovnice
+    ctx.fillStyle = '#f1f8e9';
+    ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#e3f0d4';
+    for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++)
+      if ((x + y) % 2) ctx.fillRect(x * cell, y * cell, cell, cell);
+
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    // písmenka
+    items.forEach(it => {
+      const cx = it.x * cell + cell / 2, cy = it.y * cell + cell / 2;
+      ctx.beginPath(); ctx.arc(cx, cy, cell * 0.47, 0, Math.PI * 2);
+      ctx.fillStyle = '#fff'; ctx.fill();
+      ctx.lineWidth = Math.max(2, cell * 0.08);
+      ctx.strokeStyle = '#7e57c2'; ctx.stroke();
+      ctx.fillStyle = '#311b92';
+      ctx.font = `800 ${Math.round(cell * (it.ch.length > 1 ? 0.48 : 0.62))}px Segoe UI, Arial, sans-serif`;
+      ctx.fillText(it.ch, cx, cy + 1);
+    });
+
+    if (!snake.length) return;
+
+    // had — od ocasu k hlavě, ať je hlava navrchu
+    for (let i = snake.length - 1; i >= 0; i--) {
+      const s = snake[i];
+      const x = s.x * cell, y = s.y * cell;
+      const pad = i === 0 ? 1 : 2;
+      const t = i / Math.max(1, snake.length - 1);
+      ctx.fillStyle = i === 0 ? '#2e7d32' : `hsl(${122 - t * 10}, ${48 - t * 8}%, ${42 + t * 14}%)`;
+      roundRect(x + pad, y + pad, cell - pad * 2, cell - pad * 2, cell * 0.32);
+      ctx.fill();
+
+      // písmenko na zádech: segment 1 = poslední sebrané, směrem k ocasu starší
+      if (i > 0 && i <= idx) {
+        const ch = ABC[idx - i];
+        ctx.fillStyle = '#fff';
+        ctx.font = `800 ${Math.round(cell * (ch.length > 1 ? 0.4 : 0.52))}px Segoe UI, Arial, sans-serif`;
+        ctx.fillText(ch, x + cell / 2, y + cell / 2 + 1);
+      }
+    }
+
+    // oči na hlavě
+    const h = snake[0];
+    const [dx, dy] = DIRS[dir];
+    const hx = h.x * cell + cell / 2, hy = h.y * cell + cell / 2;
+    const px = -dy, py = dx; // kolmice
+    [-1, 1].forEach(side => {
+      const ex = hx + dx * cell * 0.15 + px * side * cell * 0.2;
+      const ey = hy + dy * cell * 0.15 + py * side * cell * 0.2;
+      if (dead) {
+        const r = cell * 0.09;
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = Math.max(2, cell * 0.06); ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.moveTo(ex - r, ey - r); ctx.lineTo(ex + r, ey + r);
+        ctx.moveTo(ex + r, ey - r); ctx.lineTo(ex - r, ey + r); ctx.stroke();
+        return;
+      }
+      ctx.beginPath(); ctx.arc(ex, ey, cell * 0.13, 0, Math.PI * 2);
+      ctx.fillStyle = '#fff'; ctx.fill();
+      ctx.beginPath(); ctx.arc(ex + dx * cell * 0.04, ey + dy * cell * 0.04, cell * 0.065, 0, Math.PI * 2);
+      ctx.fillStyle = '#1b1b1b'; ctx.fill();
+    });
+  }
+
+  // ─── OVLÁDÁNÍ ─────────────────────────────────────────────
+  function turn(d) {
+    if (!running) return;
+    if (!started) {
+      started = true;
+      document.getElementById('board-msg').style.display = 'none';
+      if (d === 'left') d = dir === 'right' ? 'up' : d;   // nerozjet se do sebe
+      dir = d;
+      dirQueue = [];
+      loopId = setInterval(step, STEP_MS);
+      startTimer();
+      return;
+    }
+    const last = dirQueue.length ? dirQueue[dirQueue.length - 1] : dir;
+    if (d === last || d === OPP[last]) return;
+    if (dirQueue.length < 2) dirQueue.push(d);
+  }
+
+  document.querySelectorAll('#dpad button').forEach(b => {
+    b.addEventListener('pointerdown', e => {
+      e.preventDefault();
+      b.classList.add('pressed');
+      turn(b.dataset.dir);
+    });
+    ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev =>
+      b.addEventListener(ev, () => b.classList.remove('pressed')));
+  });
+
+  document.addEventListener('keydown', e => {
+    if (!running) return;
+    const map = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right',
+                  w: 'up', s: 'down', a: 'left', d: 'right', W: 'up', S: 'down', A: 'left', D: 'right' };
+    if (map[e.key] && document.activeElement.tagName !== 'INPUT') { e.preventDefault(); turn(map[e.key]); }
+  });
+
+  // tažení prstem po hřišti
+  let sw = null;
+  canvas.addEventListener('pointerdown', e => { sw = { x: e.clientX, y: e.clientY }; });
+  canvas.addEventListener('pointermove', e => {
+    if (!sw) return;
+    const dx = e.clientX - sw.x, dy = e.clientY - sw.y;
+    if (Math.max(Math.abs(dx), Math.abs(dy)) < 22) return;
+    turn(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up'));
+    sw = { x: e.clientX, y: e.clientY };
+  });
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => canvas.addEventListener(ev, () => { sw = null; }));
+
+  window.addEventListener('pagehide', () => {
+    if (running) { running = false; clearInterval(loopId); clearInterval(timerInterval); showScreen('screen-start'); }
+  });
+
+  // ─── GAME FLOW ────────────────────────────────────────────
+  function startGame() {
+    const nr = document.querySelector('.name-row'); if (nr) nr.style.display = '';
+    clearInterval(loopId);
+    idx = 0; grow = 0; tick = 0; finalMs = 0;
+    dir = 'right'; dirQueue = []; dead = false; deathReason = '';
+    const mid = Math.floor(ROWS / 2);
+    snake = [{ x: 4, y: mid }, { x: 3, y: mid }, { x: 2, y: mid }];
+    running = true; started = false;
+    const msg = document.getElementById('board-msg');
+    msg.classList.remove('dead');
+    msg.innerHTML = '<span>Ťukni na šipku<br>a had se rozjede! 🐍</span>';
+    msg.style.display = '';
+    document.getElementById('hud-timer').textContent = '0:00';
+    showScreen('screen-game');
+    resizeBoard();
+    spawnItems();
+    renderStrip();
+    draw();
+    clearInterval(timerInterval);
+  }
+
+  function endGame() {
+    running = false;
+    clearInterval(loopId);
+    stopTimer();
+    draw();
+    setTimeout(() => showEnd(true), 700);
+  }
+
+  function showEnd(won) {
+    document.getElementById('result-title').textContent =
+      won ? 'Celá abeceda! 🎉' : (idx >= 10 ? 'Skvělý pokus! 👏' : 'Konec hry 🐍');
+    document.getElementById('result-letters').textContent = 'Sebraná písmenka: ' + idx + ' / ' + ABC.length;
+    document.getElementById('final-time').textContent = fmtTime(finalMs);
+    const rr = document.getElementById('result-reason');
+    rr.textContent = won ? '' : deathReason;
+    rr.style.display = won ? 'none' : '';
+    document.getElementById('result-abc').innerHTML = ABC.map((c, i) =>
+      '<span class="' + (i < idx ? '' : (i === idx ? 'next' : 'miss')) + '">' + c + '</span>').join('');
+    document.getElementById('player-name').value = '';
+    showScreen('screen-end');
+    renderLeaderboard('lb-end');
+  }
+
+  // ─── LEADERBOARD ──────────────────────────────────────────
+  function curMonth() {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+  }
+
+  async function getScores() {
+    try {
+      const r = await fetch(DB_URL + '/scores/' + QUIZ_TYPE + '.json');
+      const d = await r.json();
+      const scores = Array.isArray(d) ? d : [];
+      const ym = curMonth();
+      if (scores.some(s => !s.month || s.month !== ym)) return [];
+      return scores;
+    } catch { return []; }
+  }
+
+  async function saveScore() {
+    const nameInput = document.getElementById('player-name');
+    const name = nameInput.value.trim();
+    if (!name) { nameInput.style.outline = '3px solid #ef4444'; nameInput.focus(); return; }
+    nameInput.style.outline = '';
+    const scores = await getScores();
+    scores.push({ name, ms: finalMs, letters: idx, month: curMonth(), date: new Date().toLocaleDateString('cs-CZ') });
+    // víc písmenek je lepší, při shodě rozhoduje kratší čas
+    scores.sort((a, b) => (b.letters || 0) - (a.letters || 0) || a.ms - b.ms);
+    const top10 = scores.slice(0, 10);
+    try {
+      await fetch(DB_URL + '/scores/' + QUIZ_TYPE + '.json', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(top10)
+      });
+    } catch {}
+    renderLeaderboard('lb-end');
+    const nr = document.querySelector('.name-row'); if (nr) nr.style.display = 'none';
+    nameInput.value = '';
+  }
+
+  async function renderLeaderboard(elId) {
+    const el = document.getElementById(elId);
+    el.innerHTML = '<li class="lb-empty">Načítám…</li>';
+    const scores = await getScores();
+    if (!scores.length) { el.innerHTML = '<li class="lb-empty">Zatím žádné výsledky.</li>'; return; }
+    el.innerHTML = scores.map((s, i) => `
+      <li>
+        <span class="lb-rank">${i + 1}.</span>
+        <span class="lb-name">${esc(s.name)}</span>
+        <span class="lb-time">${s.letters || 0} 🔤 · ${fmtTime(s.ms)}</span>
+        <span class="lb-date">${esc(s.date || '')}</span>
+      </li>`).join('');
+  }
+
+  function esc(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function fmtTime(ms) {
+    const s = Math.floor(ms / 1000);
+    return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+  }
+
+  renderLeaderboard('lb-start');
+</script>
+</body>
+</html>

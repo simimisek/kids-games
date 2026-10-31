@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-KEF2T80GE0"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-KEF2T80GE0');
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Čí je to stín? | Vzdělávací hry</title>
+  <meta property="og:title" content="Čí je to stín?" />
+  <meta property="og:image" content="https://simimisek.github.io/kids-games/ogimage.png" />
+  <meta property="og:description" content="Poznáš zvířátko podle stínu? Zábavná hra na pozornost pro nejmenší." />
+  <meta property="og:url" content="https://simimisek.github.io/kids-games/hra44.html" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://simimisek.github.io/kids-games/ogimage.png" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #4a148c 0%, #880e4f 100%);
+      min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+      padding: 16px 16px 40px;
+      overflow-x: hidden;
+    }
+
+    .bg-deco { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+    .bg-deco span {
+      position: absolute; font-size: 2.8rem; opacity: 0.13;
+      animation: decoF 7s ease-in-out infinite; user-select: none;
+      filter: brightness(0) invert(1);
+    }
+    @keyframes decoF {
+      0%,100% { transform: translateY(0) rotate(-4deg); }
+      50%      { transform: translateY(-14px) rotate(4deg); }
+    }
+
+    .screen { position: relative; z-index: 1; display: none; width: 100%; max-width: 480px; }
+    .screen.active { display: flex; flex-direction: column; align-items: center; gap: 16px; padding-top: 16px; }
+
+    .title    { font-size: 2.2rem; color: #fff; text-align: center; text-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+    .subtitle { color: rgba(255,255,255,0.85); text-align: center; font-size: 1rem; line-height: 1.65; }
+
+    .hud {
+      width: 100%; display: flex; justify-content: space-between; align-items: center;
+      background: rgba(255,255,255,0.2); border-radius: 14px;
+      padding: 10px 20px; margin-top: 55px;
+      color: #fff; font-size: 1.1rem; font-weight: 600;
+    }
+    .hud-timer { font-variant-numeric: tabular-nums; }
+
+    /* ─── SHADOW CARD ─── */
+    .shadow-card {
+      position: relative;
+      background: radial-gradient(circle at 50% 38%, #fffdf3 0%, #fff4d6 70%, #ffe8b0 100%);
+      border-radius: 20px;
+      padding: 18px 20px 16px; width: 100%;
+      text-align: center;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      transition: box-shadow 0.2s;
+    }
+    .shadow-card.flash-correct { box-shadow: 0 0 0 4px #22c55e, 0 8px 32px rgba(34,197,94,0.3); }
+    .shadow-card.flash-wrong   { box-shadow: 0 0 0 4px #ef4444, 0 8px 32px rgba(239,68,68,0.3); }
+    .shadow-label {
+      font-size: 0.85rem; color: #a1887f; font-weight: 700;
+      letter-spacing: 0.06em; text-transform: uppercase;
+    }
+    .shadow-pic {
+      font-size: 8.5rem; line-height: 1.15; height: 10rem;
+      display: flex; align-items: center; justify-content: center;
+      filter: brightness(0); opacity: 0.82;
+      transition: filter 0.45s ease, opacity 0.45s ease, transform 0.45s ease;
+      user-select: none;
+    }
+    .shadow-pic.reveal { filter: none; opacity: 1; transform: scale(1.08); }
+    .shadow-pic.pop { animation: popIn 0.35s ease-out; }
+    @keyframes popIn { from { transform: scale(0.6); opacity: 0; } to { transform: scale(1); } }
+    .shadow-name {
+      min-height: 1.6em; font-size: 1.4rem; font-weight: 800; color: #6a1b9a;
+      opacity: 0; transition: opacity 0.25s;
+    }
+    .shadow-name.show { opacity: 1; }
+
+    /* ─── ANSWERS ─── */
+    .answers { width: 100%; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .btn-answer {
+      aspect-ratio: 1 / 1; min-height: 80px;
+      font-size: 3.6rem; line-height: 1;
+      border: none; border-radius: 18px; cursor: pointer;
+      background: #fff;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+      transition: transform 0.1s, background 0.15s;
+      outline: none; font-family: inherit;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .btn-answer:hover:not(:disabled) { transform: translateY(-3px); background: #f6ecff; }
+    .btn-answer:active:not(:disabled) { transform: translateY(0); }
+    .btn-answer.correct { background: #bbf7d0; box-shadow: 0 0 0 4px #22c55e; }
+    .btn-answer.wrong   { background: #fecaca; box-shadow: 0 0 0 4px #ef4444; }
+
+    /* ─── RESULT ─── */
+    .result-card {
+      background: #fff; border-radius: 20px;
+      padding: 32px 24px; width: 100%;
+      text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    }
+    .result-card h2 { font-size: 1.8rem; color: #333; margin-bottom: 8px; }
+    .result-time    { font-size: 3rem; font-weight: 700; color: #6a1b9a; margin: 12px 0; }
+    .result-card p  { color: #666; font-size: 0.95rem; }
+
+    .name-row { width: 100%; display: flex; gap: 10px; }
+    .name-row input {
+      flex: 1; min-width: 0; padding: 14px 18px; border-radius: 12px;
+      border: none; font-size: 1rem; outline: 2px solid transparent;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.12); transition: outline 0.2s;
+    }
+    .name-row input:focus { outline: 2px solid #6a1b9a; }
+
+    /* ─── LEADERBOARD ─── */
+    .leaderboard-card {
+      background: #fff; border-radius: 20px;
+      padding: 22px; width: 100%;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+    .leaderboard-card h3 { text-align: center; color: #333; font-size: 1.1rem; margin-bottom: 14px; }
+    .leaderboard-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .leaderboard-list li {
+      display: grid; grid-template-columns: 28px 1fr auto;
+      gap: 8px; align-items: center; font-size: 0.95rem;
+      color: #444; padding: 6px 0; border-bottom: 1px solid #f0f0f0;
+    }
+    .leaderboard-list li:last-child { border-bottom: none; }
+    .lb-rank  { font-weight: 700; color: #6a1b9a; text-align: center; }
+    .lb-name  { font-weight: 600; }
+    .lb-time  { font-variant-numeric: tabular-nums; color: #6a1b9a; font-weight: 700; }
+    .lb-date  { font-size: 0.78rem; color: #aaa; grid-column: 2 / 4; margin-top: -4px; }
+    .lb-empty { text-align: center; color: #aaa; font-style: italic; font-size: 0.9rem; padding: 8px 0; display: block !important; }
+
+    /* ─── BUTTONS ─── */
+    .btn {
+      width: 100%; padding: 15px;
+      font-size: 1.05rem; font-weight: 700;
+      border: none; border-radius: 14px; cursor: pointer;
+      transition: transform 0.1s; font-family: inherit;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary   { background: #8e24aa; color: #fff; box-shadow: 0 4px 16px rgba(142,36,170,0.35); }
+    .btn-primary:hover { background: #7b1fa2; }
+    .btn-secondary { background: rgba(255,255,255,0.15); color: #fff; border: 2px solid rgba(255,255,255,0.35); box-shadow: none; }
+    .btn-secondary:hover { background: rgba(255,255,255,0.25); }
+
+    .btn-home-fixed {
+      position: fixed; top: 12px; right: 12px; z-index: 200;
+      background: rgba(0,0,0,0.25); border: none; border-radius: 10px;
+      padding: 7px 14px; color: #fff; font-family: inherit;
+      font-size: 0.85rem; font-weight: 700; text-decoration: none; cursor: pointer;
+    }
+    .btn-home-fixed:hover { background: rgba(0,0,0,0.4); }
+
+    @media (max-width: 400px) {
+      body { padding: 10px 10px 32px; }
+      .title { font-size: 1.9rem; }
+      .shadow-pic { font-size: 7rem; height: 8.4rem; }
+      .btn-answer { font-size: 2.9rem; }
+      .btn { padding: 14px; font-size: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="bg-deco" aria-hidden="true">
+  <span style="top:5%;left:4%;animation-delay:0s">🐘</span>
+  <span style="top:8%;left:78%;animation-delay:1.2s">🦒</span>
+  <span style="top:24%;left:88%;animation-delay:0.5s">🐢</span>
+  <span style="top:42%;left:2%;animation-delay:2.1s">🦋</span>
+  <span style="top:62%;left:90%;animation-delay:0.9s">🐇</span>
+  <span style="top:77%;left:8%;animation-delay:1.7s">🦔</span>
+  <span style="top:88%;left:56%;animation-delay:3.1s">🐌</span>
+  <span style="top:16%;left:43%;animation-delay:1.0s">🦆</span>
+</div>
+
+<!-- ═══════════ START SCREEN ═══════════ -->
+<div id="screen-start" class="screen active">
+  <div class="title">🔦 Čí je to stín?</div>
+  <p class="subtitle">Někdo se schovává ve stínu!<br>Podívej se pozorně a najdi zvířátko, kterému stín patří — 10 správně na čas!</p>
+  <button class="btn btn-primary" onclick="startGame()">▶ Hrát</button>
+  <a href="nejmensi.html" style="width:100%;text-decoration:none;">
+    <button class="btn btn-secondary">🏠 Zpět na výběr</button>
+  </a>
+  <div class="leaderboard-card">
+    <h3>🏆 Nejlepší časy</h3>
+    <p style="font-size:0.75rem;opacity:0.5;margin:0 0 8px;text-align:center;">↺ Resetuje se 1. každého měsíce</p>
+    <ul class="leaderboard-list" id="lb-start"></ul>
+  </div>
+</div>
+
+<!-- ═══════════ GAME SCREEN ═══════════ -->
+<div id="screen-game" class="screen">
+  <a href="index.html" class="btn-home-fixed">🏠 Domů</a>
+  <div class="hud">
+    <span id="hud-score">Správně: 0 / 10</span>
+    <span class="hud-timer" id="hud-timer">0:00</span>
+  </div>
+  <div class="shadow-card" id="shadow-card">
+    <div class="shadow-label">Čí je to stín?</div>
+    <div class="shadow-pic" id="shadow-pic"></div>
+    <div class="shadow-name" id="shadow-name">&nbsp;</div>
+  </div>
+  <div class="answers" id="answers"></div>
+</div>
+
+<!-- ═══════════ END SCREEN ═══════════ -->
+<div id="screen-end" class="screen">
+  <div class="result-card">
+    <h2>Skvělá práce! 🎉</h2>
+    <div class="result-time" id="final-time"></div>
+    <p>To byl tvůj čas na 10 poznaných stínů.</p>
+  </div>
+  <div class="name-row">
+    <input type="text" id="player-name" placeholder="Tvoje jméno…" maxlength="20" />
+    <button class="btn btn-primary" style="width:auto;padding:14px 20px;font-size:1rem;" onclick="saveScore()">Uložit</button>
+  </div>
+  <button class="btn btn-primary" onclick="startGame()">🔄 Hrát znovu</button>
+  <a href="nejmensi.html" style="width:100%;text-decoration:none;">
+    <button class="btn btn-secondary">🏠 Zpět na výběr</button>
+  </a>
+  <div class="leaderboard-card">
+    <h3>🏆 Nejlepší časy</h3>
+    <ul class="leaderboard-list" id="lb-end"></ul>
+  </div>
+</div>
+
+<script>
+  // ─── CONFIG ───────────────────────────────────────────────
+  const QUIZ_TYPE = 'preschool-shadows';
+  const DB_URL    = 'https://kids-games-3a167-default-rtdb.europe-west1.firebasedatabase.app';
+  const GOAL      = 10;
+
+  // Zvířátka s výrazným tvarem (dobře poznatelný stín)
+  const ANIMALS = [
+    { e: '🐘', n: 'slon', g: 'q' },      { e: '🦒', n: 'žirafa', g: 'q' },   { e: '🐢', n: 'želva', g: 'r' },
+    { e: '🐇', n: 'zajíček', g: 'q' },   { e: '🦋', n: 'motýl', g: 'i' },    { e: '🐌', n: 'šnek', g: 'r' },
+    { e: '🦀', n: 'krab', g: 'w' },      { e: '🐙', n: 'chobotnice', g: 'w' },{ e: '🐓', n: 'kohout', g: 'b' },
+    { e: '🦆', n: 'kachna', g: 'b' },    { e: '🐟', n: 'rybka', g: 'w' },    { e: '🐳', n: 'velryba', g: 'w' },
+    { e: '🦔', n: 'ježek', g: 'q' },     { e: '🐿️', n: 'veverka', g: 'q' },  { e: '🦕', n: 'dinosaurus', g: 'r' },
+    { e: '🐊', n: 'krokodýl', g: 'r' },  { e: '🐎', n: 'koník', g: 'q' },    { e: '🐕', n: 'pejsek', g: 'q' },
+    { e: '🐈', n: 'kočička', g: 'q' },   { e: '🦉', n: 'sova', g: 'b' },     { e: '🐝', n: 'včelka', g: 'i' },
+    { e: '🐞', n: 'beruška', g: 'i' },   { e: '🦩', n: 'plameňák', g: 'b' }, { e: '🐄', n: 'kravička', g: 'q' },
+    { e: '🐖', n: 'prasátko', g: 'q' },  { e: '🐑', n: 'ovečka', g: 'q' },   { e: '🐧', n: 'tučňák', g: 'b' },
+    { e: '🦘', n: 'klokan', g: 'q' },    { e: '🐫', n: 'velbloud', g: 'q' }, { e: '🦢', n: 'labuť', g: 'b' }
+  ];
+
+  // ─── STATE ────────────────────────────────────────────────
+  let score = 0, timerStart = null, timerInterval = null, finalMs = 0;
+  let current = null, answering = false, recent = [];
+
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo(0, 0);
+  }
+  function randInt(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a; }
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) { const j = randInt(0, i); [arr[i], arr[j]] = [arr[j], arr[i]]; }
+    return arr;
+  }
+
+  // ─── TIMER ────────────────────────────────────────────────
+  function startTimer() {
+    timerStart = Date.now();
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+      document.getElementById('hud-timer').textContent = fmtTime(Date.now() - timerStart);
+    }, 200);
+  }
+  function stopTimer() { clearInterval(timerInterval); finalMs = Date.now() - timerStart; }
+
+  // ─── QUESTION ─────────────────────────────────────────────
+  function newQuestion() {
+    // nevybírat zvířátko, které bylo v posledních 6 otázkách
+    const fresh = ANIMALS.filter(a => !recent.includes(a.e));
+    current = fresh[randInt(0, fresh.length - 1)];
+    recent.push(current.e);
+    if (recent.length > 6) recent.shift();
+
+    // Prvních 6 kol: možnosti z jiných skupin (snazší). Pak i podobná zvířátka (pejsek × kočička…)
+    const easy = score < 6;
+    const pool = ANIMALS.filter(a => a.e !== current.e && (!easy || a.g !== current.g));
+    const others = [];
+    shuffle(pool).forEach(a => {
+      if (others.length < 2 && (!easy || others.every(o => o.g !== a.g))) others.push(a);
+    });
+    const choices = shuffle([current, ...others]);
+
+    const pic = document.getElementById('shadow-pic');
+    pic.classList.remove('reveal', 'pop');
+    pic.textContent = current.e;
+    void pic.offsetWidth;
+    pic.classList.add('pop');
+
+    const nm = document.getElementById('shadow-name');
+    nm.classList.remove('show');
+    nm.innerHTML = '&nbsp;';
+
+    const box = document.getElementById('answers');
+    box.innerHTML = '';
+    choices.forEach(a => {
+      const b = document.createElement('button');
+      b.className = 'btn-answer';
+      b.textContent = a.e;
+      b.setAttribute('aria-label', a.n);
+      b.onclick = () => handleAnswer(b, a);
+      box.appendChild(b);
+    });
+    answering = false;
+  }
+
+  function handleAnswer(btn, a) {
+    if (answering) return;
+    answering = true;
+    document.querySelectorAll('.btn-answer').forEach(b => b.disabled = true);
+    const card = document.getElementById('shadow-card');
+
+    if (a.e === current.e) {
+      btn.classList.add('correct');
+      card.classList.add('flash-correct');
+      score++;
+      document.getElementById('hud-score').textContent = `Správně: ${score} / ${GOAL}`;
+      const pic = document.getElementById('shadow-pic');
+      pic.classList.remove('pop');
+      pic.classList.add('reveal');
+      const nm = document.getElementById('shadow-name');
+      nm.textContent = 'Je to ' + current.n + '!';
+      nm.classList.add('show');
+      setTimeout(() => {
+        card.classList.remove('flash-correct');
+        if (score >= GOAL) endGame(); else newQuestion();
+      }, 1100);
+    } else {
+      // Chyba se nepočítá — krátký červený záblesk a nový stín
+      btn.classList.add('wrong');
+      card.classList.add('flash-wrong');
+      setTimeout(() => {
+        card.classList.remove('flash-wrong');
+        newQuestion();
+      }, 500);
+    }
+  }
+
+  // ─── GAME FLOW ────────────────────────────────────────────
+  function startGame() {
+    const nr = document.querySelector('.name-row'); if (nr) nr.style.display = '';
+    score = 0; finalMs = 0; recent = [];
+    document.getElementById('hud-score').textContent = `Správně: 0 / ${GOAL}`;
+    document.getElementById('hud-timer').textContent = '0:00';
+    showScreen('screen-game');
+    newQuestion();
+    startTimer();
+  }
+
+  function endGame() {
+    stopTimer();
+    document.getElementById('final-time').textContent = fmtTime(finalMs);
+    document.getElementById('player-name').value = '';
+    showScreen('screen-end');
+    renderLeaderboard('lb-end');
+  }
+
+  // ─── LEADERBOARD ──────────────────────────────────────────
+  function curMonth() {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+  }
+
+  async function getScores() {
+    try {
+      const r = await fetch(DB_URL + '/scores/' + QUIZ_TYPE + '.json');
+      const d = await r.json();
+      const scores = Array.isArray(d) ? d : [];
+      const ym = curMonth();
+      if (scores.some(s => !s.month || s.month !== ym)) return [];
+      return scores;
+    } catch { return []; }
+  }
+
+  async function saveScore() {
+    const nameInput = document.getElementById('player-name');
+    const name = nameInput.value.trim();
+    if (!name) { nameInput.style.outline = '3px solid #ef4444'; nameInput.focus(); return; }
+    nameInput.style.outline = '';
+    const scores = await getScores();
+    scores.push({ name, ms: finalMs, month: curMonth(), date: new Date().toLocaleDateString('cs-CZ') });
+    scores.sort((a, b) => a.ms - b.ms);
+    const top10 = scores.slice(0, 10);
+    try {
+      await fetch(DB_URL + '/scores/' + QUIZ_TYPE + '.json', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(top10)
+      });
+    } catch {}
+    renderLeaderboard('lb-end');
+    const nr = document.querySelector('.name-row'); if (nr) nr.style.display = 'none';
+    nameInput.value = '';
+  }
+
+  async function renderLeaderboard(elId) {
+    const el = document.getElementById(elId);
+    el.innerHTML = '<li class="lb-empty">Načítám…</li>';
+    const scores = await getScores();
+    if (!scores.length) { el.innerHTML = '<li class="lb-empty">Zatím žádné výsledky.</li>'; return; }
+    el.innerHTML = scores.map((s, i) => `
+      <li>
+        <span class="lb-rank">${i + 1}.</span>
+        <span class="lb-name">${esc(s.name)}</span>
+        <span class="lb-time">${fmtTime(s.ms)}</span>
+        <span class="lb-date">${esc(s.date || '')}</span>
+      </li>`).join('');
+  }
+
+  function esc(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function fmtTime(ms) {
+    const s = Math.floor(ms / 1000);
+    return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+  }
+
+  renderLeaderboard('lb-start');
+</script>
+</body>
+</html>
