@@ -195,6 +195,9 @@ renderLeaderboard('lb-start');
 | hra43.html | Kolik je hodin? | Matematika | `math-clock` |
 | hra44.html | Čí je to stín? | Hrátky pro nejmenší | `preschool-shadows` |
 | hra45.html | Abecední had | Čeština | `czech-alphabet-snake` |
+| hra46.html | Obtáhni tvar | Hrátky pro nejmenší | `preschool-draw-shapes` |
+| hra47.html | Co je v abecedě dál? | Čeština | `czech-alphabet-next` |
+| hra48.html | Dětské sudoku | Matematika | `math-sudoku` |
 
 ## Struktura webu (od 2026-10-31)
 
@@ -223,12 +226,12 @@ index.html  →  ✨ Nově přidáno (poslední 3 hry, se štítkem „Sekce · 
 ## Rozdělení her do sekcí a skupin
 - 🔢 **Matematika** (`matematika.html`)
   - 1. třída — hra.html, hra2.html, hra8.html, hra16.html, hra9.html, hra18.html, hra19.html, hra30.html, hra26.html
-  - 2. třída — hra23.html, hra33.html, hra35.html, hra43.html
+  - 2. třída — hra23.html, hra33.html, hra35.html, hra43.html, hra48.html
 - 📖 **Čeština** (`cestina.html`)
   - 1. třída — hra3.html, hra5.html, hra13.html, hra28.html, hra14.html, hra15.html, hra31.html, hra32.html, hra21.html
-  - 2. třída — hra45.html, hra36.html, hra24.html, hra4.html
+  - 2. třída — hra45.html, hra47.html, hra36.html, hra24.html, hra4.html
 - 🌈 **Hrátky pro nejmenší** (`nejmensi.html`)
   - Čísla a počítání — hra6, hra7, hra10, hra11, hra17, hra29, hra39, hra41
-  - Barvy a tvary — hra12, hra27, hra38, hra42, hra25
+  - Barvy a tvary — hra12, hra27, hra38, hra42, hra25, hra46
   - Písmenka — hra40
   - Postřeh a paměť — hra20, hra22, hra34, hra37, hra44

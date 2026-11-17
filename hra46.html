@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-KEF2T80GE0"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-KEF2T80GE0');
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Obtáhni tvar | Vzdělávací hry</title>
+  <meta property="og:title" content="Obtáhni tvar" />
+  <meta property="og:image" content="https://simimisek.github.io/kids-games/ogimage.png" />
+  <meta property="og:description" content="Obtáhni prstíkem kruh, čtverec, trojúhelník i hvězdu. Malovací hra pro nejmenší." />
+  <meta property="og:url" content="https://simimisek.github.io/kids-games/hra46.html" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://simimisek.github.io/kids-games/ogimage.png" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #4a148c 0%, #880e4f 100%);
+      min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+      padding: 16px 16px 40px;
+      overflow-x: hidden;
+    }
+
+    .bg-deco { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+    .bg-deco span {
+      position: absolute; font-size: 2.8rem; opacity: 0.13;
+      animation: decoF 7s ease-in-out infinite; user-select: none;
+      filter: brightness(0) invert(1);
+    }
+    @keyframes decoF {
+      0%,100% { transform: translateY(0) rotate(-4deg); }
+      50%      { transform: translateY(-14px) rotate(4deg); }
+    }
+
+    .screen { position: relative; z-index: 1; display: none; width: 100%; max-width: 480px; }
+    .screen.active { display: flex; flex-direction: column; align-items: center; gap: 16px; padding-top: 16px; }
+
+    .title    { font-size: 2.2rem; color: #fff; text-align: center; text-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+    .subtitle { color: rgba(255,255,255,0.85); text-align: center; font-size: 1rem; line-height: 1.65; }
+
+    .hud {
+      width: 100%; display: flex; justify-content: space-between; align-items: center;
+      background: rgba(255,255,255,0.2); border-radius: 14px;
+      padding: 10px 20px; margin-top: 55px;
+      color: #fff; font-size: 1.1rem; font-weight: 600;
+    }
+    .hud-timer { font-variant-numeric: tabular-nums; }
+
+    /* ─── TASK CARD ─── */
+    .task {
+      width: 100%; display: flex; align-items: center; gap: 14px;
+      background: rgba(255,255,255,0.14); border-radius: 16px; padding: 10px 14px;
+    }
+    .task-card {
+      width: 74px; height: 74px; flex-shrink: 0;
+      background: #fff; border-radius: 14px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .task-card svg { width: 58px; height: 58px; }
+    .task-text { color: #fff; }
+    .task-hint { font-size: 0.85rem; opacity: 0.8; }
+    .task-name { font-size: 1.6rem; font-weight: 800; }
+
+    /* ─── CANVAS ─── */
+    .draw-card {
+      position: relative; width: 100%; aspect-ratio: 1 / 1;
+      background: radial-gradient(circle at 50% 40%, #fffdf7 0%, #fdf3ff 100%);
+      border-radius: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+      overflow: hidden; transition: box-shadow 0.2s;
+    }
+    .draw-card.flash-correct { box-shadow: 0 0 0 5px #22c55e, 0 8px 32px rgba(34,197,94,0.3); }
+    .draw-card.flash-wrong   { box-shadow: 0 0 0 5px #ef4444, 0 8px 32px rgba(239,68,68,0.3); }
+    #canvas { width: 100%; height: 100%; display: block; touch-action: none; cursor: crosshair; }
+    .praise {
+      position: absolute; left: 0; right: 0; bottom: 14px; text-align: center;
+      font-size: 1.5rem; font-weight: 800; color: #6a1b9a;
+      opacity: 0; transition: opacity 0.25s; pointer-events: none;
+    }
+    .praise.show { opacity: 1; }
+
+    .progress-row { width: 100%; display: flex; align-items: center; gap: 12px; }
+    .progress {
+      flex: 1; height: 14px; background: rgba(255,255,255,0.2); border-radius: 8px; overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%; width: 0%; border-radius: 8px;
+      background: linear-gradient(90deg, #f8bbd0, #ce93d8);
+      transition: width 0.15s;
+    }
+    .btn-clear {
+      min-height: 44px; padding: 8px 16px; border-radius: 12px; cursor: pointer;
+      background: rgba(255,255,255,0.15); color: #fff; font-family: inherit; font-weight: 700; font-size: 0.95rem;
+      border: 2px solid rgba(255,255,255,0.35);
+    }
+    .btn-clear:hover { background: rgba(255,255,255,0.25); }
+
+    /* ─── RESULT ─── */
+    .result-card {
+      background: #fff; border-radius: 20px;
+      padding: 32px 24px; width: 100%;
+      text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    }
+    .result-card h2 { font-size: 1.8rem; color: #333; margin-bottom: 8px; }
+    .result-time    { font-size: 3rem; font-weight: 700; color: #6a1b9a; margin: 12px 0; }
+    .result-card p  { color: #666; font-size: 0.95rem; }
+
+    .name-row { width: 100%; display: flex; gap: 10px; }
+    .name-row input {
+      flex: 1; min-width: 0; padding: 14px 18px; border-radius: 12px;
+      border: none; font-size: 1rem; outline: 2px solid transparent;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.12); transition: outline 0.2s;
+    }
+    .name-row input:focus { outline: 2px solid #6a1b9a; }
+
+    /* ─── LEADERBOARD ─── */
+    .leaderboard-card {
+      background: #fff; border-radius: 20px;
+      padding: 22px; width: 100%;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+    .leaderboard-card h3 { text-align: center; color: #333; font-size: 1.1rem; margin-bottom: 14px; }
+    .leaderboard-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .leaderboard-list li {
+      display: grid; grid-template-columns: 28px 1fr auto;
+      gap: 8px; align-items: center; font-size: 0.95rem;
+      color: #444; padding: 6px 0; border-bottom: 1px solid #f0f0f0;
+    }
+    .leaderboard-list li:last-child { border-bottom: none; }
+    .lb-rank  { font-weight: 700; color: #6a1b9a; text-align: center; }
+    .lb-name  { font-weight: 600; }
+    .lb-time  { font-variant-numeric: tabular-nums; color: #6a1b9a; font-weight: 700; }
+    .lb-date  { font-size: 0.78rem; color: #aaa; grid-column: 2 / 4; margin-top: -4px; }
+    .lb-empty { text-align: center; color: #aaa; font-style: italic; font-size: 0.9rem; padding: 8px 0; display: block !important; }
+
+    /* ─── BUTTONS ─── */
+    .btn {
+      width: 100%; padding: 15px;
+      font-size: 1.05rem; font-weight: 700;
+      border: none; border-radius: 14px; cursor: pointer;
+      transition: transform 0.1s; font-family: inherit;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary   { background: #8e24aa; color: #fff; box-shadow: 0 4px 16px rgba(142,36,170,0.35); }
+    .btn-primary:hover { background: #7b1fa2; }
+    .btn-secondary { background: rgba(255,255,255,0.15); color: #fff; border: 2px solid rgba(255,255,255,0.35); box-shadow: none; }
+    .btn-secondary:hover { background: rgba(255,255,255,0.25); }
+
+    .btn-home-fixed {
+      position: fixed; top: 12px; right: 12px; z-index: 200;
+      background: rgba(0,0,0,0.25); border: none; border-radius: 10px;
+      padding: 7px 14px; color: #fff; font-family: inherit;
+      font-size: 0.85rem; font-weight: 700; text-decoration: none; cursor: pointer;
+    }
+    .btn-home-fixed:hover { background: rgba(0,0,0,0.4); }
+
+    @media (max-width: 400px) {
+      body { padding: 10px 10px 32px; }
+      .title { font-size: 1.9rem; }
+      .task-card { width: 62px; height: 62px; }
+      .task-card svg { width: 48px; height: 48px; }
+      .task-name { font-size: 1.35rem; }
+      .btn { padding: 14px; font-size: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="bg-deco" aria-hidden="true">
+  <span style="top:5%;left:4%;animation-delay:0s">✏️</span>
+  <span style="top:8%;left:78%;animation-delay:1.2s">⭐</span>
+  <span style="top:24%;left:88%;animation-delay:0.5s">🖍️</span>
+  <span style="top:42%;left:2%;animation-delay:2.1s">❤️</span>
+  <span style="top:62%;left:90%;animation-delay:0.9s">🔺</span>
+  <span style="top:77%;left:8%;animation-delay:1.7s">🟦</span>
+  <span style="top:88%;left:56%;animation-delay:3.1s">⚪</span>
+  <span style="top:16%;left:43%;animation-delay:1.0s">🎨</span>
+</div>
+
+<!-- ═══════════ START SCREEN ═══════════ -->
+<div id="screen-start" class="screen active">
+  <div class="title">✏️ Obtáhni tvar</div>
+  <p class="subtitle">Na kartičce je tvar — kruh, čtverec, trojúhelník…<br>Obtáhni prstíkem (nebo myší) tečkovanou čáru. Nakresli 8 tvarů co nejrychleji!</p>
+  <button class="btn btn-primary" onclick="startGame()">▶ Hrát</button>
+  <a href="nejmensi.html" style="width:100%;text-decoration:none;">
+    <button class="btn btn-secondary">🏠 Zpět na výběr</button>
+  </a>
+  <div class="leaderboard-card">
+    <h3>🏆 Nejlepší časy</h3>
+    <p style="font-size:0.75rem;opacity:0.5;margin:0 0 8px;text-align:center;">↺ Resetuje se 1. každého měsíce</p>
+    <ul class="leaderboard-list" id="lb-start"></ul>
+  </div>
+</div>
+
+<!-- ═══════════ GAME SCREEN ═══════════ -->
+<div id="screen-game" class="screen">
+  <a href="index.html" class="btn-home-fixed">🏠 Domů</a>
+  <div class="hud">
+    <span id="hud-score">Tvary: 0 / 8</span>
+    <span class="hud-timer" id="hud-timer">0:00</span>
+  </div>
+  <div class="task">
+    <div class="task-card" id="task-card"></div>
+    <div class="task-text">
+      <div class="task-hint">Obtáhni prstíkem:</div>
+      <div class="task-name" id="task-name"></div>
+    </div>
+  </div>
+  <div class="draw-card" id="draw-card">
+    <canvas id="canvas"></canvas>
+    <div class="praise" id="praise">Výborně! 🎉</div>
+  </div>
+  <div class="progress-row">
+    <div class="progress"><div class="progress-fill" id="progress-fill"></div></div>
+    <button class="btn-clear" onclick="clearInk()">🧽 Smazat</button>
+  </div>
+</div>
+
+<!-- ═══════════ END SCREEN ═══════════ -->
+<div id="screen-end" class="screen">
+  <div class="result-card">
+    <h2>Skvělá práce! 🎉</h2>
+    <div class="result-time" id="final-time"></div>
+    <p>To byl tvůj čas na 8 nakreslených tvarů.</p>
+  </div>
+  <div class="name-row">
+    <input type="text" id="player-name" placeholder="Tvoje jméno…" maxlength="20" />
+    <button class="btn btn-primary" style="width:auto;padding:14px 20px;font-size:1rem;" onclick="saveScore()">Uložit</button>
+  </div>
+  <button class="btn btn-primary" onclick="startGame()">🔄 Hrát znovu</button>
+  <a href="nejmensi.html" style="width:100%;text-decoration:none;">
+    <button class="btn btn-secondary">🏠 Zpět na výběr</button>
+  </a>
+  <div class="leaderboard-card">
+    <h3>🏆 Nejlepší časy</h3>
+    <ul class="leaderboard-list" id="lb-end"></ul>
+  </div>
+</div>
+
+<script>
+  // ─── CONFIG ───────────────────────────────────────────────
+  const QUIZ_TYPE = 'preschool-draw-shapes';
+  const DB_URL    = 'https://kids-games-3a167-default-rtdb.europe-west1.firebasedatabase.app';
+  const GOAL      = 8;
+  const EASY_COUNT = 4;        // prvních 4 tvarů je jednodušších
+  const SAMPLES   = 72;        // kontrolní body na obrysu
+  const TOL       = 0.075;     // jak blízko čáry musí prstík jet (část šířky plátna)
+  const OFF_TOL   = 0.17;      // čmáranice daleko od tvaru
+  const NEED      = 0.88;      // kolik obrysu musí být obtaženo
+
+  // ─── TVARY (souřadnice 0..1, uzavřený obrys) ──────────────
+  function ellipsePts(rx, ry) {
+    const a = [];
+    for (let i = 0; i < 64; i++) { const t = i / 64 * Math.PI * 2 - Math.PI / 2; a.push([rx * Math.cos(t), ry * Math.sin(t)]); }
+    return a;
+  }
+  function starPts() {
+    const a = [];
+    for (let i = 0; i < 10; i++) {
+      const r = i % 2 ? 0.42 : 1, t = -Math.PI / 2 + i * Math.PI / 5;
+      a.push([r * Math.cos(t), r * Math.sin(t)]);
+    }
+    return a;
+  }
+  function heartPts() {
+    const a = [];
+    for (let i = 0; i < 72; i++) {
+      const t = i / 72 * Math.PI * 2;
+      a.push([16 * Math.pow(Math.sin(t), 3),
+              -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t))]);
+    }
+    return a;
+  }
+  // Vycentruje a zvětší obrys do čtverce s okrajem (zachová poměr stran)
+  function fit(pts, margin = 0.15) {
+    const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
+    const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
+    const w = maxX - minX, h = maxY - minY, s = (1 - 2 * margin) / Math.max(w, h);
+    const ox = (1 - w * s) / 2, oy = (1 - h * s) / 2;
+    return pts.map(p => [ox + (p[0] - minX) * s, oy + (p[1] - minY) * s]);
+  }
+
+  const SHAPES = [
+    { id: 'kruh',      name: 'Kruh',        color: '#e57373', tier: 0, pts: fit(ellipsePts(1, 1)) },
+    { id: 'ctverec',   name: 'Čtverec',     color: '#64b5f6', tier: 0, pts: fit([[0,0],[1,0],[1,1],[0,1]]) },
+    { id: 'trojuh',    name: 'Trojúhelník', color: '#81c784', tier: 0, pts: fit([[0.5,0],[1,0.9],[0,0.9]]) },
+    { id: 'obdelnik',  name: 'Obdélník',    color: '#ffb74d', tier: 0, pts: fit([[0,0],[1,0],[1,0.55],[0,0.55]], 0.1) },
+    { id: 'oval',      name: 'Ovál',        color: '#f06292', tier: 0, pts: fit(ellipsePts(1, 0.62), 0.1) },
+    { id: 'kosoctv',   name: 'Kosočtverec', color: '#4db6ac', tier: 1, pts: fit([[0.5,0],[0.8,0.5],[0.5,1],[0.2,0.5]], 0.1) },
+    { id: 'hvezda',    name: 'Hvězda',      color: '#ffd54f', tier: 1, pts: fit(starPts(), 0.12) },
+    { id: 'srdce',     name: 'Srdíčko',     color: '#ef5350', tier: 1, pts: fit(heartPts()) },
+    { id: 'domecek',   name: 'Domeček',     color: '#a1887f', tier: 1, pts: fit([[0,0.45],[0.5,0],[1,0.45],[1,1],[0,1]]) }
+  ];
+
+  // Rovnoměrně rozmístí body po obvodu uzavřeného obrysu
+  function resample(pts, n) {
+    const closed = pts.concat([pts[0]]);
+    const seg = [];
+    let total = 0;
+    for (let i = 0; i < closed.length - 1; i++) {
+      const d = Math.hypot(closed[i + 1][0] - closed[i][0], closed[i + 1][1] - closed[i][1]);
+      seg.push(d); total += d;
+    }
+    const out = [];
+    let si = 0, acc = 0;
+    for (let k = 0; k < n; k++) {
+      const target = k / n * total;
+      while (si < seg.length - 1 && acc + seg[si] < target) { acc += seg[si]; si++; }
+      const t = seg[si] ? (target - acc) / seg[si] : 0;
+      const a = closed[si], b = closed[si + 1];
+      out.push([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]);
+    }
+    return out;
+  }
+
+  // ─── STATE ────────────────────────────────────────────────
+  let score = 0, timerStart = null, timerInterval = null, finalMs = 0;
+  let current = null, samples = [], dense = [], covered = [], strokes = [];
+  let drawing = false, locked = false, finished = false, done = [], rafPending = false;
+
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo(0, 0);
+  }
+  function randInt(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a; }
+
+  // ─── TIMER ────────────────────────────────────────────────
+  function startTimer() {
+    timerStart = Date.now();
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+      document.getElementById('hud-timer').textContent = fmtTime(Date.now() - timerStart);
+    }, 200);
+  }
+  function stopTimer() { clearInterval(timerInterval); finalMs = Date.now() - timerStart; }
+
+  // ─── CANVAS ───────────────────────────────────────────────
+  function resizeCanvas() {
+    const r = canvas.getBoundingClientRect();
+    if (!r.width) return;
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = Math.round(r.width * dpr);
+    canvas.height = Math.round(r.height * dpr);
+    ctx.setTransform(dpr * r.width, 0, 0, dpr * r.height, 0, 0); // kreslíme v souřadnicích 0..1
+    render();
+  }
+  window.addEventListener('resize', resizeCanvas);
+
+  function pathOf(pts) {
+    ctx.beginPath();
+    pts.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]));
+    ctx.closePath();
+  }
+
+  function render() {
+    rafPending = false;
+    ctx.clearRect(0, 0, 1, 1);
+    if (!current) return;
+    const px = 1 / (canvas.getBoundingClientRect().width || 300); // 1 CSS pixel v souřadnicích 0..1
+    ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+
+    if (finished) {
+      pathOf(current.pts);
+      ctx.fillStyle = current.color + '66';
+      ctx.fill();
+    }
+
+    // tečkovaná předloha
+    pathOf(current.pts);
+    ctx.setLineDash([0.001, 0.045]);
+    ctx.lineWidth = 0.028;
+    ctx.strokeStyle = 'rgba(106,27,154,0.30)';
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // výchozí bod — kde začít
+    if (!strokes.length) {
+      const s = current.pts[0];
+      ctx.beginPath(); ctx.arc(s[0], s[1], 0.03, 0, Math.PI * 2);
+      ctx.fillStyle = '#8e24aa'; ctx.fill();
+      ctx.beginPath(); ctx.arc(s[0], s[1], 0.012, 0, Math.PI * 2);
+      ctx.fillStyle = '#fff'; ctx.fill();
+    }
+
+    // čára dítěte
+    ctx.lineWidth = Math.max(0.03, 9 * px);
+    ctx.strokeStyle = current.color;
+    strokes.forEach(st => {
+      if (st.length === 1) {
+        ctx.beginPath(); ctx.arc(st[0][0], st[0][1], ctx.lineWidth / 2, 0, Math.PI * 2);
+        ctx.fillStyle = current.color; ctx.fill();
+        return;
+      }
+      ctx.beginPath();
+      st.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]));
+      ctx.stroke();
+    });
+  }
+  function scheduleRender() { if (!rafPending) { rafPending = true; requestAnimationFrame(render); } }
+
+  function toPt(e) {
+    const r = canvas.getBoundingClientRect();
+    return [(e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height];
+  }
+
+  function markCovered(p) {
+    for (let j = 0; j < samples.length; j++) {
+      if (!covered[j] && Math.hypot(samples[j][0] - p[0], samples[j][1] - p[1]) < TOL) covered[j] = true;
+    }
+  }
+  function coverage() { return covered.filter(Boolean).length / samples.length; }
+
+  function addPoint(p) {
+    const st = strokes[strokes.length - 1];
+    const last = st[st.length - 1];
+    if (last) {
+      // doplnit mezikroky, když prstík jede rychle
+      const d = Math.hypot(p[0] - last[0], p[1] - last[1]);
+      const steps = Math.ceil(d / 0.012);
+      for (let k = 1; k < steps; k++) {
+        const q = [last[0] + (p[0] - last[0]) * k / steps, last[1] + (p[1] - last[1]) * k / steps];
+        markCovered(q);
+      }
+    }
+    st.push(p);
+    markCovered(p);
+  }
+
+  function updateProgress() {
+    document.getElementById('progress-fill').style.width = Math.min(100, Math.round(coverage() / NEED * 100)) + '%';
+  }
+
+  canvas.addEventListener('pointerdown', e => {
+    if (locked || !current) return;
+    e.preventDefault();
+    try { canvas.setPointerCapture(e.pointerId); } catch {}
+    drawing = true;
+    strokes.push([]);
+    addPoint(toPt(e));
+    afterDraw();
+  });
+  canvas.addEventListener('pointermove', e => {
+    if (!drawing || locked) return;
+    e.preventDefault();
+    const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+    (evs.length ? evs : [e]).forEach(ev => addPoint(toPt(ev)));
+    afterDraw();
+  });
+  function endStroke() {
+    if (!drawing) return;
+    drawing = false;
+    if (locked) return;
+    checkScribble();
+  }
+  canvas.addEventListener('pointerup', endStroke);
+  canvas.addEventListener('pointercancel', endStroke);
+
+  function afterDraw() {
+    updateProgress();
+    scheduleRender();
+    if (coverage() >= NEED) success();
+  }
+
+  // Když dítě čmárá hodně mimo tvar → červený záblesk a nový tvar
+  function checkScribble() {
+    let total = 0, off = 0;
+    strokes.forEach(st => st.forEach(p => {
+      total++;
+      let m = Infinity;
+      for (const q of dense) { const d = Math.hypot(q[0] - p[0], q[1] - p[1]); if (d < m) m = d; }
+      if (m > OFF_TOL) off++;
+    }));
+    if (total > 40 && off / total > 0.4) wrong();
+  }
+
+  function clearInk() {
+    if (locked) return;
+    strokes = []; covered = samples.map(() => false);
+    updateProgress(); render();
+  }
+
+  // ─── ROUND ────────────────────────────────────────────────
+  function newShape() {
+    const tier = score < EASY_COUNT ? 0 : 1;
+    let pool = SHAPES.filter(s => s.tier === tier && !done.includes(s.id) && s !== current);
+    if (!pool.length) pool = SHAPES.filter(s => s.tier === tier && s !== current);
+    current = pool[randInt(0, pool.length - 1)];
+    samples = resample(current.pts, SAMPLES);
+    dense = resample(current.pts, 240);
+    covered = samples.map(() => false);
+    strokes = []; finished = false; locked = false; drawing = false;
+
+    document.getElementById('task-name').textContent = current.name;
+    const poly = current.pts.map(p => (p[0] * 100).toFixed(1) + ',' + (p[1] * 100).toFixed(1)).join(' ');
+    document.getElementById('task-card').innerHTML =
+      `<svg viewBox="0 0 100 100" aria-hidden="true"><polygon points="${poly}" fill="${current.color}" stroke="rgba(0,0,0,0.25)" stroke-width="3" stroke-linejoin="round"/></svg>`;
+    document.getElementById('praise').classList.remove('show');
+    updateProgress();
+    render();
+  }
+
+  function success() {
+    locked = true; drawing = false; finished = true;
+    done.push(current.id);
+    score++;
+    document.getElementById('hud-score').textContent = `Tvary: ${score} / ${GOAL}`;
+    document.getElementById('progress-fill').style.width = '100%';
+    const card = document.getElementById('draw-card');
+    card.classList.add('flash-correct');
+    document.getElementById('praise').classList.add('show');
+    render();
+    setTimeout(() => {
+      card.classList.remove('flash-correct');
+      if (score >= GOAL) endGame(); else newShape();
+    }, 1200);
+  }
+
+  function wrong() {
+    // Chyba se nepočítá — krátký červený záblesk a nový tvar
+    locked = true;
+    const card = document.getElementById('draw-card');
+    card.classList.add('flash-wrong');
+    setTimeout(() => {
+      card.classList.remove('flash-wrong');
+      newShape();
+    }, 500);
+  }
+
+  // ─── GAME FLOW ────────────────────────────────────────────
+  function startGame() {
+    const nr = document.querySelector('.name-row'); if (nr) nr.style.display = '';
+    score = 0; finalMs = 0; done = []; current = null;
+    document.getElementById('hud-score').textContent = `Tvary: 0 / ${GOAL}`;
+    document.getElementById('hud-timer').textContent = '0:00';
+    showScreen('screen-game');
+    resizeCanvas();
+    newShape();
+    startTimer();
+  }
+
+  function endGame() {
+    stopTimer();
+    current = null;
+    document.getElementById('final-time').textContent = fmtTime(finalMs);
+    document.getElementById('player-name').value = '';
+    showScreen('screen-end');
+    renderLeaderboard('lb-end');
+  }
+
+  // ─── LEADERBOARD ──────────────────────────────────────────
+  function curMonth() {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+  }
+
+  async function getScores() {
+    try {
+      const r = await fetch(DB_URL + '/scores/' + QUIZ_TYPE + '.json');
+      const d = await r.json();
+      const scores = Array.isArray(d) ? d : [];
+      const ym = curMonth();
+      if (scores.some(s => !s.month || s.month !== ym)) return [];
+      return scores;
+    } catch { return []; }
+  }
+
+  async function saveScore() {
+    const nameInput = document.getElementById('player-name');
+    const name = nameInput.value.trim();
+    if (!name) { nameInput.style.outline = '3px solid #ef4444'; nameInput.focus(); return; }
+    nameInput.style.outline = '';
+    const scores = await getScores();
+    scores.push({ name, ms: finalMs, month: curMonth(), date: new Date().toLocaleDateString('cs-CZ') });
+    scores.sort((a, b) => a.ms - b.ms);
+    const top10 = scores.slice(0, 10);
+    try {
+      await fetch(DB_URL + '/scores/' + QUIZ_TYPE + '.json', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(top10)
+      });
+    } catch {}
+    renderLeaderboard('lb-end');
+    const nr = document.querySelector('.name-row'); if (nr) nr.style.display = 'none';
+    nameInput.value = '';
+  }
+
+  async function renderLeaderboard(elId) {
+    const el = document.getElementById(elId);
+    el.innerHTML = '<li class="lb-empty">Načítám…</li>';
+    const scores = await getScores();
+    if (!scores.length) { el.innerHTML = '<li class="lb-empty">Zatím žádné výsledky.</li>'; return; }
+    el.innerHTML = scores.map((s, i) => `
+      <li>
+        <span class="lb-rank">${i + 1}.</span>
+        <span class="lb-name">${esc(s.name)}</span>
+        <span class="lb-time">${fmtTime(s.ms)}</span>
+        <span class="lb-date">${esc(s.date || '')}</span>
+      </li>`).join('');
+  }
+
+  function esc(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function fmtTime(ms) {
+    const s = Math.floor(ms / 1000);
+    return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+  }
+
+  renderLeaderboard('lb-start');
+</script>
+</body>
+</html>
