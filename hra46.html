@@ -190,7 +190,7 @@
 <!-- ═══════════ START SCREEN ═══════════ -->
 <div id="screen-start" class="screen active">
   <div class="title">✏️ Obtáhni tvar</div>
-  <p class="subtitle">Na kartičce je tvar — kruh, čtverec, trojúhelník…<br>Obtáhni prstíkem (nebo myší) tečkovanou čáru. Nakresli 8 tvarů co nejrychleji!</p>
+  <p class="subtitle">Na kartičce je tvar — kruh, čtverec, trojúhelník…<br>Obtáhni prstíkem (nebo myší) všechny tečky — tvar je hotový, až žádná nezbyde. Nakresli 8 tvarů co nejrychleji!</p>
   <button class="btn btn-primary" onclick="startGame()">▶ Hrát</button>
   <a href="nejmensi.html" style="width:100%;text-decoration:none;">
     <button class="btn btn-secondary">🏠 Zpět na výběr</button>
@@ -254,9 +254,9 @@
   const GOAL      = 8;
   const EASY_COUNT = 4;        // prvních 4 tvarů je jednodušších
   const SAMPLES   = 72;        // kontrolní body na obrysu
-  const TOL       = 0.075;     // jak blízko čáry musí prstík jet (část šířky plátna)
+  const TOL       = 0.05;      // jak blízko tečky musí prstík jet (část šířky plátna)
   const OFF_TOL   = 0.17;      // čmáranice daleko od tvaru
-  const NEED      = 0.88;      // kolik obrysu musí být obtaženo
+  const NEED      = 1;         // obtáhnout se musí všechny tečky — nic se nedokresluje samo
 
   // ─── TVARY (souřadnice 0..1, uzavřený obrys) ──────────────
   function ellipsePts(rx, ry) {
@@ -375,17 +375,16 @@
 
     if (finished) {
       pathOf(current.pts);
-      ctx.fillStyle = current.color + '66';
+      ctx.fillStyle = current.color + '55';
       ctx.fill();
-    } else {
-      // tečkovaná předloha
-      pathOf(current.pts);
-      ctx.setLineDash([0.001, 0.045]);
-      ctx.lineWidth = 0.028;
-      ctx.strokeStyle = 'rgba(106,27,154,0.30)';
-      ctx.stroke();
-      ctx.setLineDash([]);
     }
+
+    // tečkovaná předloha — obtažené tečky zmizí, zbylé ukazují, kde ještě kreslit
+    ctx.fillStyle = 'rgba(106,27,154,0.38)';
+    samples.forEach((q, j) => {
+      if (covered[j]) return;
+      ctx.beginPath(); ctx.arc(q[0], q[1], 0.014, 0, Math.PI * 2); ctx.fill();
+    });
 
     // výchozí bod — kde začít
     if (!strokes.length) {
@@ -409,13 +408,6 @@
       st.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]));
       ctx.stroke();
     });
-
-    // hotovo — dotáhnout celý obrys plnou čarou (žádné zbylé tečky)
-    if (finished) {
-      pathOf(current.pts);
-      ctx.strokeStyle = current.color;
-      ctx.stroke();
-    }
   }
   function scheduleRender() { if (!rafPending) { rafPending = true; requestAnimationFrame(render); } }
 
