@@ -377,15 +377,15 @@
       pathOf(current.pts);
       ctx.fillStyle = current.color + '66';
       ctx.fill();
+    } else {
+      // tečkovaná předloha
+      pathOf(current.pts);
+      ctx.setLineDash([0.001, 0.045]);
+      ctx.lineWidth = 0.028;
+      ctx.strokeStyle = 'rgba(106,27,154,0.30)';
+      ctx.stroke();
+      ctx.setLineDash([]);
     }
-
-    // tečkovaná předloha
-    pathOf(current.pts);
-    ctx.setLineDash([0.001, 0.045]);
-    ctx.lineWidth = 0.028;
-    ctx.strokeStyle = 'rgba(106,27,154,0.30)';
-    ctx.stroke();
-    ctx.setLineDash([]);
 
     // výchozí bod — kde začít
     if (!strokes.length) {
@@ -409,6 +409,13 @@
       st.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]));
       ctx.stroke();
     });
+
+    // hotovo — dotáhnout celý obrys plnou čarou (žádné zbylé tečky)
+    if (finished) {
+      pathOf(current.pts);
+      ctx.strokeStyle = current.color;
+      ctx.stroke();
+    }
   }
   function scheduleRender() { if (!rafPending) { rafPending = true; requestAnimationFrame(render); } }
 
